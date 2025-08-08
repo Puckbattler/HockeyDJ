@@ -1,0 +1,386 @@
+﻿@{
+    ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .header h1 {
+                font-size: 3em;
+                margin: 0;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                background: linear-gradient(45deg, #ff6b35, #f7931e);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+        .current-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .player {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .player:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            .player h3 {
+                margin: 0 0 15px 0;
+                color: #ff6b35;
+                font-size: 1.2em;
+            }
+
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-play {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+            .btn-play:hover {
+                background: linear-gradient(45deg, #218838, #1ba085);
+                transform: scale(1.05);
+            }
+
+        .btn-pause {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+            color: white;
+        }
+
+            .btn-pause:hover {
+                background: linear-gradient(45deg, #c82333, #e96b00);
+                transform: scale(1.05);
+            }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .track-info {
+            font-size: 14px;
+            color: #e0e0e0;
+            min-height: 40px;
+        }
+
+        .track-name {
+            font-weight: bold;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .setup-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+            .setup-link:hover {
+                background: rgba(255, 255, 255, 0.3);
+                color: white;
+                text-decoration: none;
+            }
+    </style>
+</head>
+<body>
+    <a href="@Url.Action("Setup")" class="setup-link">⚙️ Settings</a>
+
+    <div class="header">
+        <h1>🏒 HockeyDJ</h1>
+        <p>Hockey-Powered Music Controller</p>
+    </div>
+
+    <div class="current-track" id="currentTrackDisplay">
+        <strong>Ready to Play!</strong><br>
+        Select a playlist below to start your hockey soundtrack
+    </div>
+
+    <div id="loadingMessage" class="loading" style="display: none;">
+        Loading Spotify Player...
+    </div>
+
+    <div id="errorMessage" class="error" style="display: none;"></div>
+
+    <div class="players-grid" id="playersGrid">
+        <!-- Players will be generated by JavaScript -->
+    </div>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            initializeHockeyDJ();
+        };
+
+        let spotifyPlayer;
+        let deviceId;
+        let currentPlaylists = @Html.Raw(ViewBag.Playlists ?? "[]");
+        let accessToken = '@ViewBag.AccessToken';
+        let playlistTracks = {};
+
+        async function initializeHockeyDJ() {
+            document.getElementById('loadingMessage').style.display = 'block';
+
+            try {
+                spotifyPlayer = new Spotify.Player({
+                    name: 'HockeyDJ Player',
+                    getOAuthToken: cb => { cb(accessToken); },
+                    volume: 0.8
+                });
+
+                // Error handling
+                spotifyPlayer.addListener('initialization_error', ({ message }) => {
+                    showError('Failed to initialize player: ' + message);
+                });
+
+                spotifyPlayer.addListener('authentication_error', ({ message }) => {
+                    showError('Failed to authenticate: ' + message);
+                });
+
+                spotifyPlayer.addListener('account_error', ({ message }) => {
+                    showError('Failed to validate account: ' + message);
+                });
+
+                spotifyPlayer.addListener('playback_error', ({ message }) => {
+                    showError('Failed to perform playback: ' + message);
+                });
+
+                // Playback status updates
+                spotifyPlayer.addListener('player_state_changed', (state) => {
+                    if (state) {
+                        updateCurrentTrack(state.track_window.current_track);
+                    }
+                });
+
+                // Ready
+                spotifyPlayer.addListener('ready', ({ device_id }) => {
+                    console.log('Ready with Device ID', device_id);
+                    deviceId = device_id;
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    setupPlayers();
+                });
+
+                // Not Ready
+                spotifyPlayer.addListener('not_ready', ({ device_id }) => {
+                    console.log('Device ID has gone offline', device_id);
+                });
+
+                // Connect to the player!
+                spotifyPlayer.connect();
+
+            } catch (error) {
+                showError('Error initializing Spotify player: ' + error.message);
+                document.getElementById('loadingMessage').style.display = 'none';
+            }
+        }
+
+        function setupPlayers() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+
+            currentPlaylists.forEach((playlist, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player';
+                playerDiv.innerHTML = `
+                    <h3>🎵 ${playlist.Name}</h3>
+                    <div class="player-controls">
+                        <button class="btn btn-play" onclick="playRandomFromPlaylist('${playlist.Id}', ${index})">
+                            ▶️ Play Random
+                        </button>
+                        <button class="btn btn-pause" onclick="pausePlayback()">
+                            ⏸️ Pause
+                        </button>
+                    </div>
+                    <div class="track-info" id="trackInfo${index}">
+                        Click play to load a random track from this playlist
+                    </div>
+                `;
+                grid.appendChild(playerDiv);
+
+                // Pre-load playlist tracks
+                loadPlaylistTracks(playlist.Id);
+            });
+        }
+
+        async function loadPlaylistTracks(playlistId) {
+            try {
+                const response = await fetch('/Home/GetPlaylistTracks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `playlistId=${playlistId}`
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    playlistTracks[playlistId] = data.tracks;
+                } else {
+                    console.error('Error loading playlist:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading playlist tracks:', error);
+            }
+        }
+
+        async function playRandomFromPlaylist(playlistId, playerIndex) {
+            try {
+                const tracks = playlistTracks[playlistId];
+                if (!tracks || tracks.length === 0) {
+                    showError('No tracks available in this playlist');
+                    return;
+                }
+
+                // Select random track
+                const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+
+                // Update track info immediately
+                const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
+                trackInfoElement.innerHTML = `
+                    <div class="track-name">🎵 ${randomTrack.name}</div>
+                    <div>🎤 ${randomTrack.artist}</div>
+                `;
+
+                // Transfer playback to our device first
+                await fetch(`https://api.spotify.com/v1/me/player`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        device_ids: [deviceId],
+                        play: false
+                    })
+                });
+
+                // Start playing the track
+                await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uris: [randomTrack.uri]
+                    })
+                });
+
+            } catch (error) {
+                console.error('Error playing track:', error);
+                showError('Error playing track: ' + error.message);
+            }
+        }
+
+        async function pausePlayback() {
+            try {
+                await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+            } catch (error) {
+                console.error('Error pausing playback:', error);
+                showError('Error pausing playback: ' + error.message);
+            }
+        }
+
+        function updateCurrentTrack(track) {
+            const currentTrackDisplay = document.getElementById('currentTrackDisplay');
+            currentTrackDisplay.innerHTML = `
+                <strong>🎵 Now Playing</strong><br>
+                <span style="font-size: 1.2em;">${track.name}</span><br>
+                <span style="opacity: 0.8;">by ${track.artists.map(a => a.name).join(', ')}</span>
+            `;
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
