@@ -151,7 +151,7 @@
         }
 
         <div class="instructions">
-            <h3>?? Setup Instructions</h3>
+            <h3>Setup Instructions</h3>
             <ol>
                 <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: #ff6b35;">Spotify Developer Dashboard</a></li>
                 <li>Create a new app or use an existing one</li>
@@ -164,34 +164,35 @@
 
         <form method="post" action="@Url.Action("SaveSpotifyConfig")">
             <div class="form-group">
-                <label for="clientId">?? Spotify Client ID</label>
+                <label for="clientId">Spotify Client ID</label>
                 <input type="text" id="clientId" name="clientId" class="form-control"
                        placeholder="Your Spotify App Client ID" required />
             </div>
 
             <div class="form-group">
-                <label for="clientSecret">?? Spotify Client Secret</label>
+                <label for="clientSecret">Spotify Client Secret</label>
                 <input type="password" id="clientSecret" name="clientSecret" class="form-control"
                        placeholder="Your Spotify App Client Secret" required />
             </div>
 
             <div class="form-group">
-                <label for="redirectUri">?? Redirect URI</label>
+                <label for="redirectUri">Redirect URI</label>
                 <input type="url" id="redirectUri" name="redirectUri" class="form-control"
-                       placeholder="https://localhost:7001/Home/SpotifyCallback"
-                       value="https://localhost:7001/Home/SpotifyCallback" required />
+                       placeholder="https://127.0.0.1:7001/Home/SpotifyCallback"
+                       value="https://127.0.0.1:7001/Home/SpotifyCallback" required />
             </div>
 
             <div class="form-group">
-                <label for="playlistUrls">?? Spotify Playlist URLs (up to 10, one per line)</label>
+                <label for="playlistUrls">Spotify Playlist URLs (up to 10, one per line)</label>
                 <textarea id="playlistUrls" name="playlistUrls" class="form-control"
-                          placeholder="https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd&#10;https://open.spotify.com/playlist/37i9dQZF1DX1lVhptIYRda&#10;spotify:playlist:37i9dQZF1DX5Ejj0EkURtP" required></textarea>
+                          placeholder="https://open.spotify.com/playlist/20ObIj4drcpqU4a4ZQPWNU?si=Y8kcaUGxRD6eov5JXfqzmQ&pi=DoFqrvE4RQm6q;https://open.spotify.com/playlist/0Koymm18OCvJcecMXx7TWp?si=ofxcgkaDR8yYRw0wyhQMzw&pi=Hr6_KlG9QbmU0" 
+                          value="https://open.spotify.com/playlist/0Koymm18OCvJcecMXx7TWp?si=ofxcgkaDR8yYRw0wyhQMzw&pi=Hr6_KlG9QbmU0 https://open.spotify.com/playlist/20ObIj4drcpqU4a4ZQPWNU?si=Y8kcaUGxRD6eov5JXfqzmQ&pi=DoFqrvE4RQm6q" required></textarea>
                 <small style="color: rgba(255,255,255,0.7); font-size: 14px;">
-                    Tip: Right-click any Spotify playlist ? "Share" ? "Copy link" to get the URL
+                    Tip: Right-click any Spotify playlist "Share" "Copy link" to get the URL
                 </small>
             </div>
 
-            <button type="submit" class="btn">?? Connect to Spotify & Start HockeyDJ</button>
+            <button type="submit" class="btn">Connect to Spotify & Start HockeyDJ</button>
         </form>
     </div>
 </body>

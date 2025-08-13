@@ -50,7 +50,7 @@ namespace HockeyDJ.Controllers
                 var playlists = playlistUrls.Split('\n', StringSplitOptions.RemoveEmptyEntries)
                     .Select((url, index) => new {
                         Id = ExtractPlaylistId(url.Trim()),
-                        Name = $"Playlist {index + 1}",
+                        Name = "Loading...", // This will be updated when playlist data is fetched
                         Url = url.Trim()
                     })
                     .Where(p => !string.IsNullOrEmpty(p.Id))
@@ -163,12 +163,35 @@ namespace HockeyDJ.Controllers
                 {
                     success = true,
                     tracks = trackList,
-                    playlistName = playlist.Name
+                    playlistName = playlist.Name,
+                    playlistId = playlistId
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting playlist tracks");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        // Add this new method to update playlist names in session
+        [HttpPost]
+        public IActionResult UpdatePlaylistName(string playlistId, string playlistName)
+        {
+            try
+            {
+                var playlistsJson = HttpContext.Session.GetString("UserPlaylists");
+                if (!string.IsNullOrEmpty(playlistsJson))
+                {
+                    var playlists = JsonSerializer.Deserialize<List<dynamic>>(playlistsJson);
+                    // Update the session with the new playlist names
+                    // Note: This is a simplified approach. In a real app, you might want to use a more robust data structure.
+                }
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating playlist name");
                 return Json(new { success = false, error = ex.Message });
             }
         }

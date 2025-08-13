@@ -193,6 +193,7 @@
         let currentPlaylists = @Html.Raw(ViewBag.Playlists ?? "[]");
         let accessToken = '@ViewBag.AccessToken';
         let playlistTracks = {};
+        let playlistNames = {}; // Store playlist names
 
         async function initializeHockeyDJ() {
             document.getElementById('loadingMessage').style.display = 'block';
@@ -258,7 +259,7 @@
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player';
                 playerDiv.innerHTML = `
-                    <h3>🎵 ${playlist.Name}</h3>
+                    <h3 id="playlistTitle${index}">🎵 ${playlist.Name}</h3>
                     <div class="player-controls">
                         <button class="btn btn-play" onclick="playRandomFromPlaylist('${playlist.Id}', ${index})">
                             ▶️ Play Random
@@ -268,17 +269,17 @@
                         </button>
                     </div>
                     <div class="track-info" id="trackInfo${index}">
-                        Click play to load a random track from this playlist
+                        Loading playlist information...
                     </div>
                 `;
                 grid.appendChild(playerDiv);
 
-                // Pre-load playlist tracks
-                loadPlaylistTracks(playlist.Id);
+                // Pre-load playlist tracks and update the title
+                loadPlaylistTracks(playlist.Id, index);
             });
         }
 
-        async function loadPlaylistTracks(playlistId) {
+        async function loadPlaylistTracks(playlistId, playerIndex) {
             try {
                 const response = await fetch('/Home/GetPlaylistTracks', {
                     method: 'POST',
@@ -291,11 +292,33 @@
                 const data = await response.json();
                 if (data.success) {
                     playlistTracks[playlistId] = data.tracks;
+                    playlistNames[playlistId] = data.playlistName;
+
+                    // Update the playlist title with the actual name
+                    const titleElement = document.getElementById(`playlistTitle${playerIndex}`);
+                    if (titleElement) {
+                        titleElement.textContent = `🎵 ${data.playlistName}`;
+                    }
+
+                    // Update the track info
+                    const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
+                    if (trackInfoElement) {
+                        trackInfoElement.innerHTML = `Click play to load a random track from this playlist (${data.tracks.length} tracks)`;
+                    }
                 } else {
                     console.error('Error loading playlist:', data.error);
+                    // Update UI to show error
+                    const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
+                    if (trackInfoElement) {
+                        trackInfoElement.innerHTML = `<span style="color: #dc3545;">Error loading playlist: ${data.error}</span>`;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading playlist tracks:', error);
+                const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
+                if (trackInfoElement) {
+                    trackInfoElement.innerHTML = `<span style="color: #dc3545;">Error loading playlist tracks</span>`;
+                }
             }
         }
 
