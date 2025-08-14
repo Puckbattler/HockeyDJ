@@ -43,6 +43,119 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .goal-horn-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .goal-horn-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+            position: relative;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+            .goal-horn-btn:hover {
+                background: linear-gradient(45deg, #e55a2b, #e0841a);
+                transform: scale(1.1) translateY(-3px);
+                box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+            }
+
+            .goal-horn-btn:active {
+                transform: scale(1.05) translateY(-1px);
+            }
+
+            .goal-horn-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+                animation: none;
+            }
+
+        .sound-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .mushroom-btn {
+            background: radial-gradient(circle at 30% 30%, #ff4444, #cc0000);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 0, 0, 0.4);
+            position: relative;
+            border: 2px solid white;
+        }
+
+            .mushroom-btn:hover {
+                transform: scale(1.1) translateY(-3px);
+                box-shadow: 0 8px 20px rgba(204, 0, 0, 0.6);
+            }
+
+            .mushroom-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .clock-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+            position: relative;
+            border: 2px solid #0D47A1;
+        }
+
+            .clock-btn:hover {
+                transform: scale(1.1) translateY(-3px);
+                box-shadow: 0 8px 20px rgba(33, 150, 243, 0.6);
+            }
+
+            .clock-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        @@keyframes glow {
+            from {
+                box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+            }
+
+            to {
+                box-shadow: 0 5px 25px rgba(255, 107, 53, 0.6);
+            }
+        }
+
         .players-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -172,6 +285,25 @@
         Select a playlist below to start your hockey soundtrack
     </div>
 
+    <div class="goal-horn-section">
+        <h3 style="color: #ff6b35; margin-bottom: 15px;">🚨 GOAL! 🚨</h3>
+        <button class="goal-horn-btn" id="goalHornBtn" onclick="playGoalHorn()">
+            📯 GOAL HORN 📯
+        </button>
+        <div class="sound-buttons">
+            <button class="mushroom-btn" id="mushroomBtn" onclick="playMushroomSound()" title="Power Up Sound">
+                🍄
+            </button>
+            <button class="clock-btn" id="clockBtn" onclick="playClockSound()" title="Timeout Sound">
+                🕐
+            </button>
+        </div>
+        <p style="margin-top: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
+            Click to celebrate with the goal horn + victory song!<br>
+            <small>Power up & timeout sounds available too!</small>
+        </p>
+    </div>
+
     <div id="loadingMessage" class="loading" style="display: none;">
         Loading Spotify Player...
     </div>
@@ -192,8 +324,12 @@
         let deviceId;
         let currentPlaylists = @Html.Raw(ViewBag.Playlists ?? "[]");
         let accessToken = '@ViewBag.AccessToken';
+        let goalHornPlaylistId = '@ViewBag.GoalHornPlaylistId';
         let playlistTracks = {};
-        let playlistNames = {}; // Store playlist names
+        let playlistNames = {};
+        let goalHornAudio = null;
+        let mushroomAudio = null;
+        let clockAudio = null;
 
         async function initializeHockeyDJ() {
             document.getElementById('loadingMessage').style.display = 'block';
@@ -245,9 +381,46 @@
                 // Connect to the player!
                 spotifyPlayer.connect();
 
+                // Initialize goal horn audio
+                initializeAudio();
+
             } catch (error) {
                 showError('Error initializing Spotify player: ' + error.message);
                 document.getElementById('loadingMessage').style.display = 'none';
+            }
+        }
+
+        function initializeAudio() {
+            // Goal horn audio
+            goalHornAudio = new Audio();
+            goalHornAudio.preload = 'auto';
+            goalHornAudio.volume = 0.8;
+            goalHornAudio.src = '/audio/goal-horn.mp3';
+            goalHornAudio.onerror = () => {
+                console.warn('Goal horn audio file not found.');
+            };
+
+            // Mushroom audio
+            mushroomAudio = new Audio();
+            mushroomAudio.preload = 'auto';
+            mushroomAudio.volume = 0.8;
+            mushroomAudio.src = '/audio/mushroom.mp3';
+            mushroomAudio.onerror = () => {
+                console.warn('Mushroom audio file not found.');
+            };
+
+            // Clock audio
+            clockAudio = new Audio();
+            clockAudio.preload = 'auto';
+            clockAudio.volume = 0.8;
+            clockAudio.src = '/audio/clock.mp3';
+            clockAudio.onerror = () => {
+                console.warn('Clock audio file not found.');
+            };
+
+            // Use the goal horn playlist ID from server, or fall back to first playlist
+            if (!goalHornPlaylistId && currentPlaylists.length > 0) {
+                goalHornPlaylistId = currentPlaylists[0].Id;
             }
         }
 
@@ -368,6 +541,115 @@
             } catch (error) {
                 console.error('Error playing track:', error);
                 showError('Error playing track: ' + error.message);
+            }
+        }
+
+        async function playGoalHorn() {
+            const goalHornBtn = document.getElementById('goalHornBtn');
+            goalHornBtn.disabled = true;
+            goalHornBtn.textContent = '🎺 CELEBRATING... 🎺';
+
+            try {
+                // Play the goal horn sound first
+                if (goalHornAudio) {
+                    goalHornAudio.currentTime = 0;
+                    await goalHornAudio.play();
+
+                    // Wait for goal horn to finish or play for a few seconds
+                    await new Promise(resolve => {
+                        const timeout = setTimeout(() => {
+                            resolve();
+                        }, 3000);
+
+                        goalHornAudio.onended = () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        };
+                    });
+                }
+
+                // After goal horn, play random song from goal horn playlist
+                if (goalHornPlaylistId && playlistTracks[goalHornPlaylistId]) {
+                    const tracks = playlistTracks[goalHornPlaylistId];
+                    if (tracks.length > 0) {
+                        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+
+                        // Update current track display
+                        updateCurrentTrack({
+                            name: randomTrack.name,
+                            artists: [{ name: randomTrack.artist }]
+                        });
+
+                        // Transfer playback to our device first
+                        await fetch(`https://api.spotify.com/v1/me/player`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                device_ids: [deviceId],
+                                play: false
+                            })
+                        });
+
+                        // Start playing the victory song
+                        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                uris: [randomTrack.uri]
+                            })
+                        });
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error playing goal horn:', error);
+                showError('Error playing goal celebration: ' + error.message);
+            } finally {
+                // Re-enable button
+                goalHornBtn.disabled = false;
+                goalHornBtn.textContent = '📯 GOAL HORN 📯';
+            }
+        }
+
+        async function playMushroomSound() {
+            const mushroomBtn = document.getElementById('mushroomBtn');
+            mushroomBtn.disabled = true;
+
+            try {
+                if (mushroomAudio) {
+                    mushroomAudio.currentTime = 0;
+                    await mushroomAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing mushroom sound:', error);
+            } finally {
+                setTimeout(() => {
+                    mushroomBtn.disabled = false;
+                }, 1000);
+            }
+        }
+
+        async function playClockSound() {
+            const clockBtn = document.getElementById('clockBtn');
+            clockBtn.disabled = true;
+
+            try {
+                if (clockAudio) {
+                    clockAudio.currentTime = 0;
+                    await clockAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing clock sound:', error);
+            } finally {
+                setTimeout(() => {
+                    clockBtn.disabled = false;
+                }, 1000);
             }
         }
 

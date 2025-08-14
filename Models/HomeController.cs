@@ -25,8 +25,11 @@ namespace HockeyDJ.Controllers
             }
 
             var playlists = HttpContext.Session.GetString("UserPlaylists");
+            var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
+
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
+            ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
 
             return View();
         }
@@ -37,7 +40,7 @@ namespace HockeyDJ.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls)
+        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "")
         {
             try
             {
@@ -51,11 +54,32 @@ namespace HockeyDJ.Controllers
                     .Select((url, index) => new {
                         Id = ExtractPlaylistId(url.Trim()),
                         Name = "Loading...", // This will be updated when playlist data is fetched
-                        Url = url.Trim()
+                        Url = url.Trim(),
+                        IsGoalHorn = false
                     })
                     .Where(p => !string.IsNullOrEmpty(p.Id))
                     .Take(10)
                     .ToList();
+
+                // Handle goal horn playlist
+                if (!string.IsNullOrEmpty(goalHornPlaylist))
+                {
+                    var goalHornId = ExtractPlaylistId(goalHornPlaylist.Trim());
+                    if (!string.IsNullOrEmpty(goalHornId))
+                    {
+                        // Add goal horn playlist to the beginning of the list
+                        playlists.Insert(0, new
+                        {
+                            Id = goalHornId,
+                            Name = "Goal Celebrations",
+                            Url = goalHornPlaylist.Trim(),
+                            IsGoalHorn = true
+                        });
+
+                        // Store goal horn playlist ID separately
+                        HttpContext.Session.SetString("GoalHornPlaylistId", goalHornId);
+                    }
+                }
 
                 HttpContext.Session.SetString("UserPlaylists", JsonSerializer.Serialize(playlists));
 
