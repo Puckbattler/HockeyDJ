@@ -11,7 +11,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Random Track Playback**: Play random songs from any playlist with one click
 - **Real-time Track Display**: See what's currently playing with artist and song information
 - **Spotify Web Playback SDK Integration**: Full playback control through your browser
-- **You can add a playlist for each situation/stoppage so when a penalty occurs all you have to do it hit the play button for your penalty list and it would play a random songs that fits the situation, i.e. _Breaking The Law_. 
+- You can add a playlist for each situation/stoppage so when a penalty occurs all you have to do it hit the play button for your penalty list and it would play a random songs that fits the situation, i.e. _Breaking The Law_. 
 
 ### 🚨 Goal Celebrations
 - **Goal Horn Button**: Trigger epic goal celebrations with sound effects
