@@ -11,6 +11,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Random Track Playback**: Play random songs from any playlist with one click
 - **Real-time Track Display**: See what's currently playing with artist and song information
 - **Spotify Web Playback SDK Integration**: Full playback control through your browser
+- **You can add a playlist for each situation/stoppage so when a penalty occurs all you have to do it hit the play button for your penalty list and it would play a random songs that fits the situation, i.e. _Breaking The Law_. 
 
 ### 🚨 Goal Celebrations
 - **Goal Horn Button**: Trigger epic goal celebrations with sound effects
@@ -18,8 +19,8 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Custom Audio Support**: Add your own goal horn, power-up, and timeout sounds
 
 ### 🎮 Sound Effects
-- **🍄 Mushroom Button**: Power-up sound effect (inspired by classic video games)
-- **🕐 Clock Button**: Timeout sound effect for game breaks
+- **🍄 Mushroom Button**: Power-up sound effect (inspired by classic video games) for when a penalty expires and the game goes back to even strength
+- **🕐 Clock Button**: _One Minute Remaining_ Recording for the end of the periods.  
 - **Audio File Support**: MP3 files for custom sound effects
 
 ### 🏒 Hockey-Themed UI
@@ -49,19 +50,13 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
    dotnet restore
    ```
 
-3. **Add sound files** (optional but recommended)
-   Create the `wwwroot/audio/` directory and add these MP3 files:
-   - `goal-horn.mp3` - Your favorite goal horn sound
-   - `mushroom.mp3` - Power-up sound effect
-   - `clock.mp3` - Timeout/buzzer sound
-
-4. **Run the application**
+3. **Run the application**
    ```bash
    dotnet run
    ```
 
-5. **Open your browser**
-   Navigate to `https://localhost:7001` (or the URL shown in your terminal)
+4. **Open your browser**
+   Navigate to `https://127.0.0.1:7001` (or the URL shown in your terminal)
 
 ## ⚙️ Setup & Configuration
 
@@ -71,7 +66,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 2. Create a new app or use an existing one
 3. Add your redirect URI to the app settings:
    ```
-   https://localhost:7001/Home/SpotifyCallback
+   https://127.0.0.1:7001/Home/SpotifyCallback
    ```
 4. Note your **Client ID** and **Client Secret**
 
