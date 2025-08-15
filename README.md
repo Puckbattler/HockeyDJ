@@ -40,11 +40,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/HockeyDJ.git
-   cd HockeyDJ
-   ```
+1. **Download and extract the release**
 
 2. **Restore dependencies**
    ```bash
