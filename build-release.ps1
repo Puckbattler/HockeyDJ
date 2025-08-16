@@ -11,6 +11,10 @@ Write-Host "🏒 Building HockeyDJ v$Version releases..." -ForegroundColor Green
 # Define target platforms
 $platforms = @(
     @{RID="win-x64"; Archive="zip"},
+    @{RID="win-arm64"; Archive="zip"},
+    @{RID="win-x86"; Archive="zip"},
+    @{RID="linux-arm"; Archive="zip"},
+    @{RID="linux-arm64"; Archive="zip"},
     @{RID="linux-x64"; Archive="tar.gz"},
     @{RID="osx-x64"; Archive="tar.gz"},
     @{RID="osx-arm64"; Archive="tar.gz"}
@@ -47,8 +51,8 @@ foreach ($platform in $platforms) {
     }
     
     # Copy additional files
-    Copy-Item -Path "README.md" -Destination "./publish/$rid/" -Force
-    Copy-Item -Path "LICENSE" -Destination "./publish/$rid/" -Force
+    Copy-Item -Path "C:\Users\puckb\source\repos\HockeyDJ\HockeyDJ\README.md" -Destination "./publish/$rid/" -Force
+    Copy-Item -Path "C:\Users\puckb\source\repos\HockeyDJ\HockeyDJ\hockeydj_license.md" -Destination "./publish/$rid/" -Force
     
     # Create audio directory with samples
     New-Item -ItemType Directory -Path "./publish/$rid/wwwroot/audio" -Force | Out-Null
