@@ -11,7 +11,11 @@ Write-Host "🏒 Building HockeyDJ v$Version releases..." -ForegroundColor Green
 # Define target platforms
 $platforms = @(
     @{RID="win-x64"; Archive="zip"},
+    @{RID="win-x86"; Archive="zip"},
+    @{RID="win-arm64"; Archive="zip"},
     @{RID="linux-x64"; Archive="tar.gz"},
+    @{RID="linux-arm"; Archive="tar.gz"},
+    @{RID="linux-arm64"; Archive="tar.gz"},
     @{RID="osx-x64"; Archive="tar.gz"},
     @{RID="osx-arm64"; Archive="tar.gz"}
 )
