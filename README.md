@@ -128,9 +128,8 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 
 ```
 HockeyDJ/
-├── Controllers/
-│   └── HomeController.cs          # Main application logic
 ├── Models/
+│   └── HomeController.cs          # Main application logic
 │   └── ErrorViewModel.cs          # Error handling model
 ├── Views/
 │   ├── Home/
