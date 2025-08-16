@@ -161,10 +161,10 @@ HockeyDJ/
 - Team goal songs
 
 ### Regular Playlists Ideas
-- **Period 1**: High-energy warm-up tracks
-- **Period 2**: Intensity maintenance songs  
-- **Period 3**: Championship-level motivation
-- **Power Play**: Extra energetic tracks
+- **Penalty**: Perfect Songs for the call. _Breakin the Law_
+- **Offside**: Intensity maintenance songs  
+- **Iceing**: Pump-up tracks with long intros
+- **End Zone Face Off**: Extra energetic tracks
 - **Intermission**: Crowd favorites and classics
 
 ## 🔧 Customization
@@ -242,7 +242,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/yourusername/HockeyDJ/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/HockeyDJ/discussions)
-- **Email**: your-email@example.com
+- **Email**: puckbattler@outlook.com
 
 ---
 
