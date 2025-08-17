@@ -85,6 +85,44 @@
                 animation: none;
             }
 
+        .song-selector {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .song-selector label {
+            font-weight: bold;
+            color: #ff6b35;
+            font-size: 16px;
+        }
+
+        .song-dropdown {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 8px;
+            color: white;
+            padding: 8px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .song-dropdown:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .song-dropdown option {
+            background: #1e3c72;
+            color: white;
+            padding: 8px;
+        }
+
         .sound-buttons {
             display: flex;
             gap: 20px;
@@ -287,9 +325,38 @@
 
     <div class="goal-horn-section">
         <h3 style="color: #ff6b35; margin-bottom: 15px;">🚨 GOAL! 🚨</h3>
+        
+        <div class="song-selector">
+            <label for="songSelector">Song Selection:</label>
+            <select id="songSelector" class="song-dropdown">
+                <option value="random">🎲 Random Song</option>
+                <option value="1">🎵 Song 1</option>
+                <option value="2">🎵 Song 2</option>
+                <option value="3">🎵 Song 3</option>
+                <option value="4">🎵 Song 4</option>
+                <option value="5">🎵 Song 5</option>
+                <option value="6">🎵 Song 6</option>
+                <option value="7">🎵 Song 7</option>
+                <option value="8">🎵 Song 8</option>
+                <option value="9">🎵 Song 9</option>
+                <option value="10">🎵 Song 10</option>
+                <option value="11">🎵 Song 11</option>
+                <option value="12">🎵 Song 12</option>
+                <option value="13">🎵 Song 13</option>
+                <option value="14">🎵 Song 14</option>
+                <option value="15">🎵 Song 15</option>
+                <option value="16">🎵 Song 16</option>
+                <option value="17">🎵 Song 17</option>
+                <option value="18">🎵 Song 18</option>
+                <option value="19">🎵 Song 19</option>
+                <option value="20">🎵 Song 20</option>
+            </select>
+        </div>
+
         <button class="goal-horn-btn" id="goalHornBtn" onclick="playGoalHorn()">
             📯 GOAL HORN 📯
         </button>
+        
         <div class="sound-buttons">
             <button class="mushroom-btn" id="mushroomBtn" onclick="playMushroomSound()" title="Power Up Sound">
                 🍄
@@ -299,7 +366,7 @@
             </button>
         </div>
         <p style="margin-top: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
-            Click to celebrate with the goal horn + victory song!<br>
+            Choose a song number or random, then click to celebrate with the goal horn + victory song!<br>
             <small>Power up & timeout sounds available too!</small>
         </p>
     </div>
@@ -546,6 +613,9 @@
 
         async function playGoalHorn() {
             const goalHornBtn = document.getElementById('goalHornBtn');
+            const songSelector = document.getElementById('songSelector');
+            const selectedValue = songSelector.value;
+            
             goalHornBtn.disabled = true;
             goalHornBtn.textContent = '🎺 CELEBRATING... 🎺';
 
@@ -568,16 +638,32 @@
                     });
                 }
 
-                // After goal horn, play random song from goal horn playlist
+                // After goal horn, play selected song from goal horn playlist
                 if (goalHornPlaylistId && playlistTracks[goalHornPlaylistId]) {
                     const tracks = playlistTracks[goalHornPlaylistId];
                     if (tracks.length > 0) {
-                        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                        let selectedTrack;
+                        
+                        if (selectedValue === 'random') {
+                            // Play random track (original behavior)
+                            selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                        } else {
+                            // Play specific track by number (1-based index)
+                            const trackIndex = parseInt(selectedValue) - 1;
+                            if (trackIndex >= 0 && trackIndex < tracks.length) {
+                                selectedTrack = tracks[trackIndex];
+                            } else {
+                                // If the selected number is out of range, fall back to random
+                                console.warn(`Song ${selectedValue} not available in playlist (only ${tracks.length} songs). Playing random song instead.`);
+                                selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                                showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
+                            }
+                        }
 
                         // Update current track display
                         updateCurrentTrack({
-                            name: randomTrack.name,
-                            artists: [{ name: randomTrack.artist }]
+                            name: selectedTrack.name,
+                            artists: [{ name: selectedTrack.artist }]
                         });
 
                         // Transfer playback to our device first
@@ -601,7 +687,7 @@
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                uris: [randomTrack.uri]
+                                uris: [selectedTrack.uri]
                             })
                         });
                     }
