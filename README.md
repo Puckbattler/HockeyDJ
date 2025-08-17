@@ -3,7 +3,8 @@
 **The Ultimate Hockey-Themed Spotify Music Controller**
 
 HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of hockey to your music experience. Control multiple Spotify playlists with a hockey-themed interface, complete with goal horn celebrations, sound effects, and random track playback perfect for hockey games, parties, or just getting pumped up!
-<img width="1829" height="943" alt="image" src="https://github.com/user-attachments/assets/a4b68a07-09dd-49c6-affd-a25d62879158" />
+<img width="1580" height="913" alt="image" src="https://github.com/user-attachments/assets/7adc0522-162e-457f-a5eb-eab5508723ae" />
+
 
 ## ✨ Features
 
