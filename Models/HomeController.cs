@@ -26,21 +26,32 @@ namespace HockeyDJ.Controllers
 
             var playlists = HttpContext.Session.GetString("UserPlaylists");
             var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
+            var customSongNames = HttpContext.Session.GetString("CustomSongNames");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
             ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
+            ViewBag.CustomSongNames = string.IsNullOrEmpty(customSongNames) ? "[]" : customSongNames;
 
             return View();
         }
 
         public IActionResult Setup()
         {
+            // Load existing settings if available
+            var existingPlaylists = HttpContext.Session.GetString("UserPlaylists");
+            var existingCustomNames = HttpContext.Session.GetString("CustomSongNames");
+            var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
+            
+            ViewBag.ExistingPlaylists = string.IsNullOrEmpty(existingPlaylists) ? "[]" : existingPlaylists;
+            ViewBag.ExistingCustomNames = string.IsNullOrEmpty(existingCustomNames) ? "[]" : existingCustomNames;
+            ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
+            
             return View();
         }
 
         [HttpPost]
-        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "")
+        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "")
         {
             try
             {
@@ -48,6 +59,24 @@ namespace HockeyDJ.Controllers
                 HttpContext.Session.SetString("SpotifyClientId", clientId);
                 HttpContext.Session.SetString("SpotifyClientSecret", clientSecret);
                 HttpContext.Session.SetString("SpotifyRedirectUri", redirectUri);
+
+                // Parse custom song names
+                var songNames = new List<string>();
+                if (!string.IsNullOrEmpty(customSongNames))
+                {
+                    songNames = customSongNames.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(name => name.Trim())
+                        .Take(20)
+                        .ToList();
+                }
+
+                // Ensure we have 20 entries, filling with defaults if needed
+                while (songNames.Count < 20)
+                {
+                    songNames.Add($"Song {songNames.Count + 1}");
+                }
+
+                HttpContext.Session.SetString("CustomSongNames", JsonSerializer.Serialize(songNames));
 
                 // Parse and store playlist URLs
                 var playlists = playlistUrls.Split('\n', StringSplitOptions.RemoveEmptyEntries)

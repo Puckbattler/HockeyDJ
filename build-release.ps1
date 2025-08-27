@@ -1,6 +1,6 @@
 # build-release.ps1
 param(
-    [string]$Version = "1.1.0",
+    [string]$Version = "1.1.1",
     [string]$ProjectPath = "HockeyDJ.csproj"
 )
 
@@ -40,8 +40,8 @@ foreach ($platform in $platforms) {
         -r $rid `
         --self-contained true `
         -p:PublishSingleFile=true `
-        -p:PublishTrimmed=true `
-        -p:IncludeNativeLibrariesForSelfExtract=true `
+        -p:PublishTrimmed=false `
+        -p:IncludeNativeLibrariesForSelfExtract=true ` 
         -p:Version=$Version `
         --output "./publish/$rid"
     
