@@ -43,15 +43,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 
 1. **Download and extract the release**
 
-2. **Restore dependencies**
-   ```bash
-   dotnet restore
-   ```
-
-3. **Run the application**
-   ```bash
-   dotnet run
-   ```
+2. **Run the executable**
 
 4. **Open your browser**
    Navigate to `https://127.0.0.1:7001` (or the URL shown in your terminal)
