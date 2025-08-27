@@ -41,7 +41,7 @@ foreach ($platform in $platforms) {
         --self-contained true `
         -p:PublishSingleFile=true `
         -p:PublishTrimmed=false `
-        -p:IncludeNativeLibrariesForSelfExtract=true ` 
+        -p:IncludeNativeLibrariesForSelfExtract=true `
         -p:Version=$Version `
         --output "./publish/$rid"
     
