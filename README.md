@@ -44,6 +44,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 1. **Download and extract the release**
 
 2. **Run the executable**
+3. **Or Run the Powershell Script**
 
 4. **Open your browser**
    Navigate to `https://127.0.0.1:7001` (or the URL shown in your terminal)
