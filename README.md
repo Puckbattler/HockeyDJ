@@ -33,6 +33,8 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Animated Elements**: Glowing buttons and smooth hover effects
 - **Real-time Updates**: Live track information and playback status
 
+### Voice Control 
+- **Coming Soon**
 ## 🚀 Quick Start
 
 ### Prerequisites
