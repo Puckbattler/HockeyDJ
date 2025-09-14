@@ -148,27 +148,7 @@ export ASPNETCORE_URLS="https://127.0.0.1:7001;http://127.0.0.1:5000"
     # Create audio directory and copy audio files if they exist
     New-Item -ItemType Directory -Path "./publish/$rid/wwwroot/audio" -Force | Out-Null
     
-    # Copy audio files if they exist in the source
-    $audioFiles = @("goal-horn.mp3", "mushroom.mp3", "clock.mp3")
-    foreach ($audioFile in $audioFiles) {
-        $sourcePath = "./wwwroot/audio/$audioFile"
-        if (Test-Path $sourcePath) {
-            Copy-Item -Path $sourcePath -Destination "./publish/$rid/wwwroot/audio/" -Force
-            Write-Host "  📢 Copied audio file: $audioFile" -ForegroundColor Magenta
-        } else {
-            Write-Host "  ⚠️  Audio file not found: $audioFile (users will need to add this)" -ForegroundColor Yellow
-        }
-    }
-    
-    # Copy any other audio files that might exist
-    if (Test-Path "./wwwroot/audio/*") {
-        $additionalFiles = Get-ChildItem "./wwwroot/audio/" -File | Where-Object { $_.Name -notin $audioFiles }
-        foreach ($file in $additionalFiles) {
-            Copy-Item -Path $file.FullName -Destination "./publish/$rid/wwwroot/audio/" -Force
-            Write-Host "  🎵 Copied additional audio file: $($file.Name)" -ForegroundColor Magenta
-        }
-    }
-    
+   
     # Create README for the release
     $releaseReadme = @"
 # HockeyDJ v$Version
