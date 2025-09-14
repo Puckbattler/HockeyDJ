@@ -20,10 +20,12 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Victory Songs**: Automatically plays random celebration songs after goal horn or you can select a song from the dropdown, i.e. if you select song 2 it will play the second song from the Goal playlist. You can ask the players on the team for a goal song and then enter them into the playlist in numerical order that way if #4 scores you just select Song 4 and hit the button and it will play the horn and then player #4's requested goal song. 
 - **Custom Audio Support**: Add your own goal horn, power-up, and timeout sounds
 
-### 🎮 Sound Effects
-- **🍄 Mushroom Button**: Power-up sound effect (inspired by classic video games) for when a penalty expires and the game goes back to even strength
-- **🕐 Clock Button**: _One Minute Remaining_ Recording for the end of the periods.  
-- **Audio File Support**: MP3 files for custom sound effects
+### Sound Effects
+- **🍄 Mushroom**: Power-up sound for momentum changes (Provide Your Own)
+- **🕐 Clock**: Timeout sound for breaks in action (Provide Your Own)
+- **📯 Goal Horn** Goal horn sound (Provide Your Own)
+- Put the audio files in wwwroot/audio
+- They should be named Mushroom.mp3 , Clock.mp3 , GoalHorn.mp3
 
 ### 🏒 Hockey-Themed UI
 - **Ice Hockey Design**: Beautiful gradient backgrounds and hockey-inspired styling
@@ -31,6 +33,8 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Animated Elements**: Glowing buttons and smooth hover effects
 - **Real-time Updates**: Live track information and playback status
 
+### Voice Control 
+- **Coming Soon**
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -94,8 +98,11 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
    - Celebrate! 🎉
 
 ### Sound Effects
-- **🍄 Mushroom**: Power-up sound for momentum changes
-- **🕐 Clock**: Timeout sound for breaks in action
+- **🍄 Mushroom**: Power-up sound for momentum changes (Provide Your Own)
+- **🕐 Clock**: Timeout sound for breaks in action (Provide Your Own)
+- **📯 Goal Horn** Goal horn sound (Provide Your Own)
+- Put the audio files in wwwroot/audio
+- They should be named Mushroom.mp3 , Clock.mp3 , GoalHorn.mp3
 
 ## 🛠️ Technical Details
 
@@ -235,13 +242,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/yourusername/HockeyDJ/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/HockeyDJ/discussions)
-- **Email**: puckbattler@outlook.com
 
 ---
 
 **Ready to get your hockey game on? Let's drop the puck and crank the music! 🏒🎵**
 
-[![Made with ❤️ for Hockey](https://img.shields.io/badge/Made%20with%20❤️%20for-Hockey-red)](https://github.com/yourusername/HockeyDJ)
+[![Made with ❤️ for Hockey](https://img.shields.io/badge/Made%20with%20❤️%20for-Hockey-red)](https://github.com/Puckbattler/HockeyDJ)
 [![.NET 8.0](https://img.shields.io/badge/.NET-8.0-purple)](https://dotnet.microsoft.com/download/dotnet/8.0)
 [![Spotify API](https://img.shields.io/badge/Spotify-API-green)](https://developer.spotify.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
