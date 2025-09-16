@@ -200,6 +200,7 @@
             gap: 20px;
             max-width: 1400px;
             margin: 0 auto;
+            margin-bottom: 40px;
         }
 
         .player {
@@ -308,6 +309,361 @@
                 color: white;
                 text-decoration: none;
             }
+
+        /* Priority Queue Styles */
+        .priority-queue-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px auto;
+            max-width: 1400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .priority-queue-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .priority-queue-header h2 {
+                color: #ff6b35;
+                font-size: 2em;
+                margin: 0 0 10px 0;
+            }
+
+            .priority-queue-header p {
+                color: rgba(255, 255, 255, 0.8);
+                margin: 0;
+            }
+
+        .search-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+            .search-input:focus {
+                outline: none;
+                border-color: #ff6b35;
+                background: rgba(255, 255, 255, 0.2);
+                box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+            }
+
+            .search-input::placeholder {
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+        .search-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            white-space: nowrap;
+        }
+
+            .search-btn:hover {
+                background: linear-gradient(45deg, #e55a2b, #e0841a);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            }
+
+            .search-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .search-results {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s ease;
+        }
+
+            .search-result-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .search-result-item:last-child {
+                border-bottom: none;
+            }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+            .search-result-info .track-name {
+                font-size: 16px;
+                font-weight: bold;
+                color: white;
+                margin-bottom: 4px;
+            }
+
+            .search-result-info .track-artist {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.7);
+                margin-bottom: 2px;
+            }
+
+            .search-result-info .track-album {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+        .add-to-queue-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+            .add-to-queue-btn:hover {
+                background: linear-gradient(45deg, #218838, #1ba085);
+                transform: scale(1.05);
+            }
+
+            .add-to-queue-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .queue-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .queue-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+            .queue-header h3 {
+                color: #ff6b35;
+                margin: 0;
+                font-size: 1.3em;
+            }
+
+        .queue-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .clear-queue-btn {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .clear-queue-btn:hover {
+                background: linear-gradient(45deg, #c82333, #e96b00);
+                transform: scale(1.05);
+            }
+
+            .clear-queue-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .queue-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s ease;
+        }
+
+            .queue-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .queue-item:last-child {
+                border-bottom: none;
+            }
+
+        .queue-item-info {
+            flex: 1;
+        }
+
+            .queue-item-info .track-name {
+                font-size: 16px;
+                font-weight: bold;
+                color: white;
+                margin-bottom: 4px;
+            }
+
+            .queue-item-info .track-artist {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+        .queue-item-number {
+            background: rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 50%;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .remove-from-queue-btn {
+            background: rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+            border: 1px solid #dc3545;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .remove-from-queue-btn:hover {
+                background: rgba(220, 53, 69, 0.5);
+                color: white;
+            }
+
+        .empty-queue {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+
+        .queue-status {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+
+        /* Scrollbar Styles */
+        .search-results::-webkit-scrollbar,
+        .queue-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .search-results::-webkit-scrollbar-track,
+        .queue-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb,
+        .queue-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 53, 0.5);
+            border-radius: 4px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb:hover,
+        .queue-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 107, 53, 0.7);
+        }
+
+        /* Mobile Responsiveness */
+        @@media (max-width: 768px) {
+            .search-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-btn {
+                width: 100%;
+            }
+
+            .queue-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .queue-controls {
+                justify-content: center;
+            }
+
+            .search-result-item,
+            .queue-item {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .search-result-info,
+            .queue-item-info {
+                order: 2;
+            }
+
+            .add-to-queue-btn,
+            .remove-from-queue-btn {
+                order: 3;
+                width: 100%;
+            }
+
+            .queue-item-number {
+                order: 1;
+                margin-right: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -381,6 +737,57 @@
         <!-- Players will be generated by JavaScript -->
     </div>
 
+    <!-- Priority Queue Section -->
+    <div class="priority-queue-section">
+        <div class="priority-queue-header">
+            <h2>🎯 Priority Queue</h2>
+            <p>Search for songs and add them to your priority queue. These songs will play before random selections.</p>
+        </div>
+
+        <div id="queueStatus" class="queue-status" style="display: none;">
+            Priority queue active! Songs will play in order before random selections.
+        </div>
+
+        <div class="search-section">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search for songs on Spotify..." />
+            <button id="searchBtn" class="search-btn" onclick="searchSpotify()">🔍 Search</button>
+        </div>
+
+        <div id="searchResults" class="search-results" style="display: none;">
+            <!-- Search results will be populated here -->
+        </div>
+
+        <div class="queue-display">
+            <div class="queue-header">
+                <h3>Queue (<span id="queueCount">0</span> songs)</h3>
+                <div class="queue-controls">
+                    <button id="clearQueueBtn" class="clear-queue-btn" onclick="clearPriorityQueue()" disabled>🗑️ Clear Queue</button>
+                </div>
+            </div>
+            <div id="queueList" class="queue-list">
+                <div class="empty-queue" id="emptyQueueMessage">
+                    Your priority queue is empty. Search for songs above to add them to the queue.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+        // Global variables
+        let spotifyPlayer;
+        let deviceId;
+        let currentPlaylists = @Html.Raw(ViewBag.Playlists ?? "[]");
+        let accessToken = '@ViewBag.AccessToken';
+        let goalHornPlaylistId = '@ViewBag.GoalHornPlaylistId';
+        let playlistTracks = {};
+        let playlistNames = {};
+        let goalHornAudio = null;
+        let mushroomAudio = null;
+        let clockAudio = null;
+        let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
+        let isSearching = false;
+
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         window.onSpotifyWebPlaybackSDKReady = () => {
@@ -397,6 +804,8 @@
         let goalHornAudio = null;
         let mushroomAudio = null;
         let clockAudio = null;
+        let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
+        let isSearching = false;
 
         async function initializeHockeyDJ() {
             document.getElementById('loadingMessage').style.display = 'block';
@@ -450,6 +859,9 @@
 
                 // Initialize goal horn audio
                 initializeAudio();
+
+                // Initialize priority queue display
+                updatePriorityQueueDisplay();
 
             } catch (error) {
                 showError('Error initializing Spotify player: ' + error.message);
@@ -564,6 +976,12 @@
 
         async function playRandomFromPlaylist(playlistId, playerIndex) {
             try {
+                // Check if there are songs in the priority queue (excluding goal horn triggers)
+                if (priorityQueue.length > 0 && !isGoalHornPlaying) {
+                    await playFromPriorityQueue();
+                    return;
+                }
+
                 const tracks = playlistTracks[playlistId];
                 if (!tracks || tracks.length === 0) {
                     showError('No tracks available in this playlist');
@@ -611,6 +1029,8 @@
             }
         }
 
+        let isGoalHornPlaying = false;
+
         async function playGoalHorn() {
             const goalHornBtn = document.getElementById('goalHornBtn');
             const songSelector = document.getElementById('songSelector');
@@ -618,6 +1038,7 @@
             
             goalHornBtn.disabled = true;
             goalHornBtn.textContent = '🎺 CELEBRATING... 🎺';
+            isGoalHornPlaying = true;
 
             try {
                 // Play the goal horn sound first
@@ -700,6 +1121,7 @@
                 // Re-enable button
                 goalHornBtn.disabled = false;
                 goalHornBtn.textContent = '📯 GOAL HORN 📯';
+                isGoalHornPlaying = false;
             }
         }
 
@@ -772,6 +1194,321 @@
                 errorElement.style.display = 'none';
             }, 5000);
         }
+
+        // Priority Queue Functions
+        async function searchSpotify() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const searchResults = document.getElementById('searchResults');
+            const query = searchInput.value.trim();
+
+            if (!query) {
+                showError('Please enter a search term');
+                return;
+            }
+
+            if (isSearching) return;
+
+            isSearching = true;
+            searchBtn.disabled = true;
+            searchBtn.textContent = '🔍 Searching...';
+
+            try {
+                const response = await fetch('/Home/SearchSpotify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `query=${encodeURIComponent(query)}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySearchResults(data.tracks);
+                    searchResults.style.display = 'block';
+                } else {
+                    showError('Search failed: ' + data.error);
+                    searchResults.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                showError('Search failed: ' + error.message);
+                searchResults.style.display = 'none';
+            } finally {
+                isSearching = false;
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🔍 Search';
+            }
+        }
+
+        function displaySearchResults(tracks) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!tracks || tracks.length === 0) {
+                searchResults.innerHTML = '<div class="empty-queue">No tracks found. Try a different search term.</div>';
+                return;
+            }
+
+            searchResults.innerHTML = '';
+            
+            tracks.forEach((track, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result-item';
+                
+                resultDiv.innerHTML = `
+                    <div class="search-result-info">
+                        <div class="track-name">${escapeHtml(track.name)}</div>
+                        <div class="track-artist">🎤 ${escapeHtml(track.artist)}</div>
+                        <div class="track-album">💿 ${escapeHtml(track.album)}</div>
+                    </div>
+                    <button class="add-to-queue-btn" id="addBtn${index}">
+                        ➕ Add to Queue
+                    </button>
+                `;
+                
+                searchResults.appendChild(resultDiv);
+                
+                // Add event listener to the button
+                document.getElementById(`addBtn${index}`).addEventListener('click', function() {
+                    addToPriorityQueue(track.id, track.name, track.artist, track.uri);
+                });
+            });
+        }
+
+        async function addToPriorityQueue(trackId, trackName, trackArtist, trackUri) {
+            try {
+                const response = await fetch('/Home/AddToPriorityQueue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `trackId=${encodeURIComponent(trackId)}&trackName=${encodeURIComponent(trackName)}&trackArtist=${encodeURIComponent(trackArtist)}&trackUri=${encodeURIComponent(trackUri)}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update local queue
+                    priorityQueue.push({
+                        id: trackId,
+                        name: trackName,
+                        artist: trackArtist,
+                        uri: trackUri,
+                        addedAt: Date.now() / 1000
+                    });
+
+                    updatePriorityQueueDisplay();
+                    showSuccess(`"${trackName}" added to priority queue!`);
+                } else {
+                    showError('Failed to add song to queue: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding to queue:', error);
+                showError('Error adding song to queue: ' + error.message);
+            }
+        }
+
+        async function removeFromPriorityQueue(trackId) {
+            try {
+                const response = await fetch('/Home/RemoveFromPriorityQueue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `trackId=${encodeURIComponent(trackId)}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update local queue
+                    priorityQueue = priorityQueue.filter(track => track.id !== trackId);
+                    updatePriorityQueueDisplay();
+                    showSuccess('Song removed from priority queue!');
+                } else {
+                    showError('Failed to remove song from queue: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error removing from queue:', error);
+                showError('Error removing song from queue: ' + error.message);
+            }
+        }
+
+        async function clearPriorityQueue() {
+            if (priorityQueue.length === 0) return;
+
+            if (!confirm('Are you sure you want to clear the entire priority queue?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/Home/ClearPriorityQueue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: ''
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    priorityQueue = [];
+                    updatePriorityQueueDisplay();
+                    showSuccess('Priority queue cleared!');
+                } else {
+                    showError('Failed to clear queue: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error clearing queue:', error);
+                showError('Error clearing queue: ' + error.message);
+            }
+        }
+
+        async function playFromPriorityQueue() {
+            if (priorityQueue.length === 0) return false;
+
+            try {
+                // Get the first song from the queue
+                const nextTrack = priorityQueue[0];
+
+                // Update current track display
+                updateCurrentTrack({
+                    name: nextTrack.name,
+                    artists: [{ name: nextTrack.artist }]
+                });
+
+                // Transfer playback to our device first
+                await fetch(`https://api.spotify.com/v1/me/player`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        device_ids: [deviceId],
+                        play: false
+                    })
+                });
+
+                // Start playing the track
+                await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uris: [nextTrack.uri]
+                    })
+                });
+
+                // Remove the played track from the queue
+                await removeFromPriorityQueue(nextTrack.id);
+
+                return true;
+            } catch (error) {
+                console.error('Error playing from priority queue:', error);
+                showError('Error playing from priority queue: ' + error.message);
+                return false;
+            }
+        }
+
+        function updatePriorityQueueDisplay() {
+            const queueCount = document.getElementById('queueCount');
+            const queueList = document.getElementById('queueList');
+            const clearQueueBtn = document.getElementById('clearQueueBtn');
+            const queueStatus = document.getElementById('queueStatus');
+
+            // Check if elements exist before using them
+            if (!queueCount || !queueList || !clearQueueBtn || !queueStatus) {
+                console.warn('Queue display elements not found, skipping update');
+                return;
+            }
+
+            queueCount.textContent = priorityQueue.length;
+
+            if (priorityQueue.length === 0) {
+                queueList.innerHTML = '<div class="empty-queue" id="emptyQueueMessage">Your priority queue is empty. Search for songs above to add them to the queue.</div>';
+                clearQueueBtn.disabled = true;
+                queueStatus.style.display = 'none';
+            } else {
+                clearQueueBtn.disabled = false;
+                queueStatus.style.display = 'block';
+
+                queueList.innerHTML = '';
+                
+                priorityQueue.forEach((track, index) => {
+                    const queueItemDiv = document.createElement('div');
+                    queueItemDiv.className = 'queue-item';
+                    
+                    queueItemDiv.innerHTML = `
+                        <div class="queue-item-number">${index + 1}</div>
+                        <div class="queue-item-info">
+                            <div class="track-name">${escapeHtml(track.name)}</div>
+                            <div class="track-artist">🎤 ${escapeHtml(track.artist)}</div>
+                        </div>
+                        <button class="remove-from-queue-btn" id="removeBtn${index}">
+                            🗑️ Remove
+                        </button>
+                    `;
+                    
+                    queueList.appendChild(queueItemDiv);
+                    
+                    // Add event listener to the remove button
+                    const removeBtn = document.getElementById(`removeBtn${index}`);
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', function() {
+                            removeFromPriorityQueue(track.id);
+                        });
+                    }
+                });
+            }
+        }
+
+        function showSuccess(message) {
+            // Create a temporary success message
+            const successElement = document.createElement('div');
+            successElement.className = 'error'; // Reusing error styles but with green color
+            successElement.style.background = 'rgba(40, 167, 69, 0.2)';
+            successElement.style.borderColor = '#28a745';
+            successElement.style.color = '#28a745';
+            successElement.textContent = message;
+            successElement.style.position = 'fixed';
+            successElement.style.top = '20px';
+            successElement.style.left = '50%';
+            successElement.style.transform = 'translateX(-50%)';
+            successElement.style.zIndex = '1000';
+            successElement.style.maxWidth = '400px';
+
+            document.body.appendChild(successElement);
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                if (successElement.parentNode) {
+                    successElement.parentNode.removeChild(successElement);
+                }
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Add enter key support for search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchSpotify();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

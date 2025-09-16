@@ -27,11 +27,13 @@ namespace HockeyDJ.Controllers
             var playlists = HttpContext.Session.GetString("UserPlaylists");
             var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
             var customSongNames = HttpContext.Session.GetString("CustomSongNames");
+            var priorityQueue = HttpContext.Session.GetString("PriorityQueue");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
             ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
             ViewBag.CustomSongNames = string.IsNullOrEmpty(customSongNames) ? "[]" : customSongNames;
+            ViewBag.PriorityQueue = string.IsNullOrEmpty(priorityQueue) ? "[]" : priorityQueue;
 
             return View();
         }
@@ -111,6 +113,9 @@ namespace HockeyDJ.Controllers
                 }
 
                 HttpContext.Session.SetString("UserPlaylists", JsonSerializer.Serialize(playlists));
+
+                // Initialize empty priority queue
+                HttpContext.Session.SetString("PriorityQueue", "[]");
 
                 // Redirect to Spotify OAuth
                 return RedirectToAction("SpotifyLogin");
@@ -223,6 +228,140 @@ namespace HockeyDJ.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting playlist tracks");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SearchSpotify(string query)
+        {
+            try
+            {
+                var accessToken = HttpContext.Session.GetString("SpotifyAccessToken");
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return Json(new { success = false, error = "Not authenticated" });
+                }
+
+                var config = SpotifyClientConfig.CreateDefault(accessToken);
+                var spotify = new SpotifyClient(config);
+                
+                var searchRequest = new SearchRequest(SearchRequest.Types.Track, query)
+                {
+                    Limit = 10
+                };
+                
+                var searchResult = await spotify.Search.Item(searchRequest);
+
+                var tracks = searchResult.Tracks.Items?
+                    .Select(track => new
+                    {
+                        id = track.Id,
+                        name = track.Name,
+                        artist = string.Join(", ", track.Artists.Select(a => a.Name)),
+                        uri = track.Uri,
+                        album = track.Album.Name,
+                        duration_ms = track.DurationMs,
+                        preview_url = track.PreviewUrl
+                    })
+                    .Cast<object>()
+                    .ToList() ?? new List<object>();
+
+                return Json(new
+                {
+                    success = true,
+                    tracks = tracks
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching Spotify");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddToPriorityQueue(string trackId, string trackName, string trackArtist, string trackUri)
+        {
+            try
+            {
+                var priorityQueueJson = HttpContext.Session.GetString("PriorityQueue") ?? "[]";
+                var priorityQueue = JsonSerializer.Deserialize<List<object>>(priorityQueueJson) ?? new List<object>();
+
+                var newTrack = new
+                {
+                    id = trackId,
+                    name = trackName,
+                    artist = trackArtist,
+                    uri = trackUri,
+                    addedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                };
+
+                priorityQueue.Add(newTrack);
+
+                // Store updated queue
+                HttpContext.Session.SetString("PriorityQueue", JsonSerializer.Serialize(priorityQueue));
+
+                return Json(new { success = true, queueLength = priorityQueue.Count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding track to priority queue");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult RemoveFromPriorityQueue(string trackId)
+        {
+            try
+            {
+                var priorityQueueJson = HttpContext.Session.GetString("PriorityQueue") ?? "[]";
+                var priorityQueue = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(priorityQueueJson) ?? new List<Dictionary<string, object>>();
+
+                // Remove the track with matching ID
+                priorityQueue.RemoveAll(track => track.ContainsKey("id") && track["id"].ToString() == trackId);
+
+                // Store updated queue
+                HttpContext.Session.SetString("PriorityQueue", JsonSerializer.Serialize(priorityQueue));
+
+                return Json(new { success = true, queueLength = priorityQueue.Count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing track from priority queue");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ClearPriorityQueue()
+        {
+            try
+            {
+                HttpContext.Session.SetString("PriorityQueue", "[]");
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clearing priority queue");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetPriorityQueue()
+        {
+            try
+            {
+                var priorityQueueJson = HttpContext.Session.GetString("PriorityQueue") ?? "[]";
+                var priorityQueue = JsonSerializer.Deserialize<List<object>>(priorityQueueJson) ?? new List<object>();
+
+                return Json(new { success = true, queue = priorityQueue });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting priority queue");
                 return Json(new { success = false, error = ex.Message });
             }
         }
