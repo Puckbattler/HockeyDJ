@@ -32,8 +32,12 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Responsive Layout**: Works on desktop, tablet, and mobile devices
 - **Animated Elements**: Glowing buttons and smooth hover effects
 - **Real-time Updates**: Live track information and playback status
+  
 ### Priority Queue 
-- **Coming Soon**
+- **Allows you to take song requests mid game** You can now go to the bottom of the player page and search for any song on Spotify. Click the add to queue button to add it to your queue.
+-  **Queue Songs will play no matter what player you hit play random for**
+- **Automatic Priority for Queued Songs** Unless you hit the Goal Horn Button all queued songs will play next no matter what playlist you click play for. If the song ends playback will move to a random song from the player that was used to start the song. 
+- **Coming to a release soon**
 ## 🚀 Quick Start
 
 ### Prerequisites
