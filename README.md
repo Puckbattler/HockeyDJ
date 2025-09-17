@@ -17,7 +17,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 
 ### 🚨 Goal Celebrations
 - **Goal Horn Button**: Trigger epic goal celebrations with sound effects
-- **Victory Songs**: Automatically plays random celebration songs after goal horn or you can select a song from the dropdown, i.e. if you select song 2 it will play the second song from the Goal playlist. You can ask the players on the team for a goal song and then enter them into the playlist in numerical order that way if #4 scores you just select Song 4 and hit the button and it will play the horn and then player #4's requested goal song. 
+- **Victory Songs**: Automatically plays random celebration songs after goal horn or you can select a song from the dropdown, i.e. if you select 2 it will play the second song from the Goal playlist. You can ask the players on the team for a goal song and then enter them into the playlist in numerical order that way if #4 scores you just select  4 and hit the button and it will play the horn and then player #4's requested goal song. 
 - **Custom Audio Support**: Add your own goal horn, power-up, and timeout sounds
 
 ### Sound Effects
@@ -37,7 +37,6 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Allows you to take song requests mid game** You can now go to the bottom of the player page and search for any song on Spotify. Click the add to queue button to add it to your queue.
 -  **Queue Songs will play no matter what player you hit play random for**
 - **Automatic Priority for Queued Songs** Unless you hit the Goal Horn Button all queued songs will play next no matter what playlist you click play for. If the song ends playback will move to a random song from the player that was used to start the song. 
-- **Coming to a release soon**
 ## 🚀 Quick Start
 
 ### Prerequisites
