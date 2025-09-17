@@ -21,8 +21,8 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Custom Audio Support**: Add your own goal horn, power-up, and timeout sounds
 
 ### Sound Effects
-- **🍄 Mushroom**: Power-up sound for momentum changes (Provide Your Own)
-- **🕐 Clock**: Timeout sound for breaks in action (Provide Your Own)
+- **🍄 Mushroom (Extra Life)**: Power-up sound for the when play reverts to even strength after a penalty (Provide Your Own)
+- **🕐 Clock**: One Minute Remaining Sound (Provide Your Own)
 - **📯 Goal Horn** Goal horn sound (Provide Your Own)
 - Put the audio files in wwwroot/audio
 - They should be named Mushroom.mp3 , Clock.mp3 , GoalHorn.mp3
@@ -32,8 +32,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Responsive Layout**: Works on desktop, tablet, and mobile devices
 - **Animated Elements**: Glowing buttons and smooth hover effects
 - **Real-time Updates**: Live track information and playback status
-
-### Voice Control 
+### Priority Queue 
 - **Coming Soon**
 ## 🚀 Quick Start
 
