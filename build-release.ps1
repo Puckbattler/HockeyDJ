@@ -1,12 +1,76 @@
 # build-release.ps1
 param(
-    [string]$Version = "1.1.1",
+    [string]$Version = "1.2.0",
     [string]$ProjectPath = "HockeyDJ.csproj"
 )
+
+if (-not $Version) {
+    $Version = Read-Host "Enter the version number (e.g., 1.0)"
+}
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "🏒 Building HockeyDJ v$Version releases..." -ForegroundColor Green
+
+# Function to check and fix NuGet configuration
+function Fix-NuGetConfig {
+    Write-Host "🔧 Checking NuGet configuration..." -ForegroundColor Yellow
+    
+    # Clear NuGet caches
+    Write-Host "   Clearing NuGet caches..." -ForegroundColor Gray
+    dotnet nuget locals all --clear
+    
+    # Get current sources and check for problematic ones
+    Write-Host "   Checking package sources..." -ForegroundColor Gray
+    $sources = dotnet nuget list source 2>$null
+    
+    # Remove problematic sources if they exist
+    if ($sources -match "Microsoft.*SDKs" -or $sources -match "Offline Packages") {
+        Write-Host "   Removing problematic package sources..." -ForegroundColor Gray
+        
+        # Try to remove common problematic sources
+        $problematicSources = @(
+            "Microsoft Visual Studio Offline Packages",
+            "Microsoft SDKs",
+            "nuget.org"  # Remove existing nuget.org to re-add it clean
+        )
+        
+        foreach ($sourceName in $problematicSources) {
+            try {
+                $null = dotnet nuget remove source $sourceName 2>$null
+                Write-Host "     Removed: $sourceName" -ForegroundColor DarkGray
+            } catch {
+                # Ignore errors - source might not exist
+            }
+        }
+    }
+    
+    # Add back the official NuGet source
+    Write-Host "   Adding official NuGet.org source..." -ForegroundColor Gray
+    try {
+        $null = dotnet nuget add source "https://api.nuget.org/v3/index.json" -n "nuget.org" 2>$null
+        Write-Host "     Added: nuget.org" -ForegroundColor DarkGray
+    } catch {
+        # Source might already exist - that's fine
+        Write-Host "     nuget.org already exists" -ForegroundColor DarkGray
+    }
+    
+    # Verify sources
+    Write-Host "   Current package sources:" -ForegroundColor Gray
+    $currentSources = dotnet nuget list source 2>$null
+    if ($currentSources) {
+        $currentSources | ForEach-Object { 
+            if ($_ -match "^\s*\d+\." -or $_ -match "nuget\.org" -or $_ -match "https://") {
+                Write-Host "     $_" -ForegroundColor DarkGray
+            }
+        }
+    }
+    
+    Write-Host "   NuGet configuration fixed!" -ForegroundColor Green
+}
+
+# Fix NuGet configuration before building
+Fix-NuGetConfig
 
 # Define target platforms
 $platforms = @(
@@ -34,23 +98,69 @@ foreach ($platform in $platforms) {
     
     Write-Host "🔨 Building for $rid..." -ForegroundColor Cyan
     
-    # Publish
+    # Clean and restore first to ensure clean build
+    Write-Host "   Cleaning and restoring packages..." -ForegroundColor Gray
+    
+    # Remove bin and obj folders completely to ensure clean state
+    Remove-Item -Path "bin" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "obj" -Recurse -Force -ErrorAction SilentlyContinue
+    
+    # Clean the project
+    dotnet clean $ProjectPath -c Release --nologo -v quiet 2>$null
+    
+    # Force restore with explicit source and ignore failing sources
+    Write-Host "   Restoring packages from NuGet.org..." -ForegroundColor Gray
+    dotnet restore $ProjectPath --source "https://api.nuget.org/v3/index.json" --ignore-failed-sources --force --no-cache --nologo -v minimal
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "   ⚠️  Initial restore failed, trying alternative approach..." -ForegroundColor Yellow
+        
+        # Try with multiple sources as fallback
+        dotnet restore $ProjectPath --ignore-failed-sources --force --no-cache --nologo -v minimal
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "   ❌ Restore failed for $rid. Checking project file..." -ForegroundColor Red
+            
+            # Check if project file exists and show its contents
+            if (Test-Path $ProjectPath) {
+                Write-Host "   📄 Project file contents:" -ForegroundColor Yellow
+                Get-Content $ProjectPath | Where-Object { $_ -match "PackageReference" } | ForEach-Object {
+                    Write-Host "     $_" -ForegroundColor Gray
+                }
+            }
+            
+            Write-Host "   💡 Try manually checking for orphaned package references or corrupted package cache" -ForegroundColor Yellow
+            continue  # Skip this platform and continue with others
+        }
+    }
+    
+    # Publish with explicit source configuration
     dotnet publish $ProjectPath `
         -c Release `
         -r $rid `
         --self-contained true `
+        --source "https://api.nuget.org/v3/index.json" `
+        --ignore-failed-sources `
         -p:PublishSingleFile=true `
         -p:PublishTrimmed=false `
         -p:IncludeNativeLibrariesForSelfExtract=true `
         -p:Version=$Version `
-        --output "./publish/$rid"
+        --output "./publish/$rid" `
+        --nologo `
+        -v quiet
     
     if ($LASTEXITCODE -ne 0) {
         Write-Error "❌ Build failed for $rid"
+        Write-Host "💡 Troubleshooting tips:" -ForegroundColor Yellow
+        Write-Host "   1. Try running: dotnet nuget locals all --clear" -ForegroundColor Gray
+        Write-Host "   2. Check your NuGet.config file in the project directory" -ForegroundColor Gray
+        Write-Host "   3. Ensure you have the latest .NET SDK installed" -ForegroundColor Gray
+        Write-Host "   4. Try: dotnet restore --source https://api.nuget.org/v3/index.json" -ForegroundColor Gray
         exit 1
     }
     
     # Copy additional files
+    Write-Host "   Adding additional files..." -ForegroundColor Gray
     Copy-Item -Path "README.md" -Destination "./publish/$rid/" -Force -ErrorAction SilentlyContinue
     Copy-Item -Path "hockeydj_license.md" -Destination "./publish/$rid/" -Force -ErrorAction SilentlyContinue
     
@@ -148,7 +258,6 @@ export ASPNETCORE_URLS="https://127.0.0.1:7001;http://127.0.0.1:5000"
     # Create audio directory and copy audio files if they exist
     New-Item -ItemType Directory -Path "./publish/$rid/wwwroot/audio" -Force | Out-Null
     
-   
     # Create README for the release
     $releaseReadme = @"
 # HockeyDJ v$Version
@@ -186,6 +295,7 @@ See the full README.md for detailed setup instructions.
     $releaseReadme | Out-File -FilePath "./publish/$rid/QUICK-START.md" -Encoding UTF8
     
     # Create archive
+    Write-Host "   Creating archive..." -ForegroundColor Gray
     $archiveName = "HockeyDJ-v$Version-$rid"
     if ($archiveType -eq "zip") {
         Compress-Archive -Path "./publish/$rid/*" -DestinationPath "./releases/v$Version/$archiveName.zip" -Force
@@ -209,3 +319,10 @@ Write-Host "  • Startup scripts for easy launching" -ForegroundColor White
 Write-Host "  • Quick start guide" -ForegroundColor White
 Write-Host ""
 Write-Host "Users can start the app by running the startup script or executable directly!" -ForegroundColor Green
+
+# Additional troubleshooting information
+Write-Host ""
+Write-Host "💡 If you encounter NuGet issues in the future:" -ForegroundColor Yellow
+Write-Host "  1. Run this script again (it includes NuGet fixes)" -ForegroundColor Gray
+Write-Host "  2. Or manually run: dotnet nuget locals all --clear" -ForegroundColor Gray
+Write-Host "  3. Check for corrupted NuGet.config files in your project" -ForegroundColor Gray

@@ -388,6 +388,160 @@ namespace HockeyDJ.Controllers
             }
         }
 
+        // NEW EXPORT/IMPORT FUNCTIONALITY - START
+        
+        [HttpGet]
+        public IActionResult ExportConfiguration()
+        {
+            try
+            {
+                // Get current configuration from session
+                var clientId = HttpContext.Session.GetString("SpotifyClientId");
+                var redirectUri = HttpContext.Session.GetString("SpotifyRedirectUri");
+                var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
+                var userPlaylists = HttpContext.Session.GetString("UserPlaylists");
+                var customSongNames = HttpContext.Session.GetString("CustomSongNames");
+
+                if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
+                {
+                    return Json(new { error = "No configuration found to export. Please configure your settings first." });
+                }
+
+                // Parse playlists to get URLs
+                var playlistUrls = new List<string>();
+                var goalHornPlaylistUrl = "";
+
+                if (!string.IsNullOrEmpty(userPlaylists))
+                {
+                    try
+                    {
+                        var playlists = JsonSerializer.Deserialize<List<dynamic>>(userPlaylists);
+                        if (playlists != null)
+                        {
+                            foreach (var playlist in playlists)
+                            {
+                                var playlistJson = JsonSerializer.Serialize(playlist);
+                                var playlistDict = JsonSerializer.Deserialize<Dictionary<string, object>>(playlistJson);
+                                
+                                if (playlistDict != null && playlistDict.ContainsKey("Url"))
+                                {
+                                    var url = playlistDict["Url"].ToString();
+                                    var isGoalHorn = playlistDict.ContainsKey("IsGoalHorn") && 
+                                                   bool.Parse(playlistDict["IsGoalHorn"].ToString() ?? "false");
+                                    
+                                    if (isGoalHorn)
+                                    {
+                                        goalHornPlaylistUrl = url;
+                                    }
+                                    else
+                                    {
+                                        playlistUrls.Add(url);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing playlists for export");
+                    }
+                }
+
+                // Create export object (excluding sensitive data like client secret)
+                var exportConfig = new
+                {
+                    clientId = clientId,
+                    redirectUri = redirectUri,
+                    goalHornPlaylist = goalHornPlaylistUrl,
+                    playlistUrls = string.Join("\n", playlistUrls),
+                    customSongNames = customSongNames ?? "",
+                    exportDate = DateTime.UtcNow.ToString("O"),
+                    version = "1.1.1"
+                };
+
+                var json = JsonSerializer.Serialize(exportConfig, new JsonSerializerOptions 
+                { 
+                    WriteIndented = true 
+                });
+
+                return File(System.Text.Encoding.UTF8.GetBytes(json), "application/json", 
+                    $"hockeydj-config-{DateTime.Now:yyyy-MM-dd}.json");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting configuration");
+                return Json(new { error = "Failed to export configuration." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ImportConfiguration([FromBody] ImportConfigurationRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.ConfigData))
+                {
+                    return Json(new { success = false, error = "No configuration data provided." });
+                }
+
+                // Parse the imported configuration
+                var importedConfig = JsonSerializer.Deserialize<JsonElement>(request.ConfigData);
+                
+                // Validate required fields exist
+                if (!importedConfig.TryGetProperty("clientId", out _) ||
+                    !importedConfig.TryGetProperty("redirectUri", out _))
+                {
+                    return Json(new { success = false, error = "Invalid configuration file format. Missing required fields." });
+                }
+
+                // Extract configuration values
+                var config = new
+                {
+                    clientId = importedConfig.TryGetProperty("clientId", out var clientId) ? clientId.GetString() : "",
+                    redirectUri = importedConfig.TryGetProperty("redirectUri", out var redirectUri) ? redirectUri.GetString() : "",
+                    goalHornPlaylist = importedConfig.TryGetProperty("goalHornPlaylist", out var goalHornPlaylist) ? goalHornPlaylist.GetString() : "",
+                    playlistUrls = importedConfig.TryGetProperty("playlistUrls", out var playlistUrls) ? playlistUrls.GetString() : "",
+                    customSongNames = importedConfig.TryGetProperty("customSongNames", out var customSongNames) ? customSongNames.GetString() : ""
+                };
+
+                // Validate URLs
+                if (!string.IsNullOrEmpty(config.redirectUri))
+                {
+                    if (!Uri.TryCreate(config.redirectUri, UriKind.Absolute, out _))
+                    {
+                        return Json(new { success = false, error = "Invalid redirect URI format in configuration." });
+                    }
+                }
+
+                // Validate playlist URLs
+                if (!string.IsNullOrEmpty(config.playlistUrls))
+                {
+                    var urls = config.playlistUrls.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var url in urls)
+                    {
+                        if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri) || 
+                            !uri.Host.Contains("spotify.com"))
+                        {
+                            return Json(new { success = false, error = $"Invalid Spotify URL in configuration: {url.Trim()}" });
+                        }
+                    }
+                }
+
+                return Json(new { success = true, config = config });
+            }
+            catch (JsonException)
+            {
+                return Json(new { success = false, error = "Invalid JSON format in configuration file." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing configuration");
+                return Json(new { success = false, error = "Failed to import configuration." });
+            }
+        }
+
+        // NEW EXPORT/IMPORT FUNCTIONALITY - END
+
         private string ExtractPlaylistId(string spotifyUrl)
         {
             try
@@ -419,5 +573,11 @@ namespace HockeyDJ.Controllers
         {
             return View();
         }
+    }
+
+    // Data model for import requests
+    public class ImportConfigurationRequest
+    {
+        public string ConfigData { get; set; } = string.Empty;
     }
 }

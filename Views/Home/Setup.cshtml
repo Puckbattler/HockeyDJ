@@ -1,233 +1,540 @@
+@{
+ViewData["Title"] = "HockeyDJ Setup";
+}
 
-    @{
-    ViewData["Title"] = "HockeyDJ Setup";
-    }
+<!DOCTYPE html>
+<html>
 
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>@ViewData["Title"]</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <style>
-            body {
-                font-family: 'Arial', sans-serif;
-                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                color: white;
-                margin: 0;
-                padding: 20px;
-                min-height: 100vh;
-            }
-
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 15px;
-                padding: 40px;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
-
-            .header {
-                text-align: center;
-                margin-bottom: 40px;
-            }
-
-                .header h1 {
-                    font-size: 2.5em;
-                    margin: 0;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-                    background: linear-gradient(45deg, #ff6b35, #f7931e);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                }
-
-            .form-group {
-                margin-bottom: 25px;
-            }
-
-                .form-group label {
-                    display: block;
-                    margin-bottom: 8px;
-                    font-weight: bold;
-                    color: #ff6b35;
-                }
-
-            .form-control {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 8px;
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                font-size: 16px;
-                box-sizing: border-box;
-            }
-
-                .form-control:focus {
-                    outline: none;
-                    border-color: #ff6b35;
-                    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
-                }
-
-                .form-control::placeholder {
-                    color: rgba(255, 255, 255, 0.6);
-                }
-
-            textarea.form-control {
-                height: 120px;
-                resize: vertical;
-            }
-
-            .btn {
-                background: linear-gradient(45deg, #28a745, #20c997);
-                color: white;
-                padding: 15px 30px;
-                border: none;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                width: 100%;
-                transition: all 0.3s ease;
-            }
-
-                .btn:hover {
-                    background: linear-gradient(45deg, #218838, #1ba085);
-                    transform: translateY(-2px);
-                }
-
-            .instructions {
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 10px;
-                padding: 20px;
-                margin-bottom: 30px;
-                border-left: 4px solid #ff6b35;
-            }
-
-                .instructions h3 {
-                    margin-top: 0;
-                    color: #ff6b35;
-                }
-
-                .instructions ol {
-                    padding-left: 20px;
-                }
-
-                .instructions li {
-                    margin-bottom: 10px;
-                    line-height: 1.5;
-                }
-
-            .error {
-                background: rgba(220, 53, 69, 0.2);
-                border: 1px solid #dc3545;
-                border-radius: 8px;
-                padding: 15px;
-                margin: 20px 0;
-                text-align: center;
-            }
-
-            .code {
-                background: rgba(0, 0, 0, 0.3);
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-family: 'Courier New', monospace;
-                font-size: 14px;
-            }
-
-            .goal-horn-section {
-                background: rgba(255, 107, 53, 0.1);
-                border: 1px solid rgba(255, 107, 53, 0.3);
-                border-radius: 10px;
-                padding: 20px;
-                margin-bottom: 25px;
-            }
-
-                .goal-horn-section h4 {
-                    color: #ff6b35;
-                    margin-top: 0;
-                    font-size: 1.3em;
-                }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🏒 HockeyDJ Setup</h1>
-                <p>Configure your Spotify connection and playlists</p>
-            </div>
-
-            @if (!string.IsNullOrEmpty(ViewBag.Error))
-        {
-            <div class="error">@ViewBag.Error</div>
+<head>
+    <title>@ViewData["Title"]</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
         }
 
-            <div class="instructions">
-                <h3>Setup Instructions</h3>
-                <ol>
-                    <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: #ff6b35;">Spotify Developer Dashboard</a></li>
-                    <li>Create a new app or use an existing one</li>
-                    <li>Add your redirect URI to the app settings (e.g., <span class="code">https://localhost:7001/Home/SpotifyCallback</span>)</li>
-                    <li>Copy your Client ID and Client Secret</li>
-                    <li>
-                        Add your sound files to <span class="code">wwwroot/audio/</span>:
-                        <ul style="margin-top: 5px;">
-                            <li><span class="code">goal-horn.mp3</span> - Goal celebration sound</li>
-                            <li><span class="code">mushroom.mp3</span> - Even Strength (Extra Life) sound</li>
-                            <li><span class="code">clock.mp3</span> -  One Minute Remaining Sound</li>
-                        </ul>
-                    </li>
-                    <li>Paste your Spotify playlist URLs below</li>
-                    <li>Make sure you have Spotify Premium (required for playback control)</li>
-                </ol>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        textarea.form-control {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #218838, #1ba085);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+            margin-bottom: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #545b62, #4e555b);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(45deg, #e0a800, #d39e00);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #ff6b35;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            color: #d4edda;
+        }
+
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .goal-horn-section {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .goal-horn-section h4 {
+            color: #ff6b35;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+
+        .config-tools {
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .config-tools h4 {
+            color: #ba55d3;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-wrapper .file-input-button {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: block;
+            text-align: center;
+        }
+
+        .file-input-wrapper .file-input-button:hover {
+            background: linear-gradient(45deg, #138496, #0f6674);
+            transform: translateY(-2px);
+        }
+
+        .selected-file {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 14px;
+            color: #b8daff;
+        }
+
+        .divider {
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::after {
+            content: "OR";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 0 15px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏒 HockeyDJ Setup</h1>
+            <p>Configure your Spotify connection and playlists</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+        <div class="error">@ViewBag.Error</div>
+        }
+
+        @if (!string.IsNullOrEmpty(ViewBag.Success))
+        {
+        <div class="success">@ViewBag.Success</div>
+        }
+
+        <div class="config-tools">
+            <h4>🔧 Configuration Tools</h4>
+            <div class="btn-group">
+                <button type="button" class="btn btn-warning" onclick="exportConfiguration()">
+                    📤 Export Configuration
+                </button>
+                <div class="file-input-wrapper">
+                    <input type="file" id="importFile" accept=".json" onchange="importConfiguration(this)" />
+                    <label for="importFile" class="file-input-button">
+                        📥 Import Configuration
+                    </label>
+                </div>
+            </div>
+            <div id="selectedFileDisplay" class="selected-file" style="display: none;"></div>
+            <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin: 10px 0 0 0;">
+                💡 Save your configuration to easily restore settings or share with other devices.
+            </p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="instructions">
+            <h3>Setup Instructions</h3>
+            <ol>
+                <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank"
+                        style="color: #ff6b35;">Spotify Developer Dashboard</a></li>
+                <li>Create a new app or use an existing one</li>
+                <li>Add your redirect URI to the app settings (e.g., <span
+                        class="code">https://localhost:7001/Home/SpotifyCallback</span>)</li>
+                <li>Copy your Client ID and Client Secret</li>
+                <li>
+                    Add your sound files to <span class="code">wwwroot/audio/</span>:
+                    <ul style="margin-top: 5px;">
+                        <li><span class="code">goal-horn.mp3</span> - Goal celebration sound</li>
+                        <li><span class="code">mushroom.mp3</span> - Even Strength (Extra Life) sound</li>
+                        <li><span class="code">clock.mp3</span> - One Minute Remaining Sound</li>
+                    </ul>
+                </li>
+                <li>Paste your Spotify playlist URLs below</li>
+                <li>Make sure you have Spotify Premium (required for playback control)</li>
+            </ol>
+        </div>
+
+        <form method="post" action="/Home/SaveSpotifyConfig" id="configForm">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label for="clientId">Spotify Client ID</label>
+                <input type="text" id="clientId" name="clientId" class="form-control"
+                    placeholder="Your Spotify App Client ID" required />
             </div>
 
-            <form method="post" action="@Url.Action("SaveSpotifyConfig")">
-                <div class="form-group">
-                    <label for="clientId">Spotify Client ID</label>
-                    <input type="text" id="clientId" name="clientId" class="form-control"
-                           placeholder="Your Spotify App Client ID" required />
-                </div>
+            <div class="form-group">
+                <label for="clientSecret">Spotify Client Secret</label>
+                <input type="password" id="clientSecret" name="clientSecret" class="form-control"
+                    placeholder="Your Spotify App Client Secret" required />
+            </div>
 
-                <div class="form-group">
-                    <label for="clientSecret">Spotify Client Secret</label>
-                    <input type="password" id="clientSecret" name="clientSecret" class="form-control"
-                           placeholder="Your Spotify App Client Secret" required />
-                </div>
+            <div class="form-group">
+                <label for="redirectUri">Redirect URI</label>
+                <input type="url" id="redirectUri" name="redirectUri" class="form-control"
+                    placeholder="https://127.0.0.1:7001/Home/SpotifyCallback"
+                    value="https://127.0.0.1:7001/Home/SpotifyCallback" required />
+            </div>
 
+            <div class="goal-horn-section">
+                <h4>🚨 Goal Horn Configuration 🚨</h4>
                 <div class="form-group">
-                    <label for="redirectUri">Redirect URI</label>
-                    <input type="url" id="redirectUri" name="redirectUri" class="form-control"
-                           placeholder="https://127.0.0.1:7001/Home/SpotifyCallback"
-                           value="https://127.0.0.1:7001/Home/SpotifyCallback" required />
-                </div>
-
-                <div class="goal-horn-section">
-                    <h4>🚨 Goal Horn Configuration 🚨</h4>
-                    <div class="form-group">
-                        <label for="goalHornPlaylist">Goal Celebration Playlist URL</label>
-                        <input type="url" id="goalHornPlaylist" name="goalHornPlaylist" class="form-control"
-                               placeholder="https://open.spotify.com/playlist/your-goal-celebration-playlist" />
-                        <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; display: block;">
-                            🎵 This playlist will play victory songs after the goal horn sound. Leave empty to use the first playlist below.
-                        </small>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="playlistUrls">Spotify Playlist URLs (up to 10, one per line)</label>
-                    <textarea id="playlistUrls" name="playlistUrls" class="form-control"
-                              placeholder="https://open.spotify.com/playlist/20ObIj4drcpqU4a4ZQPWNU?si=Y8kcaUGxRD6eov5JXfqzmQ&pi=DoFqrvE4RQm6q&#10;https://open.spotify.com/playlist/0Koymm18OCvJcecMXx7TWp?si=ofxcgkaDR8yYRw0wyhQMzw&pi=Hr6_KlG9QbmU0" required></textarea>
-                    <small style="color: rgba(255,255,255,0.7); font-size: 14px;">
-                        Tip: Right-click any Spotify playlist → "Share" → "Copy link" to get the URL
+                    <label for="goalHornPlaylist">Goal Celebration Playlist URL</label>
+                    <input type="url" id="goalHornPlaylist" name="goalHornPlaylist" class="form-control"
+                        placeholder="https://open.spotify.com/playlist/your-goal-celebration-playlist" />
+                    <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; display: block;">
+                        🎵 This playlist will play victory songs after the goal horn sound. Leave empty to use the first
+                        playlist below.
                     </small>
                 </div>
+            </div>
 
-                <button type="submit" class="btn">Connect to Spotify & Start HockeyDJ</button>
-            </form>
-        </div>
-    </body>
+            <div class="form-group">
+                <label for="playlistUrls">Spotify Playlist URLs (up to 10, one per line)</label>
+                <textarea id="playlistUrls" name="playlistUrls" class="form-control"
+                    placeholder="https://open.spotify.com/playlist/20ObIj4drcpqU4a4ZQPWNU?si=Y8kcaUGxRD6eov5JXfqzmQ&pi=DoFqrvE4RQm6q&#10;https://open.spotify.com/playlist/0Koymm18OCvJcecMXx7TWp?si=ofxcgkaDR8yYRw0wyhQMzw&pi=Hr6_KlG9QbmU0"
+                    required></textarea>
+                <small style="color: rgba(255,255,255,0.7); font-size: 14px;">
+                    Tip: Right-click any Spotify playlist → "Share" → "Copy link" to get the URL
+                </small>
+            </div>
+
+            <button type="submit" class="btn">Connect to Spotify & Start HockeyDJ</button>
+        </form>
+    </div>
+
+    <script>
+        function exportConfiguration() {
+            // Gather all configuration data
+            const config = {
+                clientId: document.getElementById('clientId').value,
+                clientSecret: document.getElementById('clientSecret').value,
+                redirectUri: document.getElementById('redirectUri').value,
+                goalHornPlaylist: document.getElementById('goalHornPlaylist').value,
+                playlistUrls: document.getElementById('playlistUrls').value,
+                exportDate: new Date().toISOString(),
+                version: "1.1.1"
+            };
+
+            // Create and download the file
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+            const exportFileDefaultName = 'hockeydj-config-' + new Date().toISOString().split('T')[0] + '.json';
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            linkElement.remove();
+        }
+
+        function importConfiguration(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Display selected file name
+            const fileDisplay = document.getElementById('selectedFileDisplay');
+            fileDisplay.textContent = `Selected: ${file.name}`;
+            fileDisplay.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const configData = e.target.result;
+
+                    // Send to server for processing and validation
+                    fetch('/Home/ImportConfiguration', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({configData: configData})
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                // Populate the form fields with validated data
+                                const config = result.config;
+
+                                if (config.clientId) {
+                                    document.getElementById('clientId').value = config.clientId;
+                                }
+                                if (config.redirectUri) {
+                                    document.getElementById('redirectUri').value = config.redirectUri;
+                                }
+                                if (config.goalHornPlaylist) {
+                                    document.getElementById('goalHornPlaylist').value = config.goalHornPlaylist;
+                                }
+                                if (config.playlistUrls) {
+                                    document.getElementById('playlistUrls').value = config.playlistUrls;
+                                }
+
+                                // Show success message
+                                showTemporaryMessage('✅ Configuration imported successfully! Please enter your Client Secret to complete the setup.', 'success');
+
+                                // Focus on client secret field since it's not exported for security
+                                document.getElementById('clientSecret').focus();
+                            } else {
+                                throw new Error(result.error || 'Unknown error occurred');
+                            }
+                        })
+                        .catch(error => {
+                            showTemporaryMessage('❌ Error importing configuration: ' + error.message, 'error');
+                        })
+                        .finally(() => {
+                            // Clear the file input
+                            input.value = '';
+                            fileDisplay.style.display = 'none';
+                        });
+
+                } catch (error) {
+                    showTemporaryMessage('❌ Error reading configuration file: ' + error.message, 'error');
+                    input.value = '';
+                    fileDisplay.style.display = 'none';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showTemporaryMessage(message, type) {
+            // Remove existing temporary messages
+            const existingMessages = document.querySelectorAll('.temp-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            // Create new message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type} temp-message`;
+            messageDiv.textContent = message;
+
+            // Insert after the header
+            const header = document.querySelector('.header');
+            header.insertAdjacentElement('afterend', messageDiv);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Enhance form validation
+        document.getElementById('configForm').addEventListener('submit', function (e) {
+            const clientId = document.getElementById('clientId').value.trim();
+            const clientSecret = document.getElementById('clientSecret').value.trim();
+            const redirectUri = document.getElementById('redirectUri').value.trim();
+            const playlistUrls = document.getElementById('playlistUrls').value.trim();
+
+            if (!clientId || !clientSecret || !redirectUri || !playlistUrls) {
+                e.preventDefault();
+                showTemporaryMessage('❌ Please fill in all required fields!', 'error');
+                return false;
+            }
+
+            // Validate redirect URI format
+            try {
+                new URL(redirectUri);
+            } catch {
+                e.preventDefault();
+                showTemporaryMessage('❌ Please enter a valid redirect URI!', 'error');
+                return false;
+            }
+
+            // Validate playlist URLs
+            const urls = playlistUrls.split('\n').filter(url => url.trim());
+            const invalidUrls = urls.filter(url => {
+                try {
+                    const urlObj = new URL(url.trim());
+                    return !urlObj.hostname.includes('spotify.com');
+                } catch {
+                    return true;
+                }
+            });
+
+            if (invalidUrls.length > 0) {
+                e.preventDefault();
+                showTemporaryMessage('❌ Please ensure all playlist URLs are valid Spotify URLs!', 'error');
+                return false;
+            }
+
+            if (urls.length > 10) {
+                e.preventDefault();
+                showTemporaryMessage('❌ Maximum of 10 playlists allowed!', 'error');
+                return false;
+            }
+        });
+    </script>
+</body>
+
 </html>

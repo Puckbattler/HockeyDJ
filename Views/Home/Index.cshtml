@@ -1,9 +1,10 @@
 ﻿@{
-    ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
+ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 }
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>@ViewData["Title"]</title>
     <meta charset="utf-8" />
@@ -23,15 +24,15 @@
             margin-bottom: 30px;
         }
 
-            .header h1 {
-                font-size: 3em;
-                margin: 0;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-                background: linear-gradient(45deg, #ff6b35, #f7931e);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
         .current-track {
             background: rgba(255, 255, 255, 0.1);
@@ -68,59 +69,101 @@
             animation: glow 2s ease-in-out infinite alternate;
         }
 
-            .goal-horn-btn:hover {
-                background: linear-gradient(45deg, #e55a2b, #e0841a);
-                transform: scale(1.1) translateY(-3px);
-                box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
-            }
+        .goal-horn-btn:hover {
+            background: linear-gradient(45deg, #e55a2b, #e0841a);
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+        }
 
-            .goal-horn-btn:active {
-                transform: scale(1.05) translateY(-1px);
-            }
+        .goal-horn-btn:active {
+            transform: scale(1.05) translateY(-1px);
+        }
 
-            .goal-horn-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-                animation: none;
-            }
+        .goal-horn-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
 
         .song-selector {
             margin: 20px 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
+            gap: 15px;
         }
 
         .song-selector label {
             font-weight: bold;
             color: #ff6b35;
             font-size: 16px;
+            margin-bottom: 5px;
         }
 
-        .song-dropdown {
+        .radio-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 107, 53, 0.3);
-            border-radius: 8px;
-            color: white;
-            padding: 8px 15px;
-            font-size: 16px;
-            font-weight: bold;
-            backdrop-filter: blur(10px);
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-width: 28px;
+            height: 28px;
+            justify-content: center;
         }
 
-        .song-dropdown:focus {
-            outline: none;
-            border-color: #ff6b35;
+        .radio-option:hover {
             background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 107, 53, 0.6);
+            transform: translateY(-2px);
         }
 
-        .song-dropdown option {
-            background: #1e3c72;
+        .radio-option input[type="radio"] {
+            margin: 0;
+            margin-right: 3px;
+            accent-color: #ff6b35;
+            cursor: pointer;
+            transform: scale(0.8);
+        }
+
+        .radio-option label {
+            margin: 0;
+            font-size: 12px;
+            font-weight: bold;
             color: white;
-            padding: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .radio-option.selected {
+            background: rgba(255, 107, 53, 0.3);
+            border-color: #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .radio-option.random-option {
+            background: linear-gradient(45deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.2));
+            border-color: rgba(255, 107, 53, 0.5);
+            min-width: 48px;
+        }
+
+        .radio-option.random-option.selected {
+            background: linear-gradient(45deg, rgba(255, 107, 53, 0.4), rgba(247, 147, 30, 0.4));
+            border-color: #ff6b35;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
         }
 
         .sound-buttons {
@@ -146,16 +189,16 @@
             border: 2px solid white;
         }
 
-            .mushroom-btn:hover {
-                transform: scale(1.1) translateY(-3px);
-                box-shadow: 0 8px 20px rgba(204, 0, 0, 0.6);
-            }
+        .mushroom-btn:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 20px rgba(204, 0, 0, 0.6);
+        }
 
-            .mushroom-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
+        .mushroom-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .clock-btn {
             background: linear-gradient(45deg, #2196F3, #1976D2);
@@ -173,16 +216,16 @@
             border: 2px solid #0D47A1;
         }
 
-            .clock-btn:hover {
-                transform: scale(1.1) translateY(-3px);
-                box-shadow: 0 8px 20px rgba(33, 150, 243, 0.6);
-            }
+        .clock-btn:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 20px rgba(33, 150, 243, 0.6);
+        }
 
-            .clock-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
+        .clock-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         @@keyframes glow {
             from {
@@ -212,16 +255,16 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-            .player:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            }
+        .player:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
 
-            .player h3 {
-                margin: 0 0 15px 0;
-                color: #ff6b35;
-                font-size: 1.2em;
-            }
+        .player h3 {
+            margin: 0 0 15px 0;
+            color: #ff6b35;
+            font-size: 1.2em;
+        }
 
         .player-controls {
             display: flex;
@@ -245,20 +288,20 @@
             color: white;
         }
 
-            .btn-play:hover {
-                background: linear-gradient(45deg, #218838, #1ba085);
-                transform: scale(1.05);
-            }
+        .btn-play:hover {
+            background: linear-gradient(45deg, #218838, #1ba085);
+            transform: scale(1.05);
+        }
 
         .btn-pause {
             background: linear-gradient(45deg, #dc3545, #fd7e14);
             color: white;
         }
 
-            .btn-pause:hover {
-                background: linear-gradient(45deg, #c82333, #e96b00);
-                transform: scale(1.05);
-            }
+        .btn-pause:hover {
+            background: linear-gradient(45deg, #c82333, #e96b00);
+            transform: scale(1.05);
+        }
 
         .btn:disabled {
             opacity: 0.6;
@@ -304,11 +347,11 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-            .setup-link:hover {
-                background: rgba(255, 255, 255, 0.3);
-                color: white;
-                text-decoration: none;
-            }
+        .setup-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+        }
 
         /* Priority Queue Styles */
         .priority-queue-section {
@@ -326,16 +369,16 @@
             margin-bottom: 30px;
         }
 
-            .priority-queue-header h2 {
-                color: #ff6b35;
-                font-size: 2em;
-                margin: 0 0 10px 0;
-            }
+        .priority-queue-header h2 {
+            color: #ff6b35;
+            font-size: 2em;
+            margin: 0 0 10px 0;
+        }
 
-            .priority-queue-header p {
-                color: rgba(255, 255, 255, 0.8);
-                margin: 0;
-            }
+        .priority-queue-header p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+        }
 
         .search-section {
             display: flex;
@@ -356,16 +399,16 @@
             transition: all 0.3s ease;
         }
 
-            .search-input:focus {
-                outline: none;
-                border-color: #ff6b35;
-                background: rgba(255, 255, 255, 0.2);
-                box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
-            }
+        .search-input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+        }
 
-            .search-input::placeholder {
-                color: rgba(255, 255, 255, 0.6);
-            }
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
 
         .search-btn {
             background: linear-gradient(45deg, #ff6b35, #f7931e);
@@ -381,17 +424,17 @@
             white-space: nowrap;
         }
 
-            .search-btn:hover {
-                background: linear-gradient(45deg, #e55a2b, #e0841a);
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
-            }
+        .search-btn:hover {
+            background: linear-gradient(45deg, #e55a2b, #e0841a);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
 
-            .search-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .search-results {
             background: rgba(255, 255, 255, 0.05);
@@ -411,35 +454,35 @@
             transition: background 0.2s ease;
         }
 
-            .search-result-item:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
+        .search-result-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
-            .search-result-item:last-child {
-                border-bottom: none;
-            }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
 
         .search-result-info {
             flex: 1;
         }
 
-            .search-result-info .track-name {
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                margin-bottom: 4px;
-            }
+        .search-result-info .track-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 4px;
+        }
 
-            .search-result-info .track-artist {
-                font-size: 14px;
-                color: rgba(255, 255, 255, 0.7);
-                margin-bottom: 2px;
-            }
+        .search-result-info .track-artist {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2px;
+        }
 
-            .search-result-info .track-album {
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.5);
-            }
+        .search-result-info .track-album {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
 
         .add-to-queue-btn {
             background: linear-gradient(45deg, #28a745, #20c997);
@@ -454,16 +497,16 @@
             white-space: nowrap;
         }
 
-            .add-to-queue-btn:hover {
-                background: linear-gradient(45deg, #218838, #1ba085);
-                transform: scale(1.05);
-            }
+        .add-to-queue-btn:hover {
+            background: linear-gradient(45deg, #218838, #1ba085);
+            transform: scale(1.05);
+        }
 
-            .add-to-queue-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
+        .add-to-queue-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .queue-display {
             background: rgba(255, 255, 255, 0.05);
@@ -479,11 +522,11 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-            .queue-header h3 {
-                color: #ff6b35;
-                margin: 0;
-                font-size: 1.3em;
-            }
+        .queue-header h3 {
+            color: #ff6b35;
+            margin: 0;
+            font-size: 1.3em;
+        }
 
         .queue-controls {
             display: flex;
@@ -502,16 +545,16 @@
             transition: all 0.3s ease;
         }
 
-            .clear-queue-btn:hover {
-                background: linear-gradient(45deg, #c82333, #e96b00);
-                transform: scale(1.05);
-            }
+        .clear-queue-btn:hover {
+            background: linear-gradient(45deg, #c82333, #e96b00);
+            transform: scale(1.05);
+        }
 
-            .clear-queue-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
+        .clear-queue-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .queue-list {
             max-height: 300px;
@@ -527,29 +570,29 @@
             transition: background 0.2s ease;
         }
 
-            .queue-item:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
+        .queue-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
-            .queue-item:last-child {
-                border-bottom: none;
-            }
+        .queue-item:last-child {
+            border-bottom: none;
+        }
 
         .queue-item-info {
             flex: 1;
         }
 
-            .queue-item-info .track-name {
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                margin-bottom: 4px;
-            }
+        .queue-item-info .track-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 4px;
+        }
 
-            .queue-item-info .track-artist {
-                font-size: 14px;
-                color: rgba(255, 255, 255, 0.7);
-            }
+        .queue-item-info .track-artist {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
 
         .queue-item-number {
             background: rgba(255, 107, 53, 0.3);
@@ -574,10 +617,10 @@
             transition: all 0.3s ease;
         }
 
-            .remove-from-queue-btn:hover {
-                background: rgba(220, 53, 69, 0.5);
-                color: white;
-            }
+        .remove-from-queue-btn:hover {
+            background: rgba(220, 53, 69, 0.5);
+            color: white;
+        }
 
         .empty-queue {
             text-align: center;
@@ -622,6 +665,24 @@
 
         /* Mobile Responsiveness */
         @@media (max-width: 768px) {
+            .radio-grid {
+                gap: 2px;
+            }
+
+            .radio-option {
+                min-width: 24px;
+                height: 24px;
+                padding: 2px 6px;
+            }
+
+            .radio-option label {
+                font-size: 10px;
+            }
+
+            .radio-option.random-option {
+                min-width: 40px;
+            }
+
             .search-section {
                 flex-direction: column;
                 gap: 10px;
@@ -666,8 +727,9 @@
         }
     </style>
 </head>
+
 <body>
-    <a href="@Url.Action("Setup")" class="setup-link">⚙️ Settings</a>
+    <a href="@Url.Action(" Setup")" class="setup-link">⚙️ Settings</a>
 
     <div class="header">
         <h1>🏒 HockeyDJ</h1>
@@ -681,40 +743,144 @@
 
     <div class="goal-horn-section">
         <h3 style="color: #ff6b35; margin-bottom: 15px;">🚨 GOAL! 🚨</h3>
-        
+
         <div class="song-selector">
-            <label for="songSelector">Song Selection:</label>
-            <select id="songSelector" class="song-dropdown">
-                <option value="random">🎲 Random Song</option>
-                <option value="1">🎵 Song 1</option>
-                <option value="2">🎵 Song 2</option>
-                <option value="3">🎵 Song 3</option>
-                <option value="4">🎵 Song 4</option>
-                <option value="5">🎵 Song 5</option>
-                <option value="6">🎵 Song 6</option>
-                <option value="7">🎵 Song 7</option>
-                <option value="8">🎵 Song 8</option>
-                <option value="9">🎵 Song 9</option>
-                <option value="10">🎵 Song 10</option>
-                <option value="11">🎵 Song 11</option>
-                <option value="12">🎵 Song 12</option>
-                <option value="13">🎵 Song 13</option>
-                <option value="14">🎵 Song 14</option>
-                <option value="15">🎵 Song 15</option>
-                <option value="16">🎵 Song 16</option>
-                <option value="17">🎵 Song 17</option>
-                <option value="18">🎵 Song 18</option>
-                <option value="19">🎵 Song 19</option>
-                <option value="20">🎵 Song 20</option>
-            </select>
+            <label>Song Selection:</label>
+            <div class="radio-grid">
+                <div class="radio-option random-option">
+                    <input type="radio" id="songRandom" name="songSelection" value="random" checked>
+                    <label for="songRandom">🎲</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song1" name="songSelection" value="1">
+                    <label for="song1">1</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song2" name="songSelection" value="2">
+                    <label for="song2">2</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song3" name="songSelection" value="3">
+                    <label for="song3">3</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song4" name="songSelection" value="4">
+                    <label for="song4">4</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song5" name="songSelection" value="5">
+                    <label for="song5">5</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song6" name="songSelection" value="6">
+                    <label for="song6">6</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song7" name="songSelection" value="7">
+                    <label for="song7">7</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song8" name="songSelection" value="8">
+                    <label for="song8">8</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song9" name="songSelection" value="9">
+                    <label for="song9">9</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song10" name="songSelection" value="10">
+                    <label for="song10">10</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song11" name="songSelection" value="11">
+                    <label for="song11">11</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song12" name="songSelection" value="12">
+                    <label for="song12">12</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song13" name="songSelection" value="13">
+                    <label for="song13">13</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song14" name="songSelection" value="14">
+                    <label for="song14">14</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song15" name="songSelection" value="15">
+                    <label for="song15">15</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song16" name="songSelection" value="16">
+                    <label for="song16">16</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song17" name="songSelection" value="17">
+                    <label for="song17">17</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song18" name="songSelection" value="18">
+                    <label for="song18">18</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song19" name="songSelection" value="19">
+                    <label for="song19">19</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song20" name="songSelection" value="20">
+                    <label for="song20">20</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song21" name="songSelection" value="21">
+                    <label for="song21">21</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song22" name="songSelection" value="22">
+                    <label for="song22">22</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song23" name="songSelection" value="23">
+                    <label for="song23">23</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song24" name="songSelection" value="24">
+                    <label for="song24">24</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song25" name="songSelection" value="25">
+                    <label for="song25">25</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song26" name="songSelection" value="26">
+                    <label for="song26">26</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song27" name="songSelection" value="27">
+                    <label for="song27">27</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song28" name="songSelection" value="28">
+                    <label for="song28">28</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song29" name="songSelection" value="29">
+                    <label for="song29">29</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="song30" name="songSelection" value="30">
+                    <label for="song30">30</label>
+                </div>
+            </div>
         </div>
 
         <button class="goal-horn-btn" id="goalHornBtn" onclick="playGoalHorn()">
             📯 GOAL HORN 📯
         </button>
-        
+
         <div class="sound-buttons">
-            <button class="mushroom-btn" id="mushroomBtn" onclick="playMushroomSound()" title="Even Strength (Extra Life) Sound">
+            <button class="mushroom-btn" id="mushroomBtn" onclick="playMushroomSound()"
+                title="Even Strength (Extra Life) Sound">
                 🍄
             </button>
             <button class="clock-btn" id="clockBtn" onclick="playClockSound()" title="One Minute Remaining Sound">
@@ -761,7 +927,8 @@
             <div class="queue-header">
                 <h3>Queue (<span id="queueCount">0</span> songs)</h3>
                 <div class="queue-controls">
-                    <button id="clearQueueBtn" class="clear-queue-btn" onclick="clearPriorityQueue()" disabled>🗑️ Clear Queue</button>
+                    <button id="clearQueueBtn" class="clear-queue-btn" onclick="clearPriorityQueue()" disabled>🗑️ Clear
+                        Queue</button>
                 </div>
             </div>
             <div id="queueList" class="queue-list">
@@ -788,24 +955,57 @@
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
 
-    <script src="https://sdk.scdn.co/spotify-player.js"></script>
-    <script>
         window.onSpotifyWebPlaybackSDKReady = () => {
             initializeHockeyDJ();
         };
 
-        let spotifyPlayer;
-        let deviceId;
-        let currentPlaylists = @Html.Raw(ViewBag.Playlists ?? "[]");
-        let accessToken = '@ViewBag.AccessToken';
-        let goalHornPlaylistId = '@ViewBag.GoalHornPlaylistId';
-        let playlistTracks = {};
-        let playlistNames = {};
-        let goalHornAudio = null;
-        let mushroomAudio = null;
-        let clockAudio = null;
-        let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
-        let isSearching = false;
+        // Add event listeners for radio button styling
+        document.addEventListener('DOMContentLoaded', function () {
+            const radioOptions = document.querySelectorAll('.radio-option');
+
+            radioOptions.forEach(option => {
+                const radio = option.querySelector('input[type="radio"]');
+                const label = option.querySelector('label');
+
+                // Handle clicking on the container
+                option.addEventListener('click', function (e) {
+                    if (e.target !== radio) {
+                        radio.checked = true;
+                        updateRadioStyles();
+                    }
+                });
+
+                // Handle radio button changes
+                radio.addEventListener('change', function () {
+                    updateRadioStyles();
+                });
+            });
+
+            // Initialize radio button styles
+            updateRadioStyles();
+
+            // Add enter key support for search
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        searchSpotify();
+                    }
+                });
+            }
+        });
+
+        function updateRadioStyles() {
+            const radioOptions = document.querySelectorAll('.radio-option');
+            radioOptions.forEach(option => {
+                const radio = option.querySelector('input[type="radio"]');
+                if (radio.checked) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
 
         async function initializeHockeyDJ() {
             document.getElementById('loadingMessage').style.display = 'block';
@@ -813,24 +1013,24 @@
             try {
                 spotifyPlayer = new Spotify.Player({
                     name: 'HockeyDJ Player',
-                    getOAuthToken: cb => { cb(accessToken); },
+                    getOAuthToken: cb => {cb(accessToken);},
                     volume: 0.8
                 });
 
                 // Error handling
-                spotifyPlayer.addListener('initialization_error', ({ message }) => {
+                spotifyPlayer.addListener('initialization_error', ({message}) => {
                     showError('Failed to initialize player: ' + message);
                 });
 
-                spotifyPlayer.addListener('authentication_error', ({ message }) => {
+                spotifyPlayer.addListener('authentication_error', ({message}) => {
                     showError('Failed to authenticate: ' + message);
                 });
 
-                spotifyPlayer.addListener('account_error', ({ message }) => {
+                spotifyPlayer.addListener('account_error', ({message}) => {
                     showError('Failed to validate account: ' + message);
                 });
 
-                spotifyPlayer.addListener('playback_error', ({ message }) => {
+                spotifyPlayer.addListener('playback_error', ({message}) => {
                     showError('Failed to perform playback: ' + message);
                 });
 
@@ -842,7 +1042,7 @@
                 });
 
                 // Ready
-                spotifyPlayer.addListener('ready', ({ device_id }) => {
+                spotifyPlayer.addListener('ready', ({device_id}) => {
                     console.log('Ready with Device ID', device_id);
                     deviceId = device_id;
                     document.getElementById('loadingMessage').style.display = 'none';
@@ -850,7 +1050,7 @@
                 });
 
                 // Not Ready
-                spotifyPlayer.addListener('not_ready', ({ device_id }) => {
+                spotifyPlayer.addListener('not_ready', ({device_id}) => {
                     console.log('Device ID has gone offline', device_id);
                 });
 
@@ -1033,9 +1233,9 @@
 
         async function playGoalHorn() {
             const goalHornBtn = document.getElementById('goalHornBtn');
-            const songSelector = document.getElementById('songSelector');
-            const selectedValue = songSelector.value;
-            
+            const selectedRadio = document.querySelector('input[name="songSelection"]:checked');
+            const selectedValue = selectedRadio ? selectedRadio.value : 'random';
+
             goalHornBtn.disabled = true;
             goalHornBtn.textContent = '🎺 CELEBRATING... 🎺';
             isGoalHornPlaying = true;
@@ -1064,7 +1264,7 @@
                     const tracks = playlistTracks[goalHornPlaylistId];
                     if (tracks.length > 0) {
                         let selectedTrack;
-                        
+
                         if (selectedValue === 'random') {
                             // Play random track (original behavior)
                             selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
@@ -1084,7 +1284,7 @@
                         // Update current track display
                         updateCurrentTrack({
                             name: selectedTrack.name,
-                            artists: [{ name: selectedTrack.artist }]
+                            artists: [{name: selectedTrack.artist}]
                         });
 
                         // Transfer playback to our device first
@@ -1223,7 +1423,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (data.success) {
                     displaySearchResults(data.tracks);
                     searchResults.style.display = 'block';
@@ -1244,18 +1444,18 @@
 
         function displaySearchResults(tracks) {
             const searchResults = document.getElementById('searchResults');
-            
+
             if (!tracks || tracks.length === 0) {
                 searchResults.innerHTML = '<div class="empty-queue">No tracks found. Try a different search term.</div>';
                 return;
             }
 
             searchResults.innerHTML = '';
-            
+
             tracks.forEach((track, index) => {
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'search-result-item';
-                
+
                 resultDiv.innerHTML = `
                     <div class="search-result-info">
                         <div class="track-name">${escapeHtml(track.name)}</div>
@@ -1266,11 +1466,11 @@
                         ➕ Add to Queue
                     </button>
                 `;
-                
+
                 searchResults.appendChild(resultDiv);
-                
+
                 // Add event listener to the button
-                document.getElementById(`addBtn${index}`).addEventListener('click', function() {
+                document.getElementById(`addBtn${index}`).addEventListener('click', function () {
                     addToPriorityQueue(track.id, track.name, track.artist, track.uri);
                 });
             });
@@ -1287,7 +1487,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Update local queue
                     priorityQueue.push({
@@ -1320,7 +1520,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Update local queue
                     priorityQueue = priorityQueue.filter(track => track.id !== trackId);
@@ -1352,7 +1552,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (data.success) {
                     priorityQueue = [];
                     updatePriorityQueueDisplay();
@@ -1376,7 +1576,7 @@
                 // Update current track display
                 updateCurrentTrack({
                     name: nextTrack.name,
-                    artists: [{ name: nextTrack.artist }]
+                    artists: [{name: nextTrack.artist}]
                 });
 
                 // Transfer playback to our device first
@@ -1438,11 +1638,11 @@
                 queueStatus.style.display = 'block';
 
                 queueList.innerHTML = '';
-                
+
                 priorityQueue.forEach((track, index) => {
                     const queueItemDiv = document.createElement('div');
                     queueItemDiv.className = 'queue-item';
-                    
+
                     queueItemDiv.innerHTML = `
                         <div class="queue-item-number">${index + 1}</div>
                         <div class="queue-item-info">
@@ -1453,13 +1653,13 @@
                             🗑️ Remove
                         </button>
                     `;
-                    
+
                     queueList.appendChild(queueItemDiv);
-                    
+
                     // Add event listener to the remove button
                     const removeBtn = document.getElementById(`removeBtn${index}`);
                     if (removeBtn) {
-                        removeBtn.addEventListener('click', function() {
+                        removeBtn.addEventListener('click', function () {
                             removeFromPriorityQueue(track.id);
                         });
                     }
@@ -1497,18 +1697,7 @@
             div.textContent = text;
             return div.innerHTML;
         }
-
-        // Add enter key support for search
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        searchSpotify();
-                    }
-                });
-            }
-        });
     </script>
 </body>
+
 </html>
