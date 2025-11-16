@@ -28,12 +28,20 @@ namespace HockeyDJ.Controllers
             var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
             var customSongNames = HttpContext.Session.GetString("CustomSongNames");
             var priorityQueue = HttpContext.Session.GetString("PriorityQueue");
+            var homeTeamName = HttpContext.Session.GetString("HomeTeamName");
+            var homeTeamRoster = HttpContext.Session.GetString("HomeTeamRoster");
+            var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
+            var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
             ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
             ViewBag.CustomSongNames = string.IsNullOrEmpty(customSongNames) ? "[]" : customSongNames;
             ViewBag.PriorityQueue = string.IsNullOrEmpty(priorityQueue) ? "[]" : priorityQueue;
+            ViewBag.HomeTeamName = homeTeamName ?? "";
+            ViewBag.HomeTeamRoster = homeTeamRoster ?? "";
+            ViewBag.AwayTeamName = awayTeamName ?? "";
+            ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
 
             return View();
         }
@@ -44,16 +52,24 @@ namespace HockeyDJ.Controllers
             var existingPlaylists = HttpContext.Session.GetString("UserPlaylists");
             var existingCustomNames = HttpContext.Session.GetString("CustomSongNames");
             var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
+            var homeTeamName = HttpContext.Session.GetString("HomeTeamName");
+            var homeTeamRoster = HttpContext.Session.GetString("HomeTeamRoster");
+            var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
+            var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
             
             ViewBag.ExistingPlaylists = string.IsNullOrEmpty(existingPlaylists) ? "[]" : existingPlaylists;
             ViewBag.ExistingCustomNames = string.IsNullOrEmpty(existingCustomNames) ? "[]" : existingCustomNames;
             ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
+            ViewBag.HomeTeamName = homeTeamName ?? "";
+            ViewBag.HomeTeamRoster = homeTeamRoster ?? "";
+            ViewBag.AwayTeamName = awayTeamName ?? "";
+            ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
             
             return View();
         }
 
         [HttpPost]
-        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "")
+        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "", string homeTeamName = "", string homeTeamRoster = "", string awayTeamName = "", string awayTeamRoster = "")
         {
             try
             {
@@ -61,6 +77,12 @@ namespace HockeyDJ.Controllers
                 HttpContext.Session.SetString("SpotifyClientId", clientId);
                 HttpContext.Session.SetString("SpotifyClientSecret", clientSecret);
                 HttpContext.Session.SetString("SpotifyRedirectUri", redirectUri);
+
+                // Store team roster information
+                HttpContext.Session.SetString("HomeTeamName", homeTeamName ?? "");
+                HttpContext.Session.SetString("HomeTeamRoster", homeTeamRoster ?? "");
+                HttpContext.Session.SetString("AwayTeamName", awayTeamName ?? "");
+                HttpContext.Session.SetString("AwayTeamRoster", awayTeamRoster ?? "");
 
                 // Parse custom song names
                 var songNames = new List<string>();
@@ -501,7 +523,11 @@ namespace HockeyDJ.Controllers
                     redirectUri = importedConfig.TryGetProperty("redirectUri", out var redirectUri) ? redirectUri.GetString() : "",
                     goalHornPlaylist = importedConfig.TryGetProperty("goalHornPlaylist", out var goalHornPlaylist) ? goalHornPlaylist.GetString() : "",
                     playlistUrls = importedConfig.TryGetProperty("playlistUrls", out var playlistUrls) ? playlistUrls.GetString() : "",
-                    customSongNames = importedConfig.TryGetProperty("customSongNames", out var customSongNames) ? customSongNames.GetString() : ""
+                    customSongNames = importedConfig.TryGetProperty("customSongNames", out var customSongNames) ? customSongNames.GetString() : "",
+                    homeTeamName = importedConfig.TryGetProperty("homeTeamName", out var homeTeamName) ? homeTeamName.GetString() : "",
+                    homeTeamRoster = importedConfig.TryGetProperty("homeTeamRoster", out var homeTeamRoster) ? homeTeamRoster.GetString() : "",
+                    awayTeamName = importedConfig.TryGetProperty("awayTeamName", out var awayTeamName) ? awayTeamName.GetString() : "",
+                    awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : ""
                 };
 
                 // Validate URLs

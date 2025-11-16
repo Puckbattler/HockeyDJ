@@ -360,6 +360,38 @@ ViewData["Title"] = "HockeyDJ Setup";
                 </div>
             </div>
 
+            <div class="goal-horn-section">
+                <h4>🏒 Team Roster Configuration 🏒</h4>
+                <div class="form-group">
+                    <label for="homeTeamName">Home Team Name</label>
+                    <input type="text" id="homeTeamName" name="homeTeamName" class="form-control"
+                        placeholder="e.g., Lightning, Maple Leafs" />
+                </div>
+                <div class="form-group">
+                    <label for="homeTeamRoster">Home Team Roster (Number:Name, one per line)</label>
+                    <textarea id="homeTeamRoster" name="homeTeamRoster" class="form-control"
+                        placeholder="1:John Smith&#10;4:Mike Johnson&#10;7:Chris Williams&#10;8:Dave Brown&#10;9:Tom Davis"
+                        style="height: 150px;"></textarea>
+                    <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; display: block;">
+                        📝 Format: Number:Name (e.g., "7:Connor McDavid")
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label for="awayTeamName">Away Team Name</label>
+                    <input type="text" id="awayTeamName" name="awayTeamName" class="form-control"
+                        placeholder="e.g., Bruins, Rangers" />
+                </div>
+                <div class="form-group">
+                    <label for="awayTeamRoster">Away Team Roster (Number:Name, one per line)</label>
+                    <textarea id="awayTeamRoster" name="awayTeamRoster" class="form-control"
+                        placeholder="10:Alex Parker&#10;15:Brad Wilson&#10;16:Steve Miller&#10;17:Rob Taylor&#10;18:Joe Anderson"
+                        style="height: 150px;"></textarea>
+                    <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; display: block;">
+                        📝 Format: Number:Name (e.g., "97:Connor McDavid")
+                    </small>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="playlistUrls">Spotify Playlist URLs (up to 10, one per line)</label>
                 <textarea id="playlistUrls" name="playlistUrls" class="form-control"
@@ -383,8 +415,12 @@ ViewData["Title"] = "HockeyDJ Setup";
                 redirectUri: document.getElementById('redirectUri').value,
                 goalHornPlaylist: document.getElementById('goalHornPlaylist').value,
                 playlistUrls: document.getElementById('playlistUrls').value,
+                homeTeamName: document.getElementById('homeTeamName').value,
+                homeTeamRoster: document.getElementById('homeTeamRoster').value,
+                awayTeamName: document.getElementById('awayTeamName').value,
+                awayTeamRoster: document.getElementById('awayTeamRoster').value,
                 exportDate: new Date().toISOString(),
-                version: "1.1.1"
+                version: "1.2.0"
             };
 
             // Create and download the file
@@ -440,6 +476,18 @@ ViewData["Title"] = "HockeyDJ Setup";
                                 }
                                 if (config.playlistUrls) {
                                     document.getElementById('playlistUrls').value = config.playlistUrls;
+                                }
+                                if (config.homeTeamName) {
+                                    document.getElementById('homeTeamName').value = config.homeTeamName;
+                                }
+                                if (config.homeTeamRoster) {
+                                    document.getElementById('homeTeamRoster').value = config.homeTeamRoster;
+                                }
+                                if (config.awayTeamName) {
+                                    document.getElementById('awayTeamName').value = config.awayTeamName;
+                                }
+                                if (config.awayTeamRoster) {
+                                    document.getElementById('awayTeamRoster').value = config.awayTeamRoster;
                                 }
 
                                 // Show success message
@@ -532,6 +580,27 @@ ViewData["Title"] = "HockeyDJ Setup";
                 e.preventDefault();
                 showTemporaryMessage('❌ Maximum of 10 playlists allowed!', 'error');
                 return false;
+            }
+        });
+
+        // Populate existing roster data if available
+        window.addEventListener('DOMContentLoaded', function() {
+            const homeTeamName = '@ViewBag.HomeTeamName';
+            const homeTeamRoster = '@Html.Raw(ViewBag.HomeTeamRoster ?? "")';
+            const awayTeamName = '@ViewBag.AwayTeamName';
+            const awayTeamRoster = '@Html.Raw(ViewBag.AwayTeamRoster ?? "")';
+
+            if (homeTeamName) {
+                document.getElementById('homeTeamName').value = homeTeamName;
+            }
+            if (homeTeamRoster) {
+                document.getElementById('homeTeamRoster').value = homeTeamRoster;
+            }
+            if (awayTeamName) {
+                document.getElementById('awayTeamName').value = awayTeamName;
+            }
+            if (awayTeamRoster) {
+                document.getElementById('awayTeamRoster').value = awayTeamRoster;
             }
         });
     </script>

@@ -227,6 +227,33 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             transform: none;
         }
 
+        .trombone-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+            position: relative;
+            border: 2px solid #FF8C00;
+        }
+
+        .trombone-btn:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .trombone-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @@keyframes glow {
             from {
                 box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
@@ -663,6 +690,196 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             background: rgba(255, 107, 53, 0.7);
         }
 
+        /* Announcement Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #ff6b35;
+            font-size: 1.8em;
+        }
+
+        .close {
+            color: #fff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ff6b35;
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .option-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 107, 53, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.active {
+            background: rgba(255, 107, 53, 0.3);
+            border-color: #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .input-group select, .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .input-group select:focus, .input-group input:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+
+        .input-group select option {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .announce-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .announce-btn:hover {
+            background: linear-gradient(45deg, #218838, #1ba085);
+            transform: translateY(-2px);
+        }
+
+        .announce-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .player-checkbox-group {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .player-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .player-checkbox:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .player-checkbox input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #ff6b35;
+        }
+
+        .player-checkbox label {
+            flex: 1;
+            cursor: pointer;
+            margin: 0;
+            color: white;
+        }
+
         /* Mobile Responsiveness */
         @@media (max-width: 768px) {
             .radio-grid {
@@ -874,9 +1091,14 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             </div>
         </div>
 
-        <button class="goal-horn-btn" id="goalHornBtn" onclick="playGoalHorn()">
-            📯 GOAL HORN 📯
-        </button>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="goal-horn-btn" id="goalHornBtn" onclick="playGoalHorn()">
+                📯 GOAL HORN 📯
+            </button>
+            <button class="goal-horn-btn" id="announcementBtn" onclick="openAnnouncementModal()" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);">
+                📢 ANNOUNCEMENT 📢
+            </button>
+        </div>
 
         <div class="sound-buttons">
             <button class="mushroom-btn" id="mushroomBtn" onclick="playMushroomSound()"
@@ -886,10 +1108,13 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             <button class="clock-btn" id="clockBtn" onclick="playClockSound()" title="One Minute Remaining Sound">
                 🕐
             </button>
+            <button class="trombone-btn" id="tromboneBtn" onclick="playTromboneSound()" title="Sad Trombone Sound">
+                🎺
+            </button>
         </div>
         <p style="margin-top: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
             Choose a song number or random, then click to celebrate with the goal horn + victory song!<br>
-            <small>Power up & timeout sounds available too!</small>
+            <small>Power up, timeout, and sad trombone sounds available too!</small>
         </p>
     </div>
 
@@ -939,6 +1164,120 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         </div>
     </div>
 
+    <!-- Announcement Modal -->
+    <div id="announcementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📢 Announcement</h2>
+                <span class="close" onclick="closeAnnouncementModal()">&times;</span>
+            </div>
+
+            <!-- Step 1: Select Announcement Type -->
+            <div id="step1" class="modal-section">
+                <h3>Select Announcement Type:</h3>
+                <div class="option-buttons">
+                    <button class="option-btn" onclick="selectAnnouncementType('goal')">🥅 Goal</button>
+                    <button class="option-btn" onclick="selectAnnouncementType('penalty')">⚠️ Penalty</button>
+                    <button class="option-btn" onclick="selectAnnouncementType('lineup')">📋 Starting Lineup</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Team -->
+            <div id="step2" class="modal-section" style="display: none;">
+                <h3>Select Team:</h3>
+                <div class="option-buttons">
+                    <button class="option-btn" id="homeTeamBtn" onclick="selectTeam('home')">🏠 Home Team</button>
+                    <button class="option-btn" id="awayTeamBtn" onclick="selectTeam('away')">✈️ Away Team</button>
+                </div>
+            </div>
+
+            <!-- Goal Announcement Form -->
+            <div id="goalForm" class="modal-section" style="display: none;">
+                <h3>Goal Details:</h3>
+                <div class="input-group">
+                    <label for="scoringPlayer">Scoring Player:</label>
+                    <select id="scoringPlayer">
+                        <option value="">Select Player</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="assist1">First Assist (Optional):</label>
+                    <select id="assist1">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="assist2">Second Assist (Optional):</label>
+                    <select id="assist2">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <button class="announce-btn" onclick="announceGoal()">📣 Announce Goal</button>
+            </div>
+
+            <!-- Penalty Announcement Form -->
+            <div id="penaltyForm" class="modal-section" style="display: none;">
+                <h3>Penalty Details:</h3>
+                <div class="input-group">
+                    <label for="penaltyType">Penalty Type:</label>
+                    <select id="penaltyType">
+                        <option value="">Select Type</option>
+                        <option value="Minor">Minor</option>
+                        <option value="Major">Major</option>
+                        <option value="Misconduct">Misconduct</option>
+                        <option value="Game Misconduct">Game Misconduct</option>
+                        <option value="Match">Match</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="penaltyName">Penalty:</label>
+                    <select id="penaltyName">
+                        <option value="">Select Penalty</option>
+                        <option value="Tripping">Tripping</option>
+                        <option value="Hooking">Hooking</option>
+                        <option value="Holding">Holding</option>
+                        <option value="Interference">Interference</option>
+                        <option value="Slashing">Slashing</option>
+                        <option value="Cross-checking">Cross-checking</option>
+                        <option value="Boarding">Boarding</option>
+                        <option value="Charging">Charging</option>
+                        <option value="Elbowing">Elbowing</option>
+                        <option value="High-sticking">High-sticking</option>
+                        <option value="Roughing">Roughing</option>
+                        <option value="Delay of Game">Delay of Game</option>
+                        <option value="Too Many Players on Ice">Too Many Players on Ice</option>
+                        <option value="Unsportsmanlike Conduct">Unsportsmanlike Conduct</option>
+                        <option value="Face-off Interference">Face-off Interference</option>
+                        <option value="Instigator of Fighting">Instigator of Fighting</option>
+                        <option value="Fighting">Fighting</option>
+                        <option value="Spearing">Spearing</option>
+                        <option value="Butt-ending">Butt-ending</option>
+                        <option value="Kicking">Kicking</option>
+                        <option value="Head Contact">Head Contact</option>
+                        <option value="Checking from Behind">Checking from Behind</option>
+                        <option value="Intentional Injury">Intentional Injury</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="penaltyPlayer">Serving Player:</label>
+                    <select id="penaltyPlayer">
+                        <option value="">Select Player</option>
+                    </select>
+                </div>
+                <button class="announce-btn" onclick="announcePenalty()">📣 Announce Penalty</button>
+            </div>
+
+            <!-- Starting Lineup Form -->
+            <div id="lineupForm" class="modal-section" style="display: none;">
+                <h3>Select Players (up to 6):</h3>
+                <div class="player-checkbox-group" id="lineupPlayers">
+                    <!-- Players will be populated here -->
+                </div>
+                <button class="announce-btn" onclick="announceLineup()">📣 Announce Starting Lineup</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         // Global variables
@@ -952,8 +1291,18 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let goalHornAudio = null;
         let mushroomAudio = null;
         let clockAudio = null;
+        let tromboneAudio = null;
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
+
+        // Announcement variables
+        let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));
+        let awayTeamName = @Html.Raw(Json.Serialize(ViewBag.AwayTeamName ?? ""));
+        let homeTeamRoster = {};
+        let awayTeamRoster = {};
+        let selectedAnnouncementType = '';
+        let selectedTeam = '';
+        let speechSynthesis = window.speechSynthesis;
 
         window.onSpotifyWebPlaybackSDKReady = () => {
             initializeHockeyDJ();
@@ -1095,6 +1444,15 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             clockAudio.src = '/audio/clock.mp3';
             clockAudio.onerror = () => {
                 console.warn('Clock audio file not found.');
+            };
+
+            // Trombone audio
+            tromboneAudio = new Audio();
+            tromboneAudio.preload = 'auto';
+            tromboneAudio.volume = 0.8;
+            tromboneAudio.src = '/audio/Sad Trombone.mp3';
+            tromboneAudio.onerror = () => {
+                console.warn('Sad Trombone audio file not found.');
             };
 
             // Use the goal horn playlist ID from server, or fall back to first playlist
@@ -1357,6 +1715,24 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             } finally {
                 setTimeout(() => {
                     clockBtn.disabled = false;
+                }, 1000);
+            }
+        }
+
+        async function playTromboneSound() {
+            const tromboneBtn = document.getElementById('tromboneBtn');
+            tromboneBtn.disabled = true;
+
+            try {
+                if (tromboneAudio) {
+                    tromboneAudio.currentTime = 0;
+                    await tromboneAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing sad trombone sound:', error);
+            } finally {
+                setTimeout(() => {
+                    tromboneBtn.disabled = false;
                 }, 1000);
             }
         }
@@ -1696,6 +2072,326 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Announcement Functions
+        function parseRoster(rosterString) {
+            const roster = {};
+            if (!rosterString) return roster;
+            
+            const lines = rosterString.split('\n');
+            lines.forEach(line => {
+                const parts = line.trim().split(':');
+                if (parts.length === 2) {
+                    const number = parts[0].trim();
+                    const name = parts[1].trim();
+                    if (number && name) {
+                        roster[number] = name;
+                    }
+                }
+            });
+            return roster;
+        }
+
+        function initializeRosters() {
+            const homeRosterString = @Html.Raw(Json.Serialize(ViewBag.HomeTeamRoster ?? ""));
+            const awayRosterString = @Html.Raw(Json.Serialize(ViewBag.AwayTeamRoster ?? ""));
+            homeTeamRoster = parseRoster(homeRosterString);
+            awayTeamRoster = parseRoster(awayRosterString);
+        }
+
+        function openAnnouncementModal() {
+            initializeRosters();
+            document.getElementById('announcementModal').style.display = 'block';
+            resetModal();
+        }
+
+        function closeAnnouncementModal() {
+            document.getElementById('announcementModal').style.display = 'none';
+            resetModal();
+        }
+
+        function resetModal() {
+            selectedAnnouncementType = '';
+            selectedTeam = '';
+            
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('goalForm').style.display = 'none';
+            document.getElementById('penaltyForm').style.display = 'none';
+            document.getElementById('lineupForm').style.display = 'none';
+            
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById('scoringPlayer').value = '';
+            document.getElementById('assist1').value = '';
+            document.getElementById('assist2').value = '';
+            document.getElementById('penaltyType').value = '';
+            document.getElementById('penaltyName').value = '';
+            document.getElementById('penaltyPlayer').value = '';
+        }
+
+        function selectAnnouncementType(type) {
+            selectedAnnouncementType = type;
+            
+            document.querySelectorAll('#step1 .option-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('step2').style.display = 'block';
+            
+            const homeBtn = document.getElementById('homeTeamBtn');
+            const awayBtn = document.getElementById('awayTeamBtn');
+            homeBtn.textContent = `🏠 ${homeTeamName || 'Home Team'}`;
+            awayBtn.textContent = `✈️ ${awayTeamName || 'Away Team'}`;
+        }
+
+        function selectTeam(team) {
+            selectedTeam = team;
+            
+            document.querySelectorAll('#step2 .option-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const roster = team === 'home' ? homeTeamRoster : awayTeamRoster;
+            
+            document.getElementById('goalForm').style.display = 'none';
+            document.getElementById('penaltyForm').style.display = 'none';
+            document.getElementById('lineupForm').style.display = 'none';
+            
+            if (selectedAnnouncementType === 'goal') {
+                populatePlayerSelects(roster, ['scoringPlayer', 'assist1', 'assist2']);
+                document.getElementById('goalForm').style.display = 'block';
+            } else if (selectedAnnouncementType === 'penalty') {
+                populatePlayerSelects(roster, ['penaltyPlayer']);
+                document.getElementById('penaltyForm').style.display = 'block';
+            } else if (selectedAnnouncementType === 'lineup') {
+                populateLineupCheckboxes(roster);
+                document.getElementById('lineupForm').style.display = 'block';
+            }
+        }
+
+        function populatePlayerSelects(roster, selectIds) {
+            selectIds.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = selectId.includes('assist') ? '<option value="">None</option>' : '<option value="">Select Player</option>';
+                
+                Object.keys(roster).sort((a, b) => parseInt(a) - parseInt(b)).forEach(number => {
+                    const option = document.createElement('option');
+                    option.value = number;
+                    option.textContent = `#${number} - ${roster[number]}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function populateLineupCheckboxes(roster) {
+            const container = document.getElementById('lineupPlayers');
+            container.innerHTML = '';
+            
+            Object.keys(roster).sort((a, b) => parseInt(a) - parseInt(b)).forEach(number => {
+                const div = document.createElement('div');
+                div.className = 'player-checkbox';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `player_${number}`;
+                checkbox.value = number;
+                checkbox.onchange = () => {
+                    const checked = container.querySelectorAll('input[type="checkbox"]:checked');
+                    if (checked.length > 6) {
+                        checkbox.checked = false;
+                        showError('Maximum 6 players allowed for starting lineup');
+                    }
+                };
+                
+                const label = document.createElement('label');
+                label.htmlFor = `player_${number}`;
+                label.textContent = `#${number} - ${roster[number]}`;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
+
+        async function announceGoal() {
+            const scoringPlayerNum = document.getElementById('scoringPlayer').value;
+            const assist1Num = document.getElementById('assist1').value;
+            const assist2Num = document.getElementById('assist2').value;
+            
+            if (!scoringPlayerNum) {
+                showError('Please select a scoring player');
+                return;
+            }
+            
+            const roster = selectedTeam === 'home' ? homeTeamRoster : awayTeamRoster;
+            const teamName = selectedTeam === 'home' ? homeTeamName : awayTeamName;
+            const scoringPlayer = roster[scoringPlayerNum];
+            
+            if (selectedTeam === 'away') {
+                let announcement = `${teamName} Goal! Scored by ${scoringPlayer}`;
+                
+                if (assist1Num && roster[assist1Num]) {
+                    announcement += `. Assisted by ${roster[assist1Num]}`;
+                    if (assist2Num && roster[assist2Num]) {
+                        announcement += ` and ${roster[assist2Num]}`;
+                    }
+                }
+                
+                announcement += '!';
+                
+                speak(announcement);
+            } else {
+                await playHomeGoalAnnouncement(scoringPlayerNum, assist1Num, assist2Num);
+            }
+            
+            closeAnnouncementModal();
+        }
+
+        async function playHomeGoalAnnouncement(scoringNum, assist1Num, assist2Num) {
+            try {
+                await playAudioFile('LHA Goal.mp3');
+                await playAudioFile('Scored By.mp3');
+                await playAudioFile(`${scoringNum}.mp3`);
+                
+                if (assist1Num) {
+                    await playAudioFile('Assited By.mp3');
+                    await playAudioFile(`${assist1Num}.mp3`);
+                    
+                    if (assist2Num) {
+                        await playAudioFile('And.mp3');
+                        await playAudioFile(`${assist2Num}.mp3`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error playing home goal announcement:', error);
+                showError('Error playing announcement audio files');
+            }
+        }
+
+        async function announcePenalty() {
+            const penaltyType = document.getElementById('penaltyType').value;
+            const penaltyName = document.getElementById('penaltyName').value;
+            const playerNum = document.getElementById('penaltyPlayer').value;
+            
+            if (!penaltyType || !penaltyName || !playerNum) {
+                showError('Please fill in all penalty details');
+                return;
+            }
+            
+            const roster = selectedTeam === 'home' ? homeTeamRoster : awayTeamRoster;
+            const playerName = roster[playerNum];
+            
+            if (selectedTeam === 'away') {
+                const announcement = `${penaltyType} penalty for ${penaltyName} on ${playerName}, number ${playerNum}`;
+                speak(announcement);
+            } else {
+                await playHomePenaltyAnnouncement(penaltyType, penaltyName, playerNum);
+            }
+            
+            closeAnnouncementModal();
+        }
+
+        async function playHomePenaltyAnnouncement(penaltyType, penaltyName, playerNum) {
+            try {
+                const typeFile = `${penaltyType}.mp3`;
+                const penaltyFile = `${penaltyName}.mp3`;
+                const playerFile = `${playerNum}.mp3`;
+                
+                await playAudioFile(typeFile);
+                await playAudioFile(penaltyFile);
+                await playAudioFile(playerFile);
+            } catch (error) {
+                console.error('Error playing home penalty announcement:', error);
+                showError('Error playing penalty announcement audio files');
+            }
+        }
+
+        async function announceLineup() {
+            const checkboxes = document.querySelectorAll('#lineupPlayers input[type="checkbox"]:checked');
+            
+            if (checkboxes.length === 0) {
+                showError('Please select at least one player');
+                return;
+            }
+            
+            const roster = selectedTeam === 'home' ? homeTeamRoster : awayTeamRoster;
+            const teamName = selectedTeam === 'home' ? homeTeamName : awayTeamName;
+            
+            const selectedPlayers = Array.from(checkboxes).map(cb => ({
+                number: cb.value,
+                name: roster[cb.value]
+            })).sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            
+            if (selectedTeam === 'away') {
+                let announcement = `Starting lineup for ${teamName}: `;
+                announcement += selectedPlayers.map(p => `number ${p.number}, ${p.name}`).join(' and ');
+                speak(announcement);
+            } else {
+                await playHomeLineupAnnouncement(selectedPlayers);
+            }
+            
+            closeAnnouncementModal();
+        }
+
+        async function playHomeLineupAnnouncement(players) {
+            try {
+                await playAudioFile('Starting Lineup.mp3');
+                
+                for (let i = 0; i < players.length; i++) {
+                    await playAudioFile(`${players[i].number}.mp3`);
+                    
+                    if (i < players.length - 1) {
+                        await playAudioFile('And.mp3');
+                    }
+                }
+            } catch (error) {
+                console.error('Error playing home lineup announcement:', error);
+                showError('Error playing lineup announcement audio files');
+            }
+        }
+
+        function playAudioFile(filename) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio(`/audio/${filename}`);
+                audio.volume = 0.8;
+                
+                audio.onended = () => {
+                    setTimeout(resolve, 200);
+                };
+                
+                audio.onerror = () => {
+                    console.warn(`Audio file not found: ${filename}`);
+                    resolve();
+                };
+                
+                audio.play().catch(err => {
+                    console.warn(`Error playing ${filename}:`, err);
+                    resolve();
+                });
+            });
+        }
+
+        function speak(text) {
+            if (!speechSynthesis) {
+                showError('Speech synthesis not supported in this browser');
+                return;
+            }
+            
+            speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.8;
+            
+            speechSynthesis.speak(utterance);
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('announcementModal');
+            if (event.target === modal) {
+                closeAnnouncementModal();
+            }
         }
     </script>
 </body>
