@@ -1294,6 +1294,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let tromboneAudio = null;
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
+        let playedSongs = new Set(); // Track played songs to avoid repeats
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));
@@ -1546,8 +1547,21 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     return;
                 }
 
-                // Select random track
-                const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                // Filter out already played tracks
+                let availableTracks = tracks.filter(track => !playedSongs.has(track.id));
+                
+                // If all tracks have been played, reset the played list and use all tracks
+                if (availableTracks.length === 0) {
+                    console.log('All tracks in this playlist have been played. Resetting played list.');
+                    playedSongs.clear();
+                    availableTracks = tracks;
+                }
+
+                // Select random track from available tracks
+                const randomTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+                
+                // Mark this track as played
+                playedSongs.add(randomTrack.id);
 
                 // Update track info immediately
                 const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
@@ -1624,8 +1638,18 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         let selectedTrack;
 
                         if (selectedValue === 'random') {
-                            // Play random track (original behavior)
-                            selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                            // Filter out already played tracks
+                            let availableTracks = tracks.filter(track => !playedSongs.has(track.id));
+                            
+                            // If all tracks have been played, reset the played list
+                            if (availableTracks.length === 0) {
+                                console.log('All goal horn tracks have been played. Resetting played list.');
+                                playedSongs.clear();
+                                availableTracks = tracks;
+                            }
+                            
+                            // Play random track from available tracks
+                            selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
                         } else {
                             // Play specific track by number (1-based index)
                             const trackIndex = parseInt(selectedValue) - 1;
@@ -1634,10 +1658,20 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                             } else {
                                 // If the selected number is out of range, fall back to random
                                 console.warn(`Song ${selectedValue} not available in playlist (only ${tracks.length} songs). Playing random song instead.`);
-                                selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                                
+                                // Filter out already played tracks for fallback
+                                let availableTracks = tracks.filter(track => !playedSongs.has(track.id));
+                                if (availableTracks.length === 0) {
+                                    playedSongs.clear();
+                                    availableTracks = tracks;
+                                }
+                                selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
                                 showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
                             }
                         }
+                        
+                        // Mark this track as played
+                        playedSongs.add(selectedTrack.id);
 
                         // Update current track display
                         updateCurrentTrack({
@@ -1948,6 +1982,9 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             try {
                 // Get the first song from the queue
                 const nextTrack = priorityQueue[0];
+                
+                // Mark this track as played
+                playedSongs.add(nextTrack.id);
 
                 // Update current track display
                 updateCurrentTrack({
