@@ -254,6 +254,29 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             transform: none;
         }
 
+        /* Common sound button base to ensure consistent sizing and behaviours */
+        .sound-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @@keyframes glow {
             from {
                 box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
@@ -1101,16 +1124,13 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         </div>
 
         <div class="sound-buttons">
-            <button class="mushroom-btn" id="mushroomBtn" onclick="playMushroomSound()"
-                title="Even Strength (Extra Life) Sound">
-                🍄
-            </button>
-            <button class="clock-btn" id="clockBtn" onclick="playClockSound()" title="One Minute Remaining Sound">
-                🕐
-            </button>
-            <button class="trombone-btn" id="tromboneBtn" onclick="playTromboneSound()" title="Sad Trombone Sound">
-                🎺
-            </button>
+            <button class="mushroom-btn sound-btn" id="mushroomBtn" onclick="playMushroomSound()" aria-label="Mushroom Sound" title="Even Strength (Extra Life) Sound">🍄</button>
+            <button class="clock-btn sound-btn" id="clockBtn" onclick="playClockSound()" aria-label="Clock Sound" title="One Minute Remaining Sound">🕐</button>
+            <button class="trombone-btn sound-btn" id="tromboneBtn" onclick="playTromboneSound()" aria-label="Sad Trombone" title="Sad Trombone Sound">🎺</button>
+            <button class="trombone-btn sound-btn" id="chargeOrganBtn" onclick="playChargeOrgan()" aria-label="Charge Organ" title="Charge Organ Sound">🎹</button>
+            <button class="clock-btn sound-btn" id="goHawksCowbellBtn" onclick="playGoHawksGoCowbell()" aria-label="Go Hawks Cowbell" title="Go Hawks Go Cowbell">🛎️</button>
+            <button class="clock-btn sound-btn" id="letsGoCowbellBtn" onclick="playLetsGoCowbell()" aria-label="Lets Go Cowbell" title="Let's Go Cowbell">🔔</button>
+            <button class="mushroom-btn sound-btn" id="letsGoOrganBtn" onclick="playLetsGoOrgan()" aria-label="Lets Go Organ" title="Let's Go Organ">🎹</button>
         </div>
         <p style="margin-top: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
             Choose a song number or random, then click to celebrate with the goal horn + victory song!<br>
@@ -1292,13 +1312,17 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let mushroomAudio = null;
         let clockAudio = null;
         let tromboneAudio = null;
+        let chargeOrganAudio = null;
+        let goHawksCowbellAudio = null;
+        let letsGoCowbellAudio = null;
+        let letsGoOrganAudio = null;
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
         let playedSongs = new Set(); // Track played songs to avoid repeats
 
         // Announcement variables
-        let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));
-        let awayTeamName = @Html.Raw(Json.Serialize(ViewBag.AwayTeamName ?? ""));
+        let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
+        let awayTeamName = @Html.Raw(Json.Serialize(ViewBag.AwayTeamName ?? ""));;
         let homeTeamRoster = {};
         let awayTeamRoster = {};
         let selectedAnnouncementType = '';
@@ -1454,6 +1478,42 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             tromboneAudio.src = '/audio/Sad Trombone.mp3';
             tromboneAudio.onerror = () => {
                 console.warn('Sad Trombone audio file not found.');
+            };
+
+            // Charge Organ audio
+            chargeOrganAudio = new Audio();
+            chargeOrganAudio.preload = 'auto';
+            chargeOrganAudio.volume = 0.8;
+            chargeOrganAudio.src = '/audio/ChargeOrgan.wav';
+            chargeOrganAudio.onerror = () => {
+                console.warn('Charge Organ audio file not found.');
+            };
+
+            // Go Hawks Go Cowbell audio
+            goHawksCowbellAudio = new Audio();
+            goHawksCowbellAudio.preload = 'auto';
+            goHawksCowbellAudio.volume = 0.8;
+            goHawksCowbellAudio.src = '/audio/GoHawksGoCowbell.wav';
+            goHawksCowbellAudio.onerror = () => {
+                console.warn('GoHawksGoCowbell audio file not found.');
+            };
+
+            // Let's Go Cowbell audio
+            letsGoCowbellAudio = new Audio();
+            letsGoCowbellAudio.preload = 'auto';
+            letsGoCowbellAudio.volume = 0.8;
+            letsGoCowbellAudio.src = '/audio/LetsGoCowbell.wav';
+            letsGoCowbellAudio.onerror = () => {
+                console.warn('LetsGoCowbell audio file not found.');
+            };
+
+            // Let's Go Organ audio
+            letsGoOrganAudio = new Audio();
+            letsGoOrganAudio.preload = 'auto';
+            letsGoOrganAudio.volume = 0.8;
+            letsGoOrganAudio.src = '/audio/LetsGoOrgan.wav';
+            letsGoOrganAudio.onerror = () => {
+                console.warn('LetsGoOrgan audio file not found.');
             };
 
             // Use the goal horn playlist ID from server, or fall back to first playlist
@@ -1770,6 +1830,77 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 }, 1000);
             }
         }
+          async function playChargeOrgan() {
+            const btn = document.getElementById('chargeOrganBtn');
+            if (btn) btn.disabled = true;
+
+            try {
+                if (chargeOrganAudio) {
+                    chargeOrganAudio.currentTime = 0;
+                    await chargeOrganAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing charge organ sound:', error);
+            } finally {
+                setTimeout(() => {
+                    if (btn) btn.disabled = false;
+                }, 1000);
+            }
+        }
+
+        async function playGoHawksGoCowbell() {
+            const btn = document.getElementById('goHawksCowbellBtn');
+            if (btn) btn.disabled = true;
+
+            try {
+                if (goHawksCowbellAudio) {
+                    goHawksCowbellAudio.currentTime = 0;
+                    await goHawksCowbellAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing GoHawksGoCowbell sound:', error);
+            } finally {
+                setTimeout(() => {
+                    if (btn) btn.disabled = false;
+                }, 1000);
+            }
+        }
+
+        async function playLetsGoCowbell() {
+            const btn = document.getElementById('letsGoCowbellBtn');
+            if (btn) btn.disabled = true;
+
+            try {
+                if (letsGoCowbellAudio) {
+                    letsGoCowbellAudio.currentTime = 0;
+                    await letsGoCowbellAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing LetsGoCowbell sound:', error);
+            } finally {
+                setTimeout(() => {
+                    if (btn) btn.disabled = false;
+                }, 1000);
+            }
+        }
+
+        async function playLetsGoOrgan() {
+            const btn = document.getElementById('letsGoOrganBtn');
+            if (btn) btn.disabled = true;
+
+            try {
+                if (letsGoOrganAudio) {
+                    letsGoOrganAudio.currentTime = 0;
+                    await letsGoOrganAudio.play();
+                }
+            } catch (error) {
+                console.error('Error playing LetsGoOrgan sound:', error);
+            } finally {
+                setTimeout(() => {
+                    if (btn) btn.disabled = false;
+                }, 1000);
+            }
+        }
 
         async function pausePlayback() {
             try {
@@ -1821,7 +1952,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 
             isSearching = true;
             searchBtn.disabled = true;
-            searchBtn.textContent = '🔍 Searching...';
+            searchBtn.textContent = '🔍 Searching ...';
 
             try {
                 const response = await fetch('/Home/SearchSpotify', {
