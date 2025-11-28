@@ -3,64 +3,56 @@
 **The Ultimate Hockey-Themed Spotify Music Controller**
 ### Priority Queue Is Here! 
 - **Scroll Down for more details**
-HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of hockey to your music experience. Control multiple Spotify playlists with a hockey-themed interface, complete with goal horn celebrations, sound effects, and random track playback perfect for hockey games, parties, or just getting pumped up!
-<img width="1560" height="829" alt="image" src="https://github.com/user-attachments/assets/1b91fee4-ddf7-4eae-aac2-8668125bdc15" />
+HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of hockey to your music experience. Control multiple Spotify playlists with a hockey-themed interface, complete with goal horn celebrations, sound effects, announcement capabilities, and random track playback — perfect for hockey games, parties, or just getting pumped up!
 
-### If you scroll down on the main page...
+![HockeyDJ Screenshot](https://github.com/user-attachments/assets/1b91fee4-ddf7-4eae-aac2-8668125bdc15)
 
-<img width="1563" height="719" alt="image" src="https://github.com/user-attachments/assets/d5cacb0a-99f9-4ef6-b380-aa863b01dcde" />
+## ✨ New & Notable Features (Updated)
 
-### If you scroll down some more...
+### 📣 Announcement System
+- Full in-app announcement modal to create Goal, Penalty, and Starting Lineup announcements.
+- Home-team announcements can play pre-recorded audio files (e.g., `LHA Goal.mp3`, `Scored By.mp3`, `Assited By.mp3`, `And.mp3`, `Starting Lineup.mp3`, and per-player voice clips like `4.mp3`).
+- Away-team announcements fall back to browser Text-To-Speech (TTS) for dynamic announcements when pre-recorded audio isn't available.
+- Roster parsing supports synchronized "number:name" lists (newline separated) for `HomeTeamRoster` and `AwayTeamRoster` in setup.
+- Select scoring player plus up to two assists for goal announcements, with automatic sequencing of audio files or TTS fallback.
+- Penalty announcements support penalty type and name plus the serving player.
+- Starting lineup announcements support selecting up to 6 players and will play the correct sequence of audio files or TTS.
 
-<img width="1563" height="902" alt="image" src="https://github.com/user-attachments/assets/62c761d2-6036-42a2-a5a5-c2fb5d08bd35" />
+### 🎯 Priority Queue (Song Requests)
+- Search Spotify from the UI and add requested songs to a Priority Queue.
+- Priority queue songs play before any random track selection across all players, unless a Goal Horn celebration is triggered.
+- Queue operations supported: add, remove, and clear (with confirmation).
+- Queue persists in server-side session storage and updates the UI in real time.
 
+### 🎵 Playback & Player Enhancements
+- Multiple playlists shown in a responsive grid; each player can trigger a random track from its playlist.
+- Played-song deduplication prevents immediate repeats using a `playedSongs` set; when all tracks have played, the list resets automatically.
+- Goal Horn celebration plays a local goal horn audio first, then transfers playback to a configurable goal playlist and plays either the selected indexed song or a random victory song.
+- Uses Spotify Web Playback SDK to create a controllable in-browser player device for reliable remote playback control.
 
+### 🔊 Additional Sound Effects
+- Several themed sound buttons were added: Mushroom (power-up), Clock (timeout buzzer), Sad Trombone, Charge Organ, Go Hawks Go Cowbell, Let's Go Cowbell, Let's Go Organ, and more.
+- Sound effects play via HTML5 Audio from `wwwroot/audio/` and each button has a short cooldown to prevent double-triggering.
 
-## ✨ Features
+### 🧩 UI & Usability Improvements
+- Beautiful responsive hockey-themed styling, with animated buttons and modal dialogs for announcements.
+- Radio-grid for selecting victory songs (random or numbered choices for player-requested goal songs).
+- Setup link is available top-right to configure Spotify credentials, playlists, goal playlist, and rosters.
+- Visual feedback for search results, queue contents, and playing track information.
 
-### 🎵 Music Control
-- **Multiple Playlist Support**: Manage up to 10 Spotify playlists simultaneously
-- **Random Track Playback**: Play random songs from any playlist with one click
-- **Real-time Track Display**: See what's currently playing with artist and song information
-- **Spotify Web Playback SDK Integration**: Full playback control through your browser
-- You can add a playlist for each situation/stoppage so when a penalty occurs all you have to do it hit the play button for your penalty list and it would play a random songs that fits the situation, i.e. _Breaking The Law_. 
+### 🛠️ Reliability & Error Handling
+- Improved client-side error messages with auto-hide and non-blocking notifications.
+- Graceful audio fallback: missing pre-recorded audio falls back to TTS or skips with a console warning.
+- Playback and API errors surface to the UI with clear messages.
 
-### 🚨 Goal Celebrations
-- **Goal Horn Button**: Trigger epic goal celebrations with sound effects
-- **Victory Songs**: Automatically plays random celebration songs after goal horn or you can select a song from the dropdown, i.e. if you select 2 it will play the second song from the Goal playlist. You can ask the players on the team for a goal song and then enter them into the playlist in numerical order that way if #4 scores you just select  4 and hit the button and it will play the horn and then player #4's requested goal song. 
-- **Custom Audio Support**: Add your own goal horn, power-up, and timeout sounds
-
-### Sound Effects
-- **🍄 Mushroom (Extra Life)**: Power-up sound for the when play reverts to even strength after a penalty (Provide Your Own)
-- **🕐 Clock**: One Minute Remaining Sound (Provide Your Own)
-- **📯 Goal Horn** Goal horn sound (Provide Your Own)
-- Put the audio files in wwwroot/audio
-- They should be named Mushroom.mp3 , Clock.mp3 , GoalHorn.mp3
-
-### 🏒 Hockey-Themed UI
-- **Ice Hockey Design**: Beautiful gradient backgrounds and hockey-inspired styling
-- **Responsive Layout**: Works on desktop, tablet, and mobile devices
-- **Animated Elements**: Glowing buttons and smooth hover effects
-- **Real-time Updates**: Live track information and playback status
-
- ### Priority Queue 
-  - **Allows you to take song requests mid game** You can now go to the bottom of the player page and search for any song on Spotify. Click the add to queue button to add it to your queue.
-  -  **Queue Songs will play no matter what player you hit play random for**
-     **Automatic Priority for Queued Songs** Unless you hit the Goal Horn Button all queued songs will play next no matter what playlist you click play for. If the song ends playback will move to a random song from the    player that was used to start the song.
-
-### Coming Soon!
-**Nothing Yet**
- 
-### 🚀 Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Spotify Premium Account](https://www.spotify.com/premium/) (required for playback control)
 - [Spotify Developer App](https://developer.spotify.com/dashboard) (free to create)
 
 ### Installation
-
 1. **Download and extract the release**
 
 2. **Run the executable**
@@ -83,21 +75,20 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 
 ### Application Setup
 
-1. **Access Setup Page**: Click the "⚙️ Settings" button in the top-right corner
+1. **Access Setup Page**: Click the "⚙️ Settings" button in the top-right corner of the main UI
 2. **Enter Spotify Credentials**:
    - Spotify Client ID
    - Spotify Client Secret
    - Redirect URI (pre-filled)
-
 3. **Configure Goal Horn Playlist** (optional):
    - Add a Spotify playlist URL for victory songs
-   - This playlist will play random celebration songs after the goal horn
-
+   - This playlist will play random celebration songs after the goal horn or you can select a specific indexed song (e.g., player #4's requested victory song).
 4. **Add Regular Playlists**:
    - Add up to 10 Spotify playlist URLs (one per line)
-   - Right-click any Spotify playlist → "Share" → "Copy link"
-
-5. **Connect to Spotify**: Click "Connect to Spotify & Start HockeyDJ"
+5. **Configure Team Rosters** (optional):
+   - Paste roster text as `number:name` lines for Home and Away teams so announcement selections populate correctly.
+6. **Add Optional Audio Files**:
+   - Place custom audio files in `wwwroot/audio/` for better home-team announcements and sound effects.
 
 ## 🎮 How to Use
 
@@ -109,16 +100,28 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 ### Goal Celebrations
 1. **Score a Goal**: Click the big "📯 GOAL HORN 📯" button
 2. **Celebration Sequence**:
-   - Goal horn sound plays first (3 seconds)
-   - Random victory song starts playing from your goal playlist
-   - Celebrate! 🎉
+   - Goal horn sound plays first (played from `wwwroot/audio/goal-horn.mp3` by default)
+   - Victory song starts playing from your configured goal playlist (selected index or random)
 
-### Sound Effects
-- **🍄 Mushroom**: Power-up sound for momentum changes (Provide Your Own)
-- **🕐 Clock**: Timeout sound for breaks in action (Provide Your Own)
-- **📯 Goal Horn** Goal horn sound (Provide Your Own)
-- Put the audio files in wwwroot/audio
-- They should be named Mushroom.mp3 , Clock.mp3 , GoalHorn.mp3
+### Announcement Workflows
+- Open the Announcement modal to create Goal, Penalty, or Starting Lineup announcements.
+- For Home team: if audio files exist in `wwwroot/audio/` matching the required filenames and numbers, those audio clips will be sequenced for a professional-sounding announcement.
+- For Away team or missing audio files: browser speech synthesis (TTS) will be used to speak the announcement.
+
+### Priority Queue (Song Requests)
+- Use the search box in the Priority Queue section to find songs on Spotify
+- Click "➕ Add to Queue" to push a song to the front of playback order
+- Queued songs will play next regardless of which playlist's "Play Random" was pressed (unless a goal celebration is in progress)
+- Remove songs or clear the queue from the UI
+
+## 📁 Audio File Expectations
+Place custom audio files under `wwwroot/audio/`. Common files used by Announcement features include (exact filenames matter):
+- `goal-horn.mp3` (UI goal horn sound)
+- `mushroom.mp3`, `clock.mp3` (sound effect buttons)
+- `Sad Trombone.mp3`, `ChargeOrgan.wav`, `GoHawksGoCowbell.wav`, `LetsGoCowbell.wav`, `LetsGoOrgan.wav`
+- Home announcement sequencing files: `LHA Goal.mp3`, `Scored By.mp3`, `Assited By.mp3`, `And.mp3`, `Starting Lineup.mp3`, and numeric voice clips like `4.mp3`, `12.mp3` corresponding to player numbers.
+
+If an audio file is missing, the application will either skip that clip with a console warning or fall back to speech synthesis for dynamic announcements.
 
 ## 🛠️ Technical Details
 
@@ -135,71 +138,10 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Client-side Playback**: Uses Spotify Web Playback SDK for seamless control
 - **Responsive Design**: Mobile-friendly interface
 
-### Security Features
-- **Secure Token Storage**: Spotify tokens stored in server sessions
-- **OAuth 2.0 Integration**: Standard Spotify authentication flow
-- **HTTPS Support**: Secure communication
-- **Input Validation**: Playlist URL validation and sanitization
-
-## 📁 Project Structure
-
-```
-HockeyDJ/
-├── Models/
-│   └── HomeController.cs          # Main application logic
-│   └── ErrorViewModel.cs          # Error handling model
-├── Views/
-│   ├── Home/
-│   │   ├── Index.cshtml          # Main music controller interface
-│   │   ├── Setup.cshtml          # Configuration page
-│   │   └── Privacy.cshtml        # Privacy policy
-│   └── Shared/
-├── wwwroot/
-│   ├── css/
-│   │   └── site.css              # Custom styles
-│   ├── js/
-│   │   └── site.js               # Custom JavaScript
-│   └── audio/                    # Sound effects directory
-│       ├── goal-horn.mp3         # Goal celebration sound
-│       ├── mushroom.mp3          # Power-up sound
-│       └── clock.mp3             # Timeout sound
-├── Program.cs                     # Application startup
-├── appsettings.json              # Configuration
-└── HockeyDJ.csproj               # Project file
-```
-
-## 🎵 Playlist Recommendations
-
-### Goal Celebration Playlists
-- Victory songs and pump-up tracks
-- Classic rock anthems
-- Sports arena favorites
-- Team goal songs
-
-### Regular Playlists Ideas
-- **Penalty**: Perfect Songs for the call. _Breakin the Law_
-- **Offside**: Intensity maintenance songs  
-- **Iceing**: Pump-up tracks with long intros
-- **End Zone Face Off**: Extra energetic tracks
-- **Intermission**: Crowd favorites and classics
-
-## 🔧 Customization
-
-### Adding Your Own Sounds
-1. Add MP3 files to `wwwroot/audio/`
-2. Update the JavaScript in `Index.cshtml` to reference new files
-3. Customize button actions and audio playback
-
-### Styling Modifications
-- Edit `wwwroot/css/site.css` for global styles
-- Modify inline styles in `Index.cshtml` for page-specific changes
-- Adjust color schemes, animations, and layout
-
-### Feature Extensions
-- Add more sound effect buttons
-- Implement playlist scheduling
-- Add scoreboard integration
-- Create team-specific themes
+### Reliability Features
+- Played-song deduplication to avoid repeats until the playlist cycles
+- Priority queue ensures requested songs are honored regardless of which playlist triggers playback
+- Announcement audio sequencing with robust fallback to speech synthesis
 
 ## 🚨 Troubleshooting
 
@@ -211,9 +153,9 @@ HockeyDJ/
 - Verify your redirect URI matches exactly
 
 **Audio files not playing**
-- Confirm MP3 files are in `wwwroot/audio/`
+- Confirm MP3/WAV files are in `wwwroot/audio/`
 - Check browser console for loading errors
-- Ensure files are properly named
+- Ensure filenames match the expected names in the Announcement feature
 
 **Playlist loading issues**
 - Verify playlist URLs are public or you have access
@@ -246,18 +188,6 @@ We welcome contributions! Here are some ways you can help:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Spotify** for their excellent Web API and Web Playback SDK
-- **Hockey Community** for the inspiration and energy
-- **Open Source Contributors** who made the libraries we depend on
-- **Sound Effect Creators** for the audio samples
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/HockeyDJ/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/HockeyDJ/discussions)
 
 ---
 

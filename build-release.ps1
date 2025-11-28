@@ -1,6 +1,6 @@
 # build-release.ps1
 param(
-    [string]$Version = "1.2.0",
+    [string]$Version = "1.3.0",
     [string]$ProjectPath = "HockeyDJ.csproj"
 )
 
