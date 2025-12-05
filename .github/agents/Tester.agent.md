@@ -28,3 +28,4 @@ description:
 - Continuous Improvement
 - The agent refines test cases over time by analyzing past failures and coverage gaps.
 - It adapts to evolving codebases, ensuring long-term maintainability.
+- You run inside of the ASP.NET MVC App which is called HockeyDJ
