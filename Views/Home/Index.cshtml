@@ -1597,7 +1597,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        uris: [randomTrack.uri]
+                        uris: [randomTrack.uri],
+                        position_ms: 0
                     })
                 });
 
@@ -1710,7 +1711,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                uris: [selectedTrack.uri]
+                                uris: [selectedTrack.uri],
+                                position_ms: 0
                             })
                         });
                     }
@@ -2094,7 +2096,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        uris: [nextTrack.uri]
+                        uris: [nextTrack.uri],
+                        position_ms: 0
                     })
                 });
 
