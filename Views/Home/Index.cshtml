@@ -985,131 +985,12 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         <h3 style="color: #ff6b35; margin-bottom: 15px;">🚨 GOAL! 🚨</h3>
 
         <div class="song-selector">
-            <label>Song Selection:</label>
-            <div class="radio-grid">
+            <label>Player/Song Selection:</label>
+            <div class="radio-grid" id="playerSongGrid">
+                <!-- Radio buttons will be dynamically generated based on home team roster -->
                 <div class="radio-option random-option">
-                    <input type="radio" id="songRandom" name="songSelection" value="random" checked>
+                    <input type="radio" id="songRandom" name="songSelection" value="random" data-player-number="" checked>
                     <label for="songRandom">🎲</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song1" name="songSelection" value="1">
-                    <label for="song1">1</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song2" name="songSelection" value="2">
-                    <label for="song2">2</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song3" name="songSelection" value="3">
-                    <label for="song3">3</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song4" name="songSelection" value="4">
-                    <label for="song4">4</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song5" name="songSelection" value="5">
-                    <label for="song5">5</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song6" name="songSelection" value="6">
-                    <label for="song6">6</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song7" name="songSelection" value="7">
-                    <label for="song7">7</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song8" name="songSelection" value="8">
-                    <label for="song8">8</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song9" name="songSelection" value="9">
-                    <label for="song9">9</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song10" name="songSelection" value="10">
-                    <label for="song10">10</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song11" name="songSelection" value="11">
-                    <label for="song11">11</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song12" name="songSelection" value="12">
-                    <label for="song12">12</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song13" name="songSelection" value="13">
-                    <label for="song13">13</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song14" name="songSelection" value="14">
-                    <label for="song14">14</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song15" name="songSelection" value="15">
-                    <label for="song15">15</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song16" name="songSelection" value="16">
-                    <label for="song16">16</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song17" name="songSelection" value="17">
-                    <label for="song17">17</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song18" name="songSelection" value="18">
-                    <label for="song18">18</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song19" name="songSelection" value="19">
-                    <label for="song19">19</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song20" name="songSelection" value="20">
-                    <label for="song20">20</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song21" name="songSelection" value="21">
-                    <label for="song21">21</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song22" name="songSelection" value="22">
-                    <label for="song22">22</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song23" name="songSelection" value="23">
-                    <label for="song23">23</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song24" name="songSelection" value="24">
-                    <label for="song24">24</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song25" name="songSelection" value="25">
-                    <label for="song25">25</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song26" name="songSelection" value="26">
-                    <label for="song26">26</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song27" name="songSelection" value="27">
-                    <label for="song27">27</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song28" name="songSelection" value="28">
-                    <label for="song28">28</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song29" name="songSelection" value="29">
-                    <label for="song29">29</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="song30" name="songSelection" value="30">
-                    <label for="song30">30</label>
                 </div>
             </div>
         </div>
@@ -1333,8 +1214,61 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             initializeHockeyDJ();
         };
 
+        // Generate player/song radio buttons based on home team roster
+        function generatePlayerSongButtons() {
+            const grid = document.getElementById('playerSongGrid');
+            if (!grid) return;
+            
+            // Parse home team roster and create buttons
+            const rosterString = @Html.Raw(Json.Serialize(ViewBag.HomeTeamRoster ?? ""));
+            const players = [];
+            
+            if (rosterString) {
+                const lines = rosterString.split('\n');
+                lines.forEach((line) => {
+                    const parts = line.trim().split(':');
+                    if (parts.length === 2) {
+                        const number = parts[0].trim();
+                        const name = parts[1].trim();
+                        if (number && name) {
+                            players.push({
+                                number: number,
+                                name: name,
+                                index: players.length + 1 // 1-based index using actual array position
+                            });
+                        }
+                    }
+                });
+            }
+
+            // If no roster is configured, fall back to default 1-30 buttons
+            if (players.length === 0) {
+                for (let i = 1; i <= 30; i++) {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'radio-option';
+                    optionDiv.innerHTML = `
+                        <input type="radio" id="song${i}" name="songSelection" value="${i}" data-player-number="${i}">
+                        <label for="song${i}">${i}</label>
+                    `;
+                    grid.appendChild(optionDiv);
+                }
+            } else {
+                // Create buttons based on roster
+                players.forEach(player => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'radio-option';
+                    optionDiv.title = `#${player.number} - ${player.name}`;
+                    optionDiv.innerHTML = `
+                        <input type="radio" id="song${player.index}" name="songSelection" value="${player.index}" data-player-number="${player.number}">
+                        <label for="song${player.index}">${player.number}</label>
+                    `;
+                    grid.appendChild(optionDiv);
+                });
+            }
+        }
+
         // Add event listeners for radio button styling
-        document.addEventListener('DOMContentLoaded', function () {
+        function setupRadioButtonListeners() {
             const radioOptions = document.querySelectorAll('.radio-option');
 
             radioOptions.forEach(option => {
@@ -1346,17 +1280,29 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     if (e.target !== radio) {
                         radio.checked = true;
                         updateRadioStyles();
+                        // Update the last selected player number for announcements
+                        lastSelectedPlayerNumber = radio.dataset.playerNumber || '';
                     }
                 });
 
                 // Handle radio button changes
                 radio.addEventListener('change', function () {
                     updateRadioStyles();
+                    // Update the last selected player number for announcements
+                    lastSelectedPlayerNumber = radio.dataset.playerNumber || '';
                 });
             });
 
             // Initialize radio button styles
             updateRadioStyles();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Generate the player/song buttons first
+            generatePlayerSongButtons();
+            
+            // Then set up event listeners
+            setupRadioButtonListeners();
 
             // Add enter key support for search
             const searchInput = document.getElementById('searchInput');
@@ -1662,11 +1608,15 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         }
 
         let isGoalHornPlaying = false;
+        let lastSelectedPlayerNumber = ''; // Store the last selected player number for announcements
 
         async function playGoalHorn() {
             const goalHornBtn = document.getElementById('goalHornBtn');
             const selectedRadio = document.querySelector('input[name="songSelection"]:checked');
             const selectedValue = selectedRadio ? selectedRadio.value : 'random';
+            
+            // Store the player number from the selected radio button for use in announcements
+            lastSelectedPlayerNumber = selectedRadio ? (selectedRadio.dataset.playerNumber || '') : '';
 
             goalHornBtn.disabled = true;
             goalHornBtn.textContent = '🎺 CELEBRATING... 🎺';
@@ -2328,6 +2278,11 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             if (selectedAnnouncementType === 'goal') {
                 populatePlayerSelects(roster, ['scoringPlayer', 'assist1', 'assist2']);
                 document.getElementById('goalForm').style.display = 'block';
+                
+                // Pre-select the scoring player based on the last selected player radio button (for home team goals)
+                if (team === 'home' && lastSelectedPlayerNumber && roster[lastSelectedPlayerNumber]) {
+                    document.getElementById('scoringPlayer').value = lastSelectedPlayerNumber;
+                }
             } else if (selectedAnnouncementType === 'penalty') {
                 populatePlayerSelects(roster, ['penaltyPlayer']);
                 document.getElementById('penaltyForm').style.display = 'block';
