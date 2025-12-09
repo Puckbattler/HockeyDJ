@@ -45,6 +45,11 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - Graceful audio fallback: missing pre-recorded audio falls back to TTS or skips with a console warning.
 - Playback and API errors surface to the UI with clear messages.
 
+### 🔧 Configuration Management
+- Export your configuration to a JSON file for backup or sharing between devices.
+- Import previously exported configurations to quickly restore settings.
+- Client Secret is excluded from exports for security.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -187,7 +192,7 @@ We welcome contributions! Here are some ways you can help:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [hockeydj_license.md](hockeydj_license.md) file for details.
 
 ---
 
