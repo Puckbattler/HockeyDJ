@@ -59,7 +59,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 
 ### Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
 - [Spotify Premium Account](https://www.spotify.com/premium/) (required for playback control)
 - [Spotify Developer App](https://developer.spotify.com/dashboard) (free to create)
 
@@ -178,7 +178,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 ## 🛠️ Technical Details
 
 ### Built With
-- **ASP.NET Core 8.0 MVC** - Web framework
+- **ASP.NET Core 10.0 MVC** - Web framework
 - **Spotify Web API** - Music integration (SpotifyAPI.Web 7.2.1)
 - **Spotify Web Playback SDK** - Browser-based music control
 - **HTML5 Audio API** - Sound effects playback
@@ -363,6 +363,6 @@ This project is licensed under the MIT License - see the [hockeydj_license.md](h
 **Ready to get your hockey game on? Let's drop the puck and crank the music! 🏒🎵**
 
 [![Made with ❤️ for Hockey](https://img.shields.io/badge/Made%20with%20❤️%20for-Hockey-red)](https://github.com/Puckbattler/HockeyDJ)
-[![.NET 8.0](https://img.shields.io/badge/.NET-8.0-purple)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![Spotify API](https://img.shields.io/badge/Spotify-API-green)](https://developer.spotify.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
