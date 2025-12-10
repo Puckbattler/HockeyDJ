@@ -1,3 +1,4 @@
 instructions:
-  - "When prompted please ensure that you recreate the entire file. When you are changing or adding something all the other functionality and the UI for the rest of the app should stay the same. "
+  - "When you are changing or adding something all the other functionality and the UI for the rest of the app should stay the same. "
+  - "Always update the documentation after making any feature improvments, bug fixes, or adding features. 
   
