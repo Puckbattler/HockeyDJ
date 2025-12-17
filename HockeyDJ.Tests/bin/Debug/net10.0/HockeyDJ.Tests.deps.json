@@ -755,6 +755,16 @@
           "lib/net8.0/SpotifyAPI.Web.Auth.dll": {}
         }
       },
+      "System.Diagnostics.EventLog/10.0.0": {
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Diagnostics.EventLog.Messages.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.25.52411"
+          }
+        }
+      },
       "Unosquare.Swan.Lite/3.1.0": {
         "runtime": {
           "lib/netstandard2.0/Swan.Lite.dll": {
@@ -777,7 +787,7 @@
         "runtime": {
           "lib/netstandard2.0/xunit.abstractions.dll": {
             "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.0.0.0"
+            "fileVersion": "0.0.0.0"
           }
         },
         "compile": {
@@ -2914,9 +2924,6 @@
       "Microsoft.Extensions.Primitives/10.0.0": {
         "compileOnly": true
       },
-      "System.Diagnostics.EventLog/10.0.0": {
-        "compileOnly": true
-      },
       "xunit.analyzers/1.18.0": {
         "compileOnly": true
       },
@@ -3021,6 +3028,13 @@
       "sha512": "sha512-/U/KCV4iBsG3rHBCDL7THKkJcNdfP0Lqhq87afKeTjP7EQGM5haDy6rNblZlL/t9RnK9+DFhWCdAKVQagDB6bg==",
       "path": "spotifyapi.web.auth/7.2.1",
       "hashPath": "spotifyapi.web.auth.7.2.1.nupkg.sha512"
+    },
+    "System.Diagnostics.EventLog/10.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-uaFRda9NjtbJRkdx311eXlAA3n2em7223c1A8d1VWyl+4FL9vkG7y2lpPfBU9HYdj/9KgdRNdn1vFK8ZYCYT/A==",
+      "path": "system.diagnostics.eventlog/10.0.0",
+      "hashPath": "system.diagnostics.eventlog.10.0.0.nupkg.sha512"
     },
     "Unosquare.Swan.Lite/3.1.0": {
       "type": "package",
@@ -4806,13 +4820,6 @@
       "sha512": "sha512-inRnbpCS0nwO/RuoZIAqxQUuyjaknOOnCEZB55KSMMjRhl0RQDttSmLSGsUJN3RQ3ocf5NDLFd2mOQViHqMK5w==",
       "path": "microsoft.extensions.primitives/10.0.0",
       "hashPath": "microsoft.extensions.primitives.10.0.0.nupkg.sha512"
-    },
-    "System.Diagnostics.EventLog/10.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-uaFRda9NjtbJRkdx311eXlAA3n2em7223c1A8d1VWyl+4FL9vkG7y2lpPfBU9HYdj/9KgdRNdn1vFK8ZYCYT/A==",
-      "path": "system.diagnostics.eventlog/10.0.0",
-      "hashPath": "system.diagnostics.eventlog.10.0.0.nupkg.sha512"
     },
     "xunit.analyzers/1.18.0": {
       "type": "package",
