@@ -101,7 +101,8 @@ namespace HockeyDJ.Controllers
                         var parts = line.Trim().Split(':');
                         if (parts.Length == 3 && int.TryParse(parts[0], out var playerNumber) 
                             && int.TryParse(parts[1], out var minutes) 
-                            && int.TryParse(parts[2], out var seconds))
+                            && int.TryParse(parts[2], out var seconds)
+                            && playerNumber > 0 && minutes >= 0 && seconds >= 0 && seconds < 60)
                         {
                             var timestampMs = (minutes * 60 + seconds) * 1000;
                             timestamps[playerNumber.ToString()] = timestampMs;

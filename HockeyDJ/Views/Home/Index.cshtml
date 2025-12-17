@@ -1662,7 +1662,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                             
                             // Play random track from available tracks
                             selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
-                            // Random songs always start from the beginning (no timestamp)
+                            // Random songs ignore custom timestamps since they don't correspond to specific player numbers
                         } else {
                             // Play specific track by number (1-based index)
                             const trackIndex = parseInt(selectedValue) - 1;
@@ -1685,7 +1685,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                                 }
                                 selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
                                 showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
-                                // Fallback to random means no custom timestamp
+                                // Fallback to random selection ignores custom timestamps
                             }
                         }
                         
