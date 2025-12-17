@@ -115,6 +115,22 @@ public class HomeControllerTests
         Assert.Equal("[]", result.ViewData["Playlists"]);
         Assert.Equal("[]", result.ViewData["CustomSongNames"]);
         Assert.Equal("[]", result.ViewData["PriorityQueue"]);
+        Assert.Equal("{}", result.ViewData["SongStartTimestampsJson"]);
+    }
+
+    [Fact]
+    public void Index_WithSongStartTimestamps_PassesTimestampsToView()
+    {
+        // Arrange
+        SetSessionString("SpotifyAccessToken", "test_token");
+        SetSessionString("SongStartTimestampsJson", "{\"4\":90000,\"7\":45000}");
+
+        // Act
+        var result = _controller.Index() as ViewResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("{\"4\":90000,\"7\":45000}", result.ViewData["SongStartTimestampsJson"]);
     }
 
     #endregion
@@ -149,6 +165,20 @@ public class HomeControllerTests
         Assert.Equal("goal_123", result.ViewData["GoalHornPlaylistId"]);
         Assert.Equal("Home", result.ViewData["HomeTeamName"]);
         Assert.Equal("Away", result.ViewData["AwayTeamName"]);
+    }
+
+    [Fact]
+    public void Setup_LoadsSongStartTimestamps()
+    {
+        // Arrange
+        SetSessionString("SongStartTimestamps", "4:1:30\n7:0:45");
+
+        // Act
+        var result = _controller.Setup() as ViewResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("4:1:30\n7:0:45", result.ViewData["SongStartTimestamps"]);
     }
 
     #endregion
@@ -346,6 +376,81 @@ public class HomeControllerTests
         var playlists = JsonSerializer.Deserialize<List<object>>(playlistsJson);
         Assert.NotNull(playlists);
         Assert.Equal(10, playlists.Count);
+    }
+
+    [Fact]
+    public void SaveSpotifyConfig_StoresSongStartTimestamps()
+    {
+        // Act
+        _controller.SaveSpotifyConfig(
+            clientId: "test_client_id",
+            clientSecret: "test_secret",
+            redirectUri: "http://localhost/callback",
+            playlistUrls: "https://open.spotify.com/playlist/abc123",
+            songStartTimestamps: "4:1:30\n7:0:45");
+
+        // Assert
+        Assert.True(_sessionStorage.ContainsKey("SongStartTimestamps"));
+        Assert.Equal("4:1:30\n7:0:45", Encoding.UTF8.GetString(_sessionStorage["SongStartTimestamps"]));
+    }
+
+    [Fact]
+    public void SaveSpotifyConfig_ParsesSongStartTimestampsToJson()
+    {
+        // Act
+        _controller.SaveSpotifyConfig(
+            clientId: "test_client_id",
+            clientSecret: "test_secret",
+            redirectUri: "http://localhost/callback",
+            playlistUrls: "https://open.spotify.com/playlist/abc123",
+            songStartTimestamps: "4:1:30\n7:0:45");
+
+        // Assert
+        Assert.True(_sessionStorage.ContainsKey("SongStartTimestampsJson"));
+        var timestampsJson = Encoding.UTF8.GetString(_sessionStorage["SongStartTimestampsJson"]);
+        var timestamps = JsonSerializer.Deserialize<Dictionary<string, int>>(timestampsJson);
+        Assert.NotNull(timestamps);
+        Assert.Equal(2, timestamps.Count);
+        Assert.Equal(90000, timestamps["4"]); // 1:30 = 90 seconds = 90000 ms
+        Assert.Equal(45000, timestamps["7"]); // 0:45 = 45 seconds = 45000 ms
+    }
+
+    [Fact]
+    public void SaveSpotifyConfig_HandlesMalformedTimestampEntries()
+    {
+        // Act
+        _controller.SaveSpotifyConfig(
+            clientId: "test_client_id",
+            clientSecret: "test_secret",
+            redirectUri: "http://localhost/callback",
+            playlistUrls: "https://open.spotify.com/playlist/abc123",
+            songStartTimestamps: "4:1:30\ninvalid\n7:0:45\nbad:data");
+
+        // Assert - should only parse valid entries
+        var timestampsJson = Encoding.UTF8.GetString(_sessionStorage["SongStartTimestampsJson"]);
+        var timestamps = JsonSerializer.Deserialize<Dictionary<string, int>>(timestampsJson);
+        Assert.NotNull(timestamps);
+        Assert.Equal(2, timestamps.Count); // Only 2 valid entries
+        Assert.True(timestamps.ContainsKey("4"));
+        Assert.True(timestamps.ContainsKey("7"));
+    }
+
+    [Fact]
+    public void SaveSpotifyConfig_EmptySongStartTimestamps()
+    {
+        // Act
+        _controller.SaveSpotifyConfig(
+            clientId: "test_client_id",
+            clientSecret: "test_secret",
+            redirectUri: "http://localhost/callback",
+            playlistUrls: "https://open.spotify.com/playlist/abc123",
+            songStartTimestamps: "");
+
+        // Assert
+        var timestampsJson = Encoding.UTF8.GetString(_sessionStorage["SongStartTimestampsJson"]);
+        var timestamps = JsonSerializer.Deserialize<Dictionary<string, int>>(timestampsJson);
+        Assert.NotNull(timestamps);
+        Assert.Empty(timestamps);
     }
 
     #endregion

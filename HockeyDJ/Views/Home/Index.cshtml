@@ -1200,6 +1200,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
         let playedSongs = new Set(); // Track played songs to avoid repeats
+        let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1646,6 +1647,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     const tracks = playlistTracks[goalHornPlaylistId];
                     if (tracks.length > 0) {
                         let selectedTrack;
+                        let startPositionMs = 0; // Default to start from beginning
 
                         if (selectedValue === 'random') {
                             // Filter out already played tracks
@@ -1660,11 +1662,17 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                             
                             // Play random track from available tracks
                             selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+                            // Random songs always start from the beginning (no timestamp)
                         } else {
                             // Play specific track by number (1-based index)
                             const trackIndex = parseInt(selectedValue) - 1;
                             if (trackIndex >= 0 && trackIndex < tracks.length) {
                                 selectedTrack = tracks[trackIndex];
+                                // Check if there's a custom start timestamp for this player number
+                                if (songStartTimestamps && songStartTimestamps[selectedValue]) {
+                                    startPositionMs = songStartTimestamps[selectedValue];
+                                    console.log(`Using custom start timestamp for player ${selectedValue}: ${startPositionMs}ms`);
+                                }
                             } else {
                                 // If the selected number is out of range, fall back to random
                                 console.warn(`Song ${selectedValue} not available in playlist (only ${tracks.length} songs). Playing random song instead.`);
@@ -1677,6 +1685,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                                 }
                                 selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
                                 showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
+                                // Fallback to random means no custom timestamp
                             }
                         }
                         
@@ -1702,7 +1711,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                             })
                         });
 
-                        // Start playing the victory song
+                        // Start playing the victory song at the specified position
                         await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
                             method: 'PUT',
                             headers: {
@@ -1711,7 +1720,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                             },
                             body: JSON.stringify({
                                 uris: [selectedTrack.uri],
-                                position_ms: 0
+                                position_ms: startPositionMs
                             })
                         });
                     }

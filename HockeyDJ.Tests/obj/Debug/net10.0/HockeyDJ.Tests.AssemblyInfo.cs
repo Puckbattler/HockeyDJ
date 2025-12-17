@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HockeyDJ.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b1ab8d1f1b77e808b00bf8e4d8028c7fe34d1b4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b797ea5292d49a5dd239a63fa36e4715b1ce507a")]
 [assembly: System.Reflection.AssemblyProductAttribute("HockeyDJ.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HockeyDJ.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
