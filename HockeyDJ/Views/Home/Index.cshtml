@@ -1233,8 +1233,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         if (number && name) {
                             players.push({
                                 number: number,
-                                name: name,
-                                index: players.length + 1 // 1-based index using actual array position
+                                name: name
                             });
                         }
                     }
@@ -1253,14 +1252,14 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     grid.appendChild(optionDiv);
                 }
             } else {
-                // Create buttons based on roster
+                // Create buttons based on roster - use player number as the value/index for song selection
                 players.forEach(player => {
                     const optionDiv = document.createElement('div');
                     optionDiv.className = 'radio-option';
                     optionDiv.title = `#${player.number} - ${player.name}`;
                     optionDiv.innerHTML = `
-                        <input type="radio" id="song${player.index}" name="songSelection" value="${player.index}" data-player-number="${player.number}">
-                        <label for="song${player.index}">${player.number}</label>
+                        <input type="radio" id="song${player.number}" name="songSelection" value="${player.number}" data-player-number="${player.number}">
+                        <label for="song${player.number}">${player.number}</label>
                     `;
                     grid.appendChild(optionDiv);
                 });
