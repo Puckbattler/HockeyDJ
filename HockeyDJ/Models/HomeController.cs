@@ -32,6 +32,7 @@ namespace HockeyDJ.Controllers
             var homeTeamRoster = HttpContext.Session.GetString("HomeTeamRoster");
             var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
+            var songStartTimestampsJson = HttpContext.Session.GetString("SongStartTimestampsJson");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
@@ -42,6 +43,7 @@ namespace HockeyDJ.Controllers
             ViewBag.HomeTeamRoster = homeTeamRoster ?? "";
             ViewBag.AwayTeamName = awayTeamName ?? "";
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
+            ViewBag.SongStartTimestampsJson = string.IsNullOrEmpty(songStartTimestampsJson) ? "{}" : songStartTimestampsJson;
 
             return View();
         }
@@ -56,6 +58,7 @@ namespace HockeyDJ.Controllers
             var homeTeamRoster = HttpContext.Session.GetString("HomeTeamRoster");
             var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
+            var songStartTimestamps = HttpContext.Session.GetString("SongStartTimestamps");
             
             ViewBag.ExistingPlaylists = string.IsNullOrEmpty(existingPlaylists) ? "[]" : existingPlaylists;
             ViewBag.ExistingCustomNames = string.IsNullOrEmpty(existingCustomNames) ? "[]" : existingCustomNames;
@@ -64,12 +67,13 @@ namespace HockeyDJ.Controllers
             ViewBag.HomeTeamRoster = homeTeamRoster ?? "";
             ViewBag.AwayTeamName = awayTeamName ?? "";
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
+            ViewBag.SongStartTimestamps = songStartTimestamps ?? "";
             
             return View();
         }
 
         [HttpPost]
-        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "", string homeTeamName = "", string homeTeamRoster = "", string awayTeamName = "", string awayTeamRoster = "")
+        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "", string homeTeamName = "", string homeTeamRoster = "", string awayTeamName = "", string awayTeamRoster = "", string songStartTimestamps = "")
         {
             try
             {
@@ -83,6 +87,29 @@ namespace HockeyDJ.Controllers
                 HttpContext.Session.SetString("HomeTeamRoster", homeTeamRoster ?? "");
                 HttpContext.Session.SetString("AwayTeamName", awayTeamName ?? "");
                 HttpContext.Session.SetString("AwayTeamRoster", awayTeamRoster ?? "");
+
+                // Store song start timestamps (raw string, will be parsed as JSON for the view)
+                HttpContext.Session.SetString("SongStartTimestamps", songStartTimestamps ?? "");
+
+                // Parse and store song start timestamps as JSON for use in the view
+                var timestamps = new Dictionary<string, int>();
+                if (!string.IsNullOrEmpty(songStartTimestamps))
+                {
+                    var lines = songStartTimestamps.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        var parts = line.Trim().Split(':');
+                        if (parts.Length == 3 && int.TryParse(parts[0], out var playerNumber) 
+                            && int.TryParse(parts[1], out var minutes) 
+                            && int.TryParse(parts[2], out var seconds)
+                            && playerNumber > 0 && minutes >= 0 && seconds >= 0 && seconds < 60)
+                        {
+                            var timestampMs = (minutes * 60 + seconds) * 1000;
+                            timestamps[playerNumber.ToString()] = timestampMs;
+                        }
+                    }
+                }
+                HttpContext.Session.SetString("SongStartTimestampsJson", JsonSerializer.Serialize(timestamps));
 
                 // Parse custom song names
                 var songNames = new List<string>();
@@ -527,7 +554,8 @@ namespace HockeyDJ.Controllers
                     homeTeamName = importedConfig.TryGetProperty("homeTeamName", out var homeTeamName) ? homeTeamName.GetString() : "",
                     homeTeamRoster = importedConfig.TryGetProperty("homeTeamRoster", out var homeTeamRoster) ? homeTeamRoster.GetString() : "",
                     awayTeamName = importedConfig.TryGetProperty("awayTeamName", out var awayTeamName) ? awayTeamName.GetString() : "",
-                    awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : ""
+                    awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : "",
+                    songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : ""
                 };
 
                 // Validate URLs
