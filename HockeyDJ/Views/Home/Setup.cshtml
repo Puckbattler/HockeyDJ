@@ -358,6 +358,16 @@ ViewData["Title"] = "HockeyDJ Setup";
                         playlist below.
                     </small>
                 </div>
+                <div class="form-group">
+                    <label for="songStartTimestamps">Song Start Timestamps (Player Number:Timestamp, one per line)</label>
+                    <textarea id="songStartTimestamps" name="songStartTimestamps" class="form-control"
+                        placeholder="4:0:45&#10;7:1:30&#10;9:0:15"
+                        style="height: 120px;"></textarea>
+                    <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; display: block;">
+                        ⏱️ Format: PlayerNumber:Minutes:Seconds (e.g., "4:1:30" means player 4's song starts at 1 minute 30 seconds).<br>
+                        When you select a player number before triggering the goal horn, their song will start at this timestamp. Leave blank to start songs from the beginning.
+                    </small>
+                </div>
             </div>
 
             <div class="goal-horn-section">
@@ -419,8 +429,9 @@ ViewData["Title"] = "HockeyDJ Setup";
                 homeTeamRoster: document.getElementById('homeTeamRoster').value,
                 awayTeamName: document.getElementById('awayTeamName').value,
                 awayTeamRoster: document.getElementById('awayTeamRoster').value,
+                songStartTimestamps: document.getElementById('songStartTimestamps').value,
                 exportDate: new Date().toISOString(),
-                version: "1.2.0"
+                version: "1.3.0"
             };
 
             // Create and download the file
@@ -488,6 +499,9 @@ ViewData["Title"] = "HockeyDJ Setup";
                                 }
                                 if (config.awayTeamRoster) {
                                     document.getElementById('awayTeamRoster').value = config.awayTeamRoster;
+                                }
+                                if (config.songStartTimestamps) {
+                                    document.getElementById('songStartTimestamps').value = config.songStartTimestamps;
                                 }
 
                                 // Show success message
@@ -589,6 +603,7 @@ ViewData["Title"] = "HockeyDJ Setup";
             const homeTeamRoster = '@Html.Raw(ViewBag.HomeTeamRoster ?? "")';
             const awayTeamName = '@ViewBag.AwayTeamName';
             const awayTeamRoster = '@Html.Raw(ViewBag.AwayTeamRoster ?? "")';
+            const songStartTimestamps = '@Html.Raw(ViewBag.SongStartTimestamps ?? "")';
 
             if (homeTeamName) {
                 document.getElementById('homeTeamName').value = homeTeamName;
@@ -601,6 +616,9 @@ ViewData["Title"] = "HockeyDJ Setup";
             }
             if (awayTeamRoster) {
                 document.getElementById('awayTeamRoster').value = awayTeamRoster;
+            }
+            if (songStartTimestamps) {
+                document.getElementById('songStartTimestamps').value = songStartTimestamps;
             }
         });
     </script>
