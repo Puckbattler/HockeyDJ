@@ -336,7 +336,7 @@ ViewData["Title"] = "HockeyDJ Setup";
 
             <div class="form-group">
                 <label for="clientSecret">Spotify Client Secret</label>
-                <input type="password" id="clientSecret" name="clientSecret" class="form-control"
+                <input type="text" id="clientSecret" name="clientSecret" class="form-control"
                     placeholder="Your Spotify App Client Secret" required />
             </div>
 
@@ -478,6 +478,9 @@ ViewData["Title"] = "HockeyDJ Setup";
 
                                 if (config.clientId) {
                                     document.getElementById('clientId').value = config.clientId;
+                                }
+                                if (config.clientSecret) {
+                                    document.getElementById('clientSecret').value  = config.clientSecret;
                                 }
                                 if (config.redirectUri) {
                                     document.getElementById('redirectUri').value = config.redirectUri;

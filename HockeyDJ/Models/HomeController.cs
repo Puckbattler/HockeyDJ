@@ -446,6 +446,7 @@ namespace HockeyDJ.Controllers
             {
                 // Get current configuration from session
                 var clientId = HttpContext.Session.GetString("SpotifyClientId");
+                var clientSecret = HttpContext.Session.GetString("SpotifyClientSecret");
                 var redirectUri = HttpContext.Session.GetString("SpotifyRedirectUri");
                 var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
                 var userPlaylists = HttpContext.Session.GetString("UserPlaylists");
@@ -500,6 +501,7 @@ namespace HockeyDJ.Controllers
                 var exportConfig = new
                 {
                     clientId = clientId,
+                    clientSecret = clientSecret,
                     redirectUri = redirectUri,
                     goalHornPlaylist = goalHornPlaylistUrl,
                     playlistUrls = string.Join("\n", playlistUrls),
@@ -538,7 +540,7 @@ namespace HockeyDJ.Controllers
                 
                 // Validate required fields exist
                 if (!importedConfig.TryGetProperty("clientId", out _) ||
-                    !importedConfig.TryGetProperty("redirectUri", out _))
+                    !importedConfig.TryGetProperty("redirectUri", out _) || !importedConfig.TryGetProperty("clientSecret", out _))
                 {
                     return Json(new { success = false, error = "Invalid configuration file format. Missing required fields." });
                 }
@@ -547,6 +549,7 @@ namespace HockeyDJ.Controllers
                 var config = new
                 {
                     clientId = importedConfig.TryGetProperty("clientId", out var clientId) ? clientId.GetString() : "",
+                    clientSecret = importedConfig.TryGetProperty("clientSecret", out var clientSecret) ? clientSecret.GetString() : "",
                     redirectUri = importedConfig.TryGetProperty("redirectUri", out var redirectUri) ? redirectUri.GetString() : "",
                     goalHornPlaylist = importedConfig.TryGetProperty("goalHornPlaylist", out var goalHornPlaylist) ? goalHornPlaylist.GetString() : "",
                     playlistUrls = importedConfig.TryGetProperty("playlistUrls", out var playlistUrls) ? playlistUrls.GetString() : "",
