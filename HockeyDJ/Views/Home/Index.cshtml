@@ -1201,6 +1201,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let isSearching = false;
         let playedSongs = new Set(); // Track played songs to avoid repeats
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
+        let activePlaylistId = null; // Track the currently active playlist for continuous playback
+        let activePlayerIndex = null; // Track the player index for the active playlist
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1358,6 +1360,28 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 spotifyPlayer.addListener('player_state_changed', (state) => {
                     if (state) {
                         updateCurrentTrack(state.track_window.current_track);
+                        
+                        // Check if track has ended and we should play the next track
+                        // A track has ended when the position is 0 and paused is true after a track was playing
+                        // Or when position equals duration (track finished)
+                        if (!state.paused && state.position === 0 && state.duration === 0) {
+                            // Track is starting, ignore
+                            return;
+                        }
+                        
+                        // Detect track end: position is near the end or state indicates track finished
+                        const trackEnded = state.paused && 
+                                          state.position === 0 && 
+                                          state.track_window.previous_tracks.length > 0 &&
+                                          !isGoalHornPlaying;
+                        
+                        if (trackEnded && (activePlaylistId || priorityQueue.length > 0)) {
+                            // Automatically play next track
+                            console.log('Track ended, playing next track...');
+                            if (activePlaylistId && activePlayerIndex !== null) {
+                                playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
+                            }
+                        }
                     }
                 });
 
@@ -1568,6 +1592,10 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 
                 // Mark this track as played
                 playedSongs.add(randomTrack.id);
+
+                // Set the active playlist for continuous playback
+                activePlaylistId = playlistId;
+                activePlayerIndex = playerIndex;
 
                 // Update track info immediately
                 const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
@@ -1864,6 +1892,10 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 
         async function pausePlayback() {
             try {
+                // Clear active playlist to stop continuous playback
+                activePlaylistId = null;
+                activePlayerIndex = null;
+                
                 await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
                     method: 'PUT',
                     headers: {
