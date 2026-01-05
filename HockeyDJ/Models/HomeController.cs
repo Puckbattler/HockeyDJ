@@ -33,6 +33,7 @@ namespace HockeyDJ.Controllers
             var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
             var songStartTimestampsJson = HttpContext.Session.GetString("SongStartTimestampsJson");
+            var statsMode = HttpContext.Session.GetString("StatsMode");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
@@ -44,6 +45,14 @@ namespace HockeyDJ.Controllers
             ViewBag.AwayTeamName = awayTeamName ?? "";
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
             ViewBag.SongStartTimestampsJson = string.IsNullOrEmpty(songStartTimestampsJson) ? "{}" : songStartTimestampsJson;
+
+            // Check if stats mode is enabled
+            if (statsMode == "true")
+            {
+                var statsPlaylistIds = HttpContext.Session.GetString("StatsPlaylistIds");
+                ViewBag.StatsPlaylistIds = string.IsNullOrEmpty(statsPlaylistIds) ? "{}" : statsPlaylistIds;
+                return View("StatsPlayer");
+            }
 
             return View();
         }
@@ -59,6 +68,7 @@ namespace HockeyDJ.Controllers
             var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
             var songStartTimestamps = HttpContext.Session.GetString("SongStartTimestamps");
+            var statsMode = HttpContext.Session.GetString("StatsMode");
             
             ViewBag.ExistingPlaylists = string.IsNullOrEmpty(existingPlaylists) ? "[]" : existingPlaylists;
             ViewBag.ExistingCustomNames = string.IsNullOrEmpty(existingCustomNames) ? "[]" : existingCustomNames;
@@ -68,12 +78,25 @@ namespace HockeyDJ.Controllers
             ViewBag.AwayTeamName = awayTeamName ?? "";
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
             ViewBag.SongStartTimestamps = songStartTimestamps ?? "";
+            ViewBag.StatsMode = statsMode == "true";
+            
+            // Load stats mode playlists
+            ViewBag.OffsidePlaylist = HttpContext.Session.GetString("OffsidePlaylist") ?? "";
+            ViewBag.IcingPlaylist = HttpContext.Session.GetString("IcingPlaylist") ?? "";
+            ViewBag.AwayGoalPlaylist = HttpContext.Session.GetString("AwayGoalPlaylist") ?? "";
+            ViewBag.ComebackPlaylist = HttpContext.Session.GetString("ComebackPlaylist") ?? "";
+            ViewBag.HopePlaylist = HttpContext.Session.GetString("HopePlaylist") ?? "";
+            ViewBag.EndZonePlaylist = HttpContext.Session.GetString("EndZonePlaylist") ?? "";
+            ViewBag.PenaltyPlaylist = HttpContext.Session.GetString("PenaltyPlaylist") ?? "";
+            ViewBag.WarmUpPlaylist = HttpContext.Session.GetString("WarmUpPlaylist") ?? "";
+            ViewBag.IntermissionPlaylist = HttpContext.Session.GetString("IntermissionPlaylist") ?? "";
+            ViewBag.PostGamePlaylist = HttpContext.Session.GetString("PostGamePlaylist") ?? "";
             
             return View();
         }
 
         [HttpPost]
-        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "", string homeTeamName = "", string homeTeamRoster = "", string awayTeamName = "", string awayTeamRoster = "", string songStartTimestamps = "")
+        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "", string homeTeamName = "", string homeTeamRoster = "", string awayTeamName = "", string awayTeamRoster = "", string songStartTimestamps = "", string statsMode = "false", string offsidePlaylist = "", string icingPlaylist = "", string awayGoalPlaylist = "", string comebackPlaylist = "", string hopePlaylist = "", string endZonePlaylist = "", string penaltyPlaylist = "", string warmUpPlaylist = "", string intermissionPlaylist = "", string postGamePlaylist = "")
         {
             try
             {
@@ -87,6 +110,38 @@ namespace HockeyDJ.Controllers
                 HttpContext.Session.SetString("HomeTeamRoster", homeTeamRoster ?? "");
                 HttpContext.Session.SetString("AwayTeamName", awayTeamName ?? "");
                 HttpContext.Session.SetString("AwayTeamRoster", awayTeamRoster ?? "");
+
+                // Store stats mode setting
+                var isStatsMode = statsMode == "true";
+                HttpContext.Session.SetString("StatsMode", isStatsMode.ToString().ToLower());
+
+                // Store stats mode playlists
+                HttpContext.Session.SetString("OffsidePlaylist", offsidePlaylist ?? "");
+                HttpContext.Session.SetString("IcingPlaylist", icingPlaylist ?? "");
+                HttpContext.Session.SetString("AwayGoalPlaylist", awayGoalPlaylist ?? "");
+                HttpContext.Session.SetString("ComebackPlaylist", comebackPlaylist ?? "");
+                HttpContext.Session.SetString("HopePlaylist", hopePlaylist ?? "");
+                HttpContext.Session.SetString("EndZonePlaylist", endZonePlaylist ?? "");
+                HttpContext.Session.SetString("PenaltyPlaylist", penaltyPlaylist ?? "");
+                HttpContext.Session.SetString("WarmUpPlaylist", warmUpPlaylist ?? "");
+                HttpContext.Session.SetString("IntermissionPlaylist", intermissionPlaylist ?? "");
+                HttpContext.Session.SetString("PostGamePlaylist", postGamePlaylist ?? "");
+
+                // Store stats mode playlist IDs
+                var statsPlaylists = new Dictionary<string, string>
+                {
+                    { "offside", ExtractPlaylistId(offsidePlaylist ?? "") },
+                    { "icing", ExtractPlaylistId(icingPlaylist ?? "") },
+                    { "awayGoal", ExtractPlaylistId(awayGoalPlaylist ?? "") },
+                    { "comeback", ExtractPlaylistId(comebackPlaylist ?? "") },
+                    { "hope", ExtractPlaylistId(hopePlaylist ?? "") },
+                    { "endZone", ExtractPlaylistId(endZonePlaylist ?? "") },
+                    { "penalty", ExtractPlaylistId(penaltyPlaylist ?? "") },
+                    { "warmUp", ExtractPlaylistId(warmUpPlaylist ?? "") },
+                    { "intermission", ExtractPlaylistId(intermissionPlaylist ?? "") },
+                    { "postGame", ExtractPlaylistId(postGamePlaylist ?? "") }
+                };
+                HttpContext.Session.SetString("StatsPlaylistIds", JsonSerializer.Serialize(statsPlaylists));
 
                 // Store song start timestamps (raw string, will be parsed as JSON for the view)
                 HttpContext.Session.SetString("SongStartTimestamps", songStartTimestamps ?? "");
@@ -545,7 +600,7 @@ namespace HockeyDJ.Controllers
                     return Json(new { success = false, error = "Invalid configuration file format. Missing required fields." });
                 }
 
-                // Extract configuration values
+                // Extract configuration values including stats mode settings
                 var config = new
                 {
                     clientId = importedConfig.TryGetProperty("clientId", out var clientId) ? clientId.GetString() : "",
@@ -558,7 +613,18 @@ namespace HockeyDJ.Controllers
                     homeTeamRoster = importedConfig.TryGetProperty("homeTeamRoster", out var homeTeamRoster) ? homeTeamRoster.GetString() : "",
                     awayTeamName = importedConfig.TryGetProperty("awayTeamName", out var awayTeamName) ? awayTeamName.GetString() : "",
                     awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : "",
-                    songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : ""
+                    songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : "",
+                    statsMode = importedConfig.TryGetProperty("statsMode", out var statsMode) && statsMode.ValueKind == JsonValueKind.True,
+                    offsidePlaylist = importedConfig.TryGetProperty("offsidePlaylist", out var offsidePlaylist) ? offsidePlaylist.GetString() : "",
+                    icingPlaylist = importedConfig.TryGetProperty("icingPlaylist", out var icingPlaylist) ? icingPlaylist.GetString() : "",
+                    awayGoalPlaylist = importedConfig.TryGetProperty("awayGoalPlaylist", out var awayGoalPlaylist) ? awayGoalPlaylist.GetString() : "",
+                    comebackPlaylist = importedConfig.TryGetProperty("comebackPlaylist", out var comebackPlaylist) ? comebackPlaylist.GetString() : "",
+                    hopePlaylist = importedConfig.TryGetProperty("hopePlaylist", out var hopePlaylist) ? hopePlaylist.GetString() : "",
+                    endZonePlaylist = importedConfig.TryGetProperty("endZonePlaylist", out var endZonePlaylist) ? endZonePlaylist.GetString() : "",
+                    penaltyPlaylist = importedConfig.TryGetProperty("penaltyPlaylist", out var penaltyPlaylist) ? penaltyPlaylist.GetString() : "",
+                    warmUpPlaylist = importedConfig.TryGetProperty("warmUpPlaylist", out var warmUpPlaylist) ? warmUpPlaylist.GetString() : "",
+                    intermissionPlaylist = importedConfig.TryGetProperty("intermissionPlaylist", out var intermissionPlaylist) ? intermissionPlaylist.GetString() : "",
+                    postGamePlaylist = importedConfig.TryGetProperty("postGamePlaylist", out var postGamePlaylist) ? postGamePlaylist.GetString() : ""
                 };
 
                 // Validate URLs
@@ -626,6 +692,136 @@ namespace HockeyDJ.Controllers
             return string.Empty;
         }
 
+        [HttpPost]
+        public IActionResult SaveGameData([FromBody] GameDataRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.GameData))
+                {
+                    return Json(new { success = false, error = "No game data provided." });
+                }
+
+                HttpContext.Session.SetString("CurrentGameData", request.GameData);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving game data");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ExportGameData(string format = "json")
+        {
+            try
+            {
+                var gameData = HttpContext.Session.GetString("CurrentGameData");
+                if (string.IsNullOrEmpty(gameData))
+                {
+                    return Json(new { error = "No game data found to export." });
+                }
+
+                var fileName = $"hockeydj-game-{DateTime.Now:yyyy-MM-dd-HHmm}";
+
+                if (format.ToLower() == "csv")
+                {
+                    var csvData = ConvertGameDataToCsv(gameData);
+                    return File(System.Text.Encoding.UTF8.GetBytes(csvData), "text/csv", $"{fileName}.csv");
+                }
+                else
+                {
+                    return File(System.Text.Encoding.UTF8.GetBytes(gameData), "application/json", $"{fileName}.json");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting game data");
+                return Json(new { error = "Failed to export game data." });
+            }
+        }
+
+        private string ConvertGameDataToCsv(string jsonData)
+        {
+            try
+            {
+                var gameData = JsonSerializer.Deserialize<JsonElement>(jsonData);
+                var csv = new System.Text.StringBuilder();
+
+                // Game Info Header
+                csv.AppendLine("GAME INFORMATION");
+                if (gameData.TryGetProperty("gameInfo", out var gameInfo))
+                {
+                    csv.AppendLine($"Home Team,{GetJsonString(gameInfo, "homeTeam")}");
+                    csv.AppendLine($"Away Team,{GetJsonString(gameInfo, "awayTeam")}");
+                    csv.AppendLine($"Final Score,{GetJsonString(gameInfo, "homeScore")} - {GetJsonString(gameInfo, "awayScore")}");
+                    csv.AppendLine($"Date,{GetJsonString(gameInfo, "date")}");
+                }
+                csv.AppendLine();
+
+                // Goals
+                csv.AppendLine("GOALS");
+                csv.AppendLine("Period,Time,Team,Scorer,Assist 1,Assist 2,Goal Type");
+                if (gameData.TryGetProperty("goals", out var goals) && goals.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var goal in goals.EnumerateArray())
+                    {
+                        csv.AppendLine($"{GetJsonString(goal, "period")},{GetJsonString(goal, "time")},{GetJsonString(goal, "team")},{GetJsonString(goal, "scorer")},{GetJsonString(goal, "assist1")},{GetJsonString(goal, "assist2")},{GetJsonString(goal, "goalType")}");
+                    }
+                }
+                csv.AppendLine();
+
+                // Penalties
+                csv.AppendLine("PENALTIES");
+                csv.AppendLine("Period,Time,Team,Player,Penalty Type,Penalty Name,Duration");
+                if (gameData.TryGetProperty("penalties", out var penalties) && penalties.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var penalty in penalties.EnumerateArray())
+                    {
+                        csv.AppendLine($"{GetJsonString(penalty, "period")},{GetJsonString(penalty, "time")},{GetJsonString(penalty, "team")},{GetJsonString(penalty, "player")},{GetJsonString(penalty, "penaltyType")},{GetJsonString(penalty, "penaltyName")},{GetJsonString(penalty, "duration")}");
+                    }
+                }
+                csv.AppendLine();
+
+                // Player Stats
+                csv.AppendLine("PLAYER STATISTICS");
+                csv.AppendLine("Team,Number,Name,Goals,Assists,Points,Plus/Minus,PIM");
+                if (gameData.TryGetProperty("playerStats", out var playerStats) && playerStats.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var player in playerStats.EnumerateArray())
+                    {
+                        csv.AppendLine($"{GetJsonString(player, "team")},{GetJsonString(player, "number")},{GetJsonString(player, "name")},{GetJsonString(player, "goals")},{GetJsonString(player, "assists")},{GetJsonString(player, "points")},{GetJsonString(player, "plusMinus")},{GetJsonString(player, "pim")}");
+                    }
+                }
+                csv.AppendLine();
+
+                // Face-offs
+                csv.AppendLine("FACE-OFF SUMMARY");
+                if (gameData.TryGetProperty("faceoffs", out var faceoffs))
+                {
+                    csv.AppendLine($"Home Team Wins,{GetJsonString(faceoffs, "homeWins")}");
+                    csv.AppendLine($"Away Team Wins,{GetJsonString(faceoffs, "awayWins")}");
+                }
+
+                return csv.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error converting game data to CSV");
+                return "Error converting data to CSV format";
+            }
+        }
+
+        private string GetJsonString(JsonElement element, string propertyName)
+        {
+            if (element.TryGetProperty(propertyName, out var prop))
+            {
+                return prop.ValueKind == JsonValueKind.String ? prop.GetString() ?? "" : prop.ToString();
+            }
+            return "";
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -636,5 +832,11 @@ namespace HockeyDJ.Controllers
     public class ImportConfigurationRequest
     {
         public string ConfigData { get; set; } = string.Empty;
+    }
+
+    // Data model for game data requests
+    public class GameDataRequest
+    {
+        public string GameData { get; set; } = string.Empty;
     }
 }

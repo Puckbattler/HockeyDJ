@@ -187,6 +187,88 @@ ViewData["Title"] = "HockeyDJ Setup";
             font-size: 1.3em;
         }
 
+        .stats-mode-section {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stats-mode-section h4 {
+            color: #28a745;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch input[type="checkbox"]:checked {
+            background: #28a745;
+        }
+
+        .toggle-switch input[type="checkbox"]:checked::before {
+            left: 33px;
+        }
+
+        .toggle-label {
+            font-weight: bold;
+            color: white;
+        }
+
+        .stats-playlists-section {
+            display: none;
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stats-playlists-section.visible {
+            display: block;
+        }
+
+        .stats-playlists-section h4 {
+            color: #ba55d3;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
         .config-tools {
             background: rgba(138, 43, 226, 0.1);
             border: 1px solid rgba(138, 43, 226, 0.3);
@@ -328,6 +410,20 @@ ViewData["Title"] = "HockeyDJ Setup";
 
         <form method="post" action="/Home/SaveSpotifyConfig" id="configForm">
             @Html.AntiForgeryToken()
+
+            <div class="stats-mode-section">
+                <h4>📊 Stats Tracking Mode 📊</h4>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="statsMode" name="statsMode" value="true" />
+                    <input type="hidden" id="statsModeHidden" name="statsMode" value="false" />
+                    <span class="toggle-label">Enable Stats Tracking Mode</span>
+                </div>
+                <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 10px; display: block;">
+                    📋 When enabled, HockeyDJ will show a Gamesheet-style scoring interface with a live game clock, 
+                    period tracking, goal/penalty recording, and game statistics. The original music controls will still be available.
+                </small>
+            </div>
+
             <div class="form-group">
                 <label for="clientId">Spotify Client ID</label>
                 <input type="text" id="clientId" name="clientId" class="form-control"
@@ -402,6 +498,65 @@ ViewData["Title"] = "HockeyDJ Setup";
                 </div>
             </div>
 
+            <div id="statsPlaylistsSection" class="stats-playlists-section">
+                <h4>🎵 Stats Mode Playlists 🎵</h4>
+                <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 15px; display: block;">
+                    Configure playlists for different game situations. These will play automatically when you select a situation after stopping the clock.
+                </small>
+                <div class="playlist-grid">
+                    <div class="form-group">
+                        <label for="offsidePlaylist">Offside Playlist URL</label>
+                        <input type="url" id="offsidePlaylist" name="offsidePlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="icingPlaylist">Icing Playlist URL</label>
+                        <input type="url" id="icingPlaylist" name="icingPlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="awayGoalPlaylist">Away Goal Playlist URL</label>
+                        <input type="url" id="awayGoalPlaylist" name="awayGoalPlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="comebackPlaylist">Comeback Playlist URL</label>
+                        <input type="url" id="comebackPlaylist" name="comebackPlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="hopePlaylist">Hope Playlist URL</label>
+                        <input type="url" id="hopePlaylist" name="hopePlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="endZonePlaylist">End Zone Playlist URL</label>
+                        <input type="url" id="endZonePlaylist" name="endZonePlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="penaltyPlaylist">Penalty Playlist URL</label>
+                        <input type="url" id="penaltyPlaylist" name="penaltyPlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="warmUpPlaylist">Warm-Up Playlist URL</label>
+                        <input type="url" id="warmUpPlaylist" name="warmUpPlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="intermissionPlaylist">Intermission Playlist URL</label>
+                        <input type="url" id="intermissionPlaylist" name="intermissionPlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="postGamePlaylist">Post-Game Playlist URL</label>
+                        <input type="url" id="postGamePlaylist" name="postGamePlaylist" class="form-control"
+                            placeholder="https://open.spotify.com/playlist/..." />
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="playlistUrls">Spotify Playlist URLs (up to 10, one per line)</label>
                 <textarea id="playlistUrls" name="playlistUrls" class="form-control"
@@ -417,6 +572,28 @@ ViewData["Title"] = "HockeyDJ Setup";
     </div>
 
     <script>
+        // Stats mode toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const statsModeCheckbox = document.getElementById('statsMode');
+            const statsModeHidden = document.getElementById('statsModeHidden');
+            const statsPlaylistsSection = document.getElementById('statsPlaylistsSection');
+            
+            function toggleStatsMode() {
+                if (statsModeCheckbox.checked) {
+                    statsPlaylistsSection.classList.add('visible');
+                    statsModeHidden.disabled = true;
+                } else {
+                    statsPlaylistsSection.classList.remove('visible');
+                    statsModeHidden.disabled = false;
+                }
+            }
+            
+            statsModeCheckbox.addEventListener('change', toggleStatsMode);
+            
+            // Initialize on page load
+            toggleStatsMode();
+        });
+
         function exportConfiguration() {
             // Gather all configuration data
             const config = {
@@ -430,8 +607,19 @@ ViewData["Title"] = "HockeyDJ Setup";
                 awayTeamName: document.getElementById('awayTeamName').value,
                 awayTeamRoster: document.getElementById('awayTeamRoster').value,
                 songStartTimestamps: document.getElementById('songStartTimestamps').value,
+                statsMode: document.getElementById('statsMode').checked,
+                offsidePlaylist: document.getElementById('offsidePlaylist').value,
+                icingPlaylist: document.getElementById('icingPlaylist').value,
+                awayGoalPlaylist: document.getElementById('awayGoalPlaylist').value,
+                comebackPlaylist: document.getElementById('comebackPlaylist').value,
+                hopePlaylist: document.getElementById('hopePlaylist').value,
+                endZonePlaylist: document.getElementById('endZonePlaylist').value,
+                penaltyPlaylist: document.getElementById('penaltyPlaylist').value,
+                warmUpPlaylist: document.getElementById('warmUpPlaylist').value,
+                intermissionPlaylist: document.getElementById('intermissionPlaylist').value,
+                postGamePlaylist: document.getElementById('postGamePlaylist').value,
                 exportDate: new Date().toISOString(),
-                version: "1.3.0"
+                version: "1.4.0"
             };
 
             // Create and download the file
@@ -505,6 +693,43 @@ ViewData["Title"] = "HockeyDJ Setup";
                                 }
                                 if (config.songStartTimestamps) {
                                     document.getElementById('songStartTimestamps').value = config.songStartTimestamps;
+                                }
+                                
+                                // Stats mode settings
+                                if (config.statsMode) {
+                                    document.getElementById('statsMode').checked = config.statsMode;
+                                    document.getElementById('statsPlaylistsSection').classList.add('visible');
+                                    document.getElementById('statsModeHidden').disabled = true;
+                                }
+                                if (config.offsidePlaylist) {
+                                    document.getElementById('offsidePlaylist').value = config.offsidePlaylist;
+                                }
+                                if (config.icingPlaylist) {
+                                    document.getElementById('icingPlaylist').value = config.icingPlaylist;
+                                }
+                                if (config.awayGoalPlaylist) {
+                                    document.getElementById('awayGoalPlaylist').value = config.awayGoalPlaylist;
+                                }
+                                if (config.comebackPlaylist) {
+                                    document.getElementById('comebackPlaylist').value = config.comebackPlaylist;
+                                }
+                                if (config.hopePlaylist) {
+                                    document.getElementById('hopePlaylist').value = config.hopePlaylist;
+                                }
+                                if (config.endZonePlaylist) {
+                                    document.getElementById('endZonePlaylist').value = config.endZonePlaylist;
+                                }
+                                if (config.penaltyPlaylist) {
+                                    document.getElementById('penaltyPlaylist').value = config.penaltyPlaylist;
+                                }
+                                if (config.warmUpPlaylist) {
+                                    document.getElementById('warmUpPlaylist').value = config.warmUpPlaylist;
+                                }
+                                if (config.intermissionPlaylist) {
+                                    document.getElementById('intermissionPlaylist').value = config.intermissionPlaylist;
+                                }
+                                if (config.postGamePlaylist) {
+                                    document.getElementById('postGamePlaylist').value = config.postGamePlaylist;
                                 }
 
                                 // Show success message
