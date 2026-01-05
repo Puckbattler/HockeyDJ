@@ -1203,7 +1203,6 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
         let activePlaylistId = null; // Track the currently active playlist for continuous playback
         let activePlayerIndex = null; // Track the player index for the active playlist
-        let previousTrackUri = null; // Track the previous track to detect when a new track should play
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1363,25 +1362,18 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         updateCurrentTrack(state.track_window.current_track);
                         
                         // Detect track end for continuous playback
-                        // Track ended when: paused, no current track, but there was a previous track, and we have an active playlist
-                        const currentTrackUri = state.track_window.current_track?.uri;
+                        // Track ended when: paused, no current track, but there was a previous track
                         const trackEnded = state.paused && 
                                           !state.track_window.current_track && 
                                           state.track_window.previous_tracks.length > 0 &&
                                           !isGoalHornPlaying &&
-                                          (activePlaylistId || priorityQueue.length > 0);
+                                          activePlaylistId &&
+                                          activePlayerIndex !== null;
                         
                         if (trackEnded) {
                             // Automatically play next track from active playlist (priority queue will be checked first)
                             console.log('Track ended, playing next track...');
-                            if (activePlaylistId && activePlayerIndex !== null) {
-                                playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
-                            }
-                        }
-                        
-                        // Update previous track URI for next state change
-                        if (currentTrackUri) {
-                            previousTrackUri = currentTrackUri;
+                            playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
                         }
                     }
                 });
