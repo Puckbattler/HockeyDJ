@@ -1203,6 +1203,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
         let activePlaylistId = null; // Track the currently active playlist for continuous playback
         let activePlayerIndex = null; // Track the player index for the active playlist
+        let previousTrackUri = null; // Track the previous track to detect when a new track should play
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1361,26 +1362,26 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     if (state) {
                         updateCurrentTrack(state.track_window.current_track);
                         
-                        // Check if track has ended and we should play the next track
-                        // A track has ended when the position is 0 and paused is true after a track was playing
-                        // Or when position equals duration (track finished)
-                        if (!state.paused && state.position === 0 && state.duration === 0) {
-                            // Track is starting, ignore
-                            return;
-                        }
-                        
-                        // Detect track end: position is near the end or state indicates track finished
+                        // Detect track end for continuous playback
+                        // Track ended when: paused, no current track, but there was a previous track, and we have an active playlist
+                        const currentTrackUri = state.track_window.current_track?.uri;
                         const trackEnded = state.paused && 
-                                          state.position === 0 && 
+                                          !state.track_window.current_track && 
                                           state.track_window.previous_tracks.length > 0 &&
-                                          !isGoalHornPlaying;
+                                          !isGoalHornPlaying &&
+                                          (activePlaylistId || priorityQueue.length > 0);
                         
-                        if (trackEnded && (activePlaylistId || priorityQueue.length > 0)) {
-                            // Automatically play next track
+                        if (trackEnded) {
+                            // Automatically play next track from active playlist (priority queue will be checked first)
                             console.log('Track ended, playing next track...');
                             if (activePlaylistId && activePlayerIndex !== null) {
                                 playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
                             }
+                        }
+                        
+                        // Update previous track URI for next state change
+                        if (currentTrackUri) {
+                            previousTrackUri = currentTrackUri;
                         }
                     }
                 });
