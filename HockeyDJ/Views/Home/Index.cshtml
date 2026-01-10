@@ -1201,6 +1201,11 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let isSearching = false;
         let playedSongs = new Set(); // Track played songs to avoid repeats
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
+        let activePlaylistId = null; // Track the currently active playlist for continuous playback
+        let activePlayerIndex = null; // Track the player index for the active playlist
+        let lastTrackUri = null; // Track the last playing track to detect changes
+        let wasPlaying = false; // Track if we were playing to detect when playback stops
+        let manualPause = false; // Flag to prevent auto-play when user manually pauses
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1356,8 +1361,48 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 
                 // Playback status updates
                 spotifyPlayer.addListener('player_state_changed', (state) => {
-                    if (state) {
-                        updateCurrentTrack(state.track_window.current_track);
+                    if (!state) return;
+                    
+                    updateCurrentTrack(state.track_window.current_track);
+                    
+                    // Detect track end for continuous playback
+                    const currentTrackUri = state.track_window.current_track?.uri;
+                    const isPlaying = !state.paused;
+                    
+                    // Track ended when we were playing but now we're paused AND:
+                    // - We have previous tracks (something was playing before)
+                    // - We have an active playlist (continuous playback is enabled)
+                    // - We're not playing a goal horn
+                    // - This wasn't a manual pause by the user
+                    const hasPreviousTracks = state.track_window.previous_tracks.length > 0;
+                    const stoppedPlaying = wasPlaying && !isPlaying;
+                    
+                    const trackEnded = stoppedPlaying && 
+                                      hasPreviousTracks &&
+                                      !isGoalHornPlaying &&
+                                      !manualPause &&
+                                      activePlaylistId &&
+                                      activePlayerIndex !== null;
+                    
+                    if (trackEnded) {
+                        console.log('Track ended detected - playing next track');
+                        // Small delay to ensure state has stabilized
+                        setTimeout(() => {
+                            if (activePlaylistId && activePlayerIndex !== null && !manualPause) {
+                                playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
+                            }
+                        }, 500);
+                    }
+                    
+                    // Update tracking variables
+                    if (currentTrackUri) {
+                        lastTrackUri = currentTrackUri;
+                    }
+                    wasPlaying = isPlaying;
+                    
+                    // Reset manual pause flag when playback resumes
+                    if (isPlaying) {
+                        manualPause = false;
                     }
                 });
 
@@ -1568,6 +1613,10 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 
                 // Mark this track as played
                 playedSongs.add(randomTrack.id);
+
+                // Set the active playlist for continuous playback
+                activePlaylistId = playlistId;
+                activePlayerIndex = playerIndex;
 
                 // Update track info immediately
                 const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
@@ -1864,6 +1913,14 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 
         async function pausePlayback() {
             try {
+                // Set manual pause flag to prevent auto-play
+                manualPause = true;
+                
+                // Clear active playlist to stop continuous playback
+                activePlaylistId = null;
+                activePlayerIndex = null;
+                wasPlaying = false; // Reset playing state
+                
                 await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`, {
                     method: 'PUT',
                     headers: {
