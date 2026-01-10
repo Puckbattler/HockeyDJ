@@ -1203,6 +1203,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
         let activePlaylistId = null; // Track the currently active playlist for continuous playback
         let activePlayerIndex = null; // Track the player index for the active playlist
+        let lastTrackUri = null; // Track the last playing track to detect changes
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1358,22 +1359,37 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 
                 // Playback status updates
                 spotifyPlayer.addListener('player_state_changed', (state) => {
-                    if (state) {
-                        updateCurrentTrack(state.track_window.current_track);
-                        
-                        // Detect track end for continuous playback
-                        // Track ended when: paused, no current track, but there was a previous track
-                        const trackEnded = state.paused && 
-                                          !state.track_window.current_track && 
-                                          state.track_window.previous_tracks.length > 0 &&
-                                          !isGoalHornPlaying &&
-                                          activePlaylistId &&
-                                          activePlayerIndex !== null;
-                        
-                        if (trackEnded) {
-                            // Automatically play next track from active playlist (priority queue will be checked first)
-                            playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
-                        }
+                    if (!state) return;
+                    
+                    updateCurrentTrack(state.track_window.current_track);
+                    
+                    // Detect track end for continuous playback
+                    const currentTrackUri = state.track_window.current_track?.uri;
+                    
+                    // A track has ended when:
+                    // 1. Playback is paused AND position is 0 (track finished and reset)
+                    // 2. OR position is very close to duration (within last second)
+                    // 3. AND we have an active playlist
+                    // 4. AND we're not playing a goal horn
+                    const isNearEnd = state.duration > 0 && state.position >= (state.duration - 1000);
+                    const isAtEndPaused = state.paused && state.position === 0 && state.track_window.previous_tracks.length > 0;
+                    
+                    const trackEnded = (isNearEnd || isAtEndPaused) &&
+                                      !isGoalHornPlaying &&
+                                      activePlaylistId &&
+                                      activePlayerIndex !== null;
+                    
+                    if (trackEnded && currentTrackUri !== lastTrackUri) {
+                        // Track changed or ended, play next
+                        lastTrackUri = null; // Reset to allow next track
+                        setTimeout(() => {
+                            if (activePlaylistId && activePlayerIndex !== null) {
+                                playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
+                            }
+                        }, 500);
+                    } else if (currentTrackUri && !state.paused) {
+                        // Update last track URI when a track is actively playing
+                        lastTrackUri = currentTrackUri;
                     }
                 });
 
