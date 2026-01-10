@@ -1364,6 +1364,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     updateCurrentTrack(state.track_window.current_track);
                     
                     // Detect track end for continuous playback
+                    const TRACK_END_THRESHOLD_MS = 1000; // Detect track end within last second
+                    const NEXT_TRACK_DELAY_MS = 500; // Delay before playing next track to allow state stabilization
                     const currentTrackUri = state.track_window.current_track?.uri;
                     
                     // A track has ended when:
@@ -1371,7 +1373,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     // 2. OR paused with position at 0 and previous tracks exist (track just ended)
                     // 3. AND we have an active playlist
                     // 4. AND this is a different track than last time (prevent duplicate triggers)
-                    const isNearEndPaused = state.duration > 0 && state.position >= (state.duration - 1000) && state.paused;
+                    const isNearEndPaused = state.duration > 0 && state.position >= (state.duration - TRACK_END_THRESHOLD_MS) && state.paused;
                     const isAtEndPaused = state.paused && state.position === 0 && state.track_window.previous_tracks.length > 0;
                     
                     const trackEnded = (isNearEndPaused || isAtEndPaused) &&
@@ -1383,13 +1385,14 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     if (trackEnded) {
                         // Track ended, remember this track to prevent duplicate triggers
                         lastTrackUri = currentTrackUri;
+                        // Delay to allow Spotify state to stabilize before playing next track
                         setTimeout(() => {
                             if (activePlaylistId && activePlayerIndex !== null) {
                                 playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
                             }
-                        }, 500);
-                    } else if (currentTrackUri && !state.paused) {
-                        // Update last track URI when a track is actively playing (different from ended track)
+                        }, NEXT_TRACK_DELAY_MS);
+                    } else if (currentTrackUri && !state.paused && currentTrackUri !== lastTrackUri) {
+                        // Update last track URI when a new track starts playing
                         lastTrackUri = currentTrackUri;
                     }
                 });
