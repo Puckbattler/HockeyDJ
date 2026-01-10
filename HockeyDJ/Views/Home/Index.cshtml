@@ -1367,28 +1367,29 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     const currentTrackUri = state.track_window.current_track?.uri;
                     
                     // A track has ended when:
-                    // 1. Playback is paused AND position is 0 (track finished and reset)
-                    // 2. OR position is very close to duration (within last second)
+                    // 1. Position is very close to duration (within last second) AND paused
+                    // 2. OR paused with position at 0 and previous tracks exist (track just ended)
                     // 3. AND we have an active playlist
-                    // 4. AND we're not playing a goal horn
-                    const isNearEnd = state.duration > 0 && state.position >= (state.duration - 1000);
+                    // 4. AND this is a different track than last time (prevent duplicate triggers)
+                    const isNearEndPaused = state.duration > 0 && state.position >= (state.duration - 1000) && state.paused;
                     const isAtEndPaused = state.paused && state.position === 0 && state.track_window.previous_tracks.length > 0;
                     
-                    const trackEnded = (isNearEnd || isAtEndPaused) &&
+                    const trackEnded = (isNearEndPaused || isAtEndPaused) &&
                                       !isGoalHornPlaying &&
                                       activePlaylistId &&
-                                      activePlayerIndex !== null;
+                                      activePlayerIndex !== null &&
+                                      currentTrackUri !== lastTrackUri;
                     
-                    if (trackEnded && currentTrackUri !== lastTrackUri) {
-                        // Track changed or ended, play next
-                        lastTrackUri = null; // Reset to allow next track
+                    if (trackEnded) {
+                        // Track ended, remember this track to prevent duplicate triggers
+                        lastTrackUri = currentTrackUri;
                         setTimeout(() => {
                             if (activePlaylistId && activePlayerIndex !== null) {
                                 playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
                             }
                         }, 500);
                     } else if (currentTrackUri && !state.paused) {
-                        // Update last track URI when a track is actively playing
+                        // Update last track URI when a track is actively playing (different from ended track)
                         lastTrackUri = currentTrackUri;
                     }
                 });
