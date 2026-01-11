@@ -1,0 +1,1409 @@
+@{
+ViewData["Title"] = "HockeyDJ - Stats Mode";
+}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>@ViewData["Title"]</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .setup-link {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .setup-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-top: 10px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin: 0;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        /* Scoreboard */
+        .scoreboard {
+            background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .scoreboard-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .team-score {
+            text-align: center;
+            flex: 1;
+        }
+
+        .team-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ff6b35;
+        }
+
+        .score {
+            font-size: 4em;
+            font-weight: bold;
+            line-height: 1;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .home-score {
+            color: #4CAF50;
+        }
+
+        .away-score {
+            color: #f44336;
+        }
+
+        .vs-divider {
+            font-size: 1.5em;
+            opacity: 0.5;
+            padding: 0 20px;
+        }
+
+        /* Game Clock */
+        .clock-section {
+            text-align: center;
+            background: #000;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .period-display {
+            font-size: 1em;
+            color: #ff6b35;
+            margin-bottom: 5px;
+        }
+
+        .game-clock {
+            font-size: 4em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 2px;
+        }
+
+        .clock-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .clock-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clock-start {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .clock-stop {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .clock-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .clock-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Period Selector */
+        .period-selector {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .period-btn {
+            padding: 5px 12px;
+            border: 1px solid #ff6b35;
+            background: transparent;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .period-btn.active {
+            background: #ff6b35;
+            color: white;
+        }
+
+        .period-btn:hover {
+            background: rgba(255, 107, 53, 0.3);
+        }
+
+        /* Penalty Timers */
+        .penalty-timers {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .penalty-box {
+            flex: 1;
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .penalty-box h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #f44336;
+        }
+
+        .penalty-timer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .penalty-time {
+            font-family: 'Courier New', monospace;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* Situation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            margin: 5% auto;
+            padding: 25px;
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #ff6b35;
+            font-size: 1.5em;
+        }
+
+        .close {
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #ff6b35;
+        }
+
+        /* Situation Buttons */
+        .situation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .situation-btn {
+            padding: 15px 10px;
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .situation-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: #ff6b35;
+            transform: translateY(-2px);
+        }
+
+        .situation-btn.selected {
+            background: rgba(255, 107, 53, 0.3);
+            border-color: #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .situation-btn .emoji {
+            font-size: 1.5em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ff6b35;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        /* Sound Buttons */
+        .sound-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .sound-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .sound-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .goal-horn-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            width: auto;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .mushroom-btn { background: radial-gradient(circle at 30% 30%, #ff4444, #cc0000); color: white; }
+        .clock-sound-btn { background: linear-gradient(45deg, #2196F3, #1976D2); color: white; }
+        .trombone-btn { background: linear-gradient(45deg, #FFD700, #FFA500); color: white; }
+
+        /* Current Track */
+        .current-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Game Log */
+        .game-log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .game-log h3 {
+            margin: 0 0 10px 0;
+            color: #ff6b35;
+            font-size: 16px;
+        }
+
+        .log-entry {
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .log-time {
+            color: #ff6b35;
+            font-family: monospace;
+        }
+
+        /* Priority Queue Section */
+        .priority-queue-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .priority-queue-header h3 {
+            color: #ff6b35;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .queue-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .export-section {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Error/Success Messages */
+        .message {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .error { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; }
+        .success { background: rgba(76, 175, 80, 0.2); border: 1px solid #4CAF50; }
+
+        /* Responsive */
+        @@media (max-width: 600px) {
+            .game-clock { font-size: 3em; }
+            .score { font-size: 3em; }
+            .penalty-timers { flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="@Url.Action("Setup")" class="setup-link">⚙️ Settings</a>
+
+    <div class="header">
+        <h1>🏒 HockeyDJ Stats Mode</h1>
+        <p>Gamesheet-Style Scoring with Music</p>
+    </div>
+
+    <div id="errorMessage" class="message error" style="display: none;"></div>
+    <div id="successMessage" class="message success" style="display: none;"></div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+        <div class="scoreboard-top">
+            <div class="team-score">
+                <div class="team-name" id="homeTeamNameDisplay">Home</div>
+                <div class="score home-score" id="homeScoreDisplay">0</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div class="team-score">
+                <div class="team-name" id="awayTeamNameDisplay">Away</div>
+                <div class="score away-score" id="awayScoreDisplay">0</div>
+            </div>
+        </div>
+
+        <!-- Game Clock -->
+        <div class="clock-section">
+            <div class="period-display" id="periodDisplay">1st Period</div>
+            <div class="game-clock" id="gameClock">20:00</div>
+            <div class="clock-controls">
+                <button class="clock-btn clock-start" id="startClockBtn" onclick="startClock()">▶ START</button>
+                <button class="clock-btn clock-stop" id="stopClockBtn" onclick="stopClock()" disabled>⏹ STOP</button>
+            </div>
+            <div class="period-selector">
+                <button class="period-btn" onclick="setPeriod('warmup')">Warm-Up</button>
+                <button class="period-btn active" onclick="setPeriod('1')">1st</button>
+                <button class="period-btn" onclick="setPeriod('int1')">Int 1</button>
+                <button class="period-btn" onclick="setPeriod('2')">2nd</button>
+                <button class="period-btn" onclick="setPeriod('int2')">Int 2</button>
+                <button class="period-btn" onclick="setPeriod('3')">3rd</button>
+                <button class="period-btn" onclick="setPeriod('ot')">OT</button>
+                <button class="period-btn" onclick="setPeriod('postgame')">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Penalty Timers -->
+    <div class="penalty-timers">
+        <div class="penalty-box">
+            <h4>🏠 Home Penalties</h4>
+            <div id="homePenalties">
+                <div style="color: rgba(255,255,255,0.5); font-size: 12px;">No active penalties</div>
+            </div>
+        </div>
+        <div class="penalty-box">
+            <h4>✈️ Away Penalties</h4>
+            <div id="awayPenalties">
+                <div style="color: rgba(255,255,255,0.5); font-size: 12px;">No active penalties</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound Controls -->
+    <div class="sound-controls">
+        <button class="goal-horn-btn" id="goalHornBtn" onclick="triggerGoalHorn()">🚨 GOAL HORN 🚨</button>
+        <button class="sound-btn mushroom-btn" onclick="playMushroomSound()" title="Power Up">🍄</button>
+        <button class="sound-btn clock-sound-btn" onclick="playClockSound()" title="One Minute">🕐</button>
+        <button class="sound-btn trombone-btn" onclick="playTromboneSound()" title="Sad Trombone">🎺</button>
+    </div>
+
+    <!-- Current Track Display -->
+    <div class="current-track" id="currentTrackDisplay">
+        <strong>Ready to Play!</strong><br>
+        <span style="opacity: 0.7;">Music will play based on game situations</span>
+    </div>
+
+    <!-- Game Log -->
+    <div class="game-log">
+        <h3>📋 Game Log</h3>
+        <div id="gameLogList">
+            <div class="log-entry">
+                <span>Game started</span>
+                <span class="log-time">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="export-section">
+        <button class="export-btn" onclick="exportGameData('json')">📥 Export JSON</button>
+        <button class="export-btn" onclick="exportGameData('csv')">📊 Export CSV</button>
+    </div>
+
+    <!-- Priority Queue -->
+    <div class="priority-queue-section">
+        <div class="priority-queue-header">
+            <h3>🎯 Priority Queue</h3>
+        </div>
+        <div class="search-section">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search for songs..." />
+            <button class="search-btn" onclick="searchSpotify()">🔍</button>
+        </div>
+        <div id="searchResults" style="display: none; margin-bottom: 10px;"></div>
+        <div class="queue-list" id="queueList">
+            <div style="color: rgba(255,255,255,0.5); text-align: center; padding: 10px;">Queue is empty</div>
+        </div>
+    </div>
+
+    <!-- Situation Modal -->
+    <div id="situationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Select Situation</h2>
+                <span class="close" onclick="closeSituationModal()">&times;</span>
+            </div>
+            <div id="modalContent">
+                <!-- Dynamic content here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Faceoff Modal -->
+    <div id="faceoffModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏒 Faceoff Winner</h2>
+                <span class="close" onclick="closeFaceoffModal()">&times;</span>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="situation-btn" onclick="recordFaceoff('home')" style="flex: 1;">
+                    <span class="emoji">��</span>
+                    <span id="faceoffHomeTeam">Home</span>
+                </button>
+                <button class="situation-btn" onclick="recordFaceoff('away')" style="flex: 1;">
+                    <span class="emoji">✈️</span>
+                    <span id="faceoffAwayTeam">Away</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+        // Global variables
+        let spotifyPlayer;
+        let deviceId;
+        let accessToken = '@ViewBag.AccessToken';
+        let currentPlaylists = @Html.Raw(ViewBag.Playlists ?? "[]");
+        let goalHornPlaylistId = '@ViewBag.GoalHornPlaylistId';
+        let statsPlaylistIds = @Html.Raw(ViewBag.StatsPlaylistIds ?? "{}");
+        let playlistTracks = {};
+        let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
+        let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}");
+
+        // Game state
+        let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? "Home"));
+        let awayTeamName = @Html.Raw(Json.Serialize(ViewBag.AwayTeamName ?? "Away"));
+        let homeTeamRoster = {};
+        let awayTeamRoster = {};
+        let homeScore = 0;
+        let awayScore = 0;
+        let currentPeriod = '1';
+        let clockRunning = false;
+        let clockTime = 20 * 60; // 20 minutes in seconds
+        let clockInterval = null;
+        let oneMinuteWarningPlayed = false;
+
+        // Game data for export
+        let gameData = {
+            gameInfo: { homeTeam: '', awayTeam: '', homeScore: 0, awayScore: 0, date: new Date().toISOString() },
+            goals: [],
+            penalties: [],
+            faceoffs: { homeWins: 0, awayWins: 0 },
+            playerStats: []
+        };
+
+        // Penalty tracking
+        let activePenalties = { home: [], away: [] };
+
+        // Audio elements
+        let goalHornAudio, mushroomAudio, clockAudio, tromboneAudio;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTeams();
+            initializeAudio();
+            updatePriorityQueueDisplay();
+
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchSpotify();
+            });
+        });
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            initializeSpotify();
+        };
+
+        function initializeTeams() {
+            document.getElementById('homeTeamNameDisplay').textContent = homeTeamName || 'Home';
+            document.getElementById('awayTeamNameDisplay').textContent = awayTeamName || 'Away';
+            document.getElementById('faceoffHomeTeam').textContent = homeTeamName || 'Home';
+            document.getElementById('faceoffAwayTeam').textContent = awayTeamName || 'Away';
+
+            gameData.gameInfo.homeTeam = homeTeamName;
+            gameData.gameInfo.awayTeam = awayTeamName;
+
+            // Parse rosters
+            const homeRosterString = @Html.Raw(Json.Serialize(ViewBag.HomeTeamRoster ?? ""));
+            const awayRosterString = @Html.Raw(Json.Serialize(ViewBag.AwayTeamRoster ?? ""));
+            homeTeamRoster = parseRoster(homeRosterString);
+            awayTeamRoster = parseRoster(awayRosterString);
+        }
+
+        function parseRoster(rosterString) {
+            const roster = {};
+            if (!rosterString) return roster;
+            const lines = rosterString.split('\n');
+            lines.forEach(line => {
+                const parts = line.trim().split(':');
+                if (parts.length === 2) {
+                    const number = parts[0].trim();
+                    const name = parts[1].trim();
+                    if (number && name) roster[number] = name;
+                }
+            });
+            return roster;
+        }
+
+        function initializeAudio() {
+            goalHornAudio = new Audio('/audio/goal-horn.mp3');
+            goalHornAudio.preload = 'auto';
+            mushroomAudio = new Audio('/audio/mushroom.mp3');
+            mushroomAudio.preload = 'auto';
+            clockAudio = new Audio('/audio/clock.mp3');
+            clockAudio.preload = 'auto';
+            tromboneAudio = new Audio('/audio/Sad Trombone.mp3');
+            tromboneAudio.preload = 'auto';
+        }
+
+        async function initializeSpotify() {
+            try {
+                spotifyPlayer = new Spotify.Player({
+                    name: 'HockeyDJ Stats Player',
+                    getOAuthToken: cb => { cb(accessToken); },
+                    volume: 0.8
+                });
+
+                spotifyPlayer.addListener('ready', ({ device_id }) => {
+                    console.log('Spotify ready with device ID:', device_id);
+                    deviceId = device_id;
+                    loadPlaylists();
+                });
+
+                spotifyPlayer.addListener('player_state_changed', (state) => {
+                    if (state && state.track_window.current_track) {
+                        updateCurrentTrack(state.track_window.current_track);
+                    }
+                });
+
+                spotifyPlayer.connect();
+            } catch (error) {
+                console.error('Error initializing Spotify:', error);
+            }
+        }
+
+        async function loadPlaylists() {
+            // Load goal horn playlist
+            if (goalHornPlaylistId) {
+                await loadPlaylistTracks(goalHornPlaylistId);
+            }
+            // Load stats playlists
+            for (const [key, id] of Object.entries(statsPlaylistIds)) {
+                if (id) await loadPlaylistTracks(id);
+            }
+        }
+
+        async function loadPlaylistTracks(playlistId) {
+            if (!playlistId) return;
+            try {
+                const response = await fetch('/Home/GetPlaylistTracks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'playlistId=' + playlistId
+                });
+                const data = await response.json();
+                if (data.success) {
+                    playlistTracks[playlistId] = data.tracks;
+                }
+            } catch (error) {
+                console.error('Error loading playlist:', error);
+            }
+        }
+
+        // Clock functions
+        function startClock() {
+            if (clockRunning) return;
+
+            // Show faceoff modal first
+            document.getElementById('faceoffModal').style.display = 'block';
+        }
+
+        function recordFaceoff(winner) {
+            closeFaceoffModal();
+            gameData.faceoffs[winner === 'home' ? 'homeWins' : 'awayWins']++;
+            addLogEntry('Faceoff won by ' + (winner === 'home' ? homeTeamName : awayTeamName));
+
+            // Pause any playing music
+            pausePlayback();
+
+            // Start the clock
+            clockRunning = true;
+            document.getElementById('startClockBtn').disabled = true;
+            document.getElementById('stopClockBtn').disabled = false;
+
+            clockInterval = setInterval(updateClock, 1000);
+        }
+
+        function stopClock() {
+            if (!clockRunning) return;
+
+            clockRunning = false;
+            clearInterval(clockInterval);
+            document.getElementById('startClockBtn').disabled = false;
+            document.getElementById('stopClockBtn').disabled = true;
+
+            // Show situation modal
+            showSituationModal();
+        }
+
+        function updateClock() {
+            if (clockTime > 0) {
+                clockTime--;
+                displayClock();
+
+                // One minute warning
+                if (clockTime === 60 && !oneMinuteWarningPlayed) {
+                    playClockSound();
+                    oneMinuteWarningPlayed = true;
+                }
+
+                // Update penalty timers
+                updatePenaltyTimers();
+            } else {
+                stopClock();
+                addLogEntry('Period ended');
+            }
+        }
+
+        function displayClock() {
+            const minutes = Math.floor(clockTime / 60);
+            const seconds = clockTime % 60;
+            document.getElementById('gameClock').textContent =
+                minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+        }
+
+        function setPeriod(period) {
+            currentPeriod = period;
+            oneMinuteWarningPlayed = false;
+
+            // Update period buttons
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Set clock time based on period
+            const periodTimes = {
+                'warmup': 15 * 60,
+                '1': 20 * 60,
+                'int1': 15 * 60,
+                '2': 20 * 60,
+                'int2': 15 * 60,
+                '3': 20 * 60,
+                'ot': 5 * 60,
+                'postgame': 0
+            };
+
+            clockTime = periodTimes[period] || 20 * 60;
+            displayClock();
+
+            // Update period display
+            const periodNames = {
+                'warmup': 'Warm-Up',
+                '1': '1st Period',
+                'int1': '1st Intermission',
+                '2': '2nd Period',
+                'int2': '2nd Intermission',
+                '3': '3rd Period',
+                'ot': 'Overtime',
+                'postgame': 'Post-Game'
+            };
+            document.getElementById('periodDisplay').textContent = periodNames[period] || '1st Period';
+
+            // Play appropriate music for intermission/warmup/postgame
+            if (['warmup', 'int1', 'int2', 'postgame'].includes(period)) {
+                const playlistKey = period === 'warmup' ? 'warmUp' :
+                                   period.startsWith('int') ? 'intermission' : 'postGame';
+                playFromSituationPlaylist(playlistKey);
+            }
+        }
+
+        // Situation Modal
+        function showSituationModal() {
+            document.getElementById('modalTitle').textContent = 'Select Situation';
+            document.getElementById('modalContent').innerHTML = 
+                '<div class="situation-grid">' +
+                    '<button class="situation-btn" onclick="selectSituation(\'homeGoal\')"><span class="emoji">🥅</span>Home Goal</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'awayGoal\')"><span class="emoji">🥅</span>Away Goal</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'penalty\')"><span class="emoji">⚠️</span>Penalty</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'offside\')"><span class="emoji">🚫</span>Offside</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'icing\')"><span class="emoji">❄️</span>Icing</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'endZone\')"><span class="emoji">🎯</span>End Zone</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'comeback\')"><span class="emoji">💪</span>Comeback</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'hope\')"><span class="emoji">✨</span>Hope</button>' +
+                    '<button class="situation-btn" onclick="selectSituation(\'other\')"><span class="emoji">⏸️</span>Other</button>' +
+                '</div>';
+            document.getElementById('situationModal').style.display = 'block';
+        }
+
+        function selectSituation(situation) {
+            const clockTimeStr = document.getElementById('gameClock').textContent;
+
+            switch(situation) {
+                case 'homeGoal':
+                    showGoalForm('home', clockTimeStr);
+                    break;
+                case 'awayGoal':
+                    showGoalForm('away', clockTimeStr);
+                    playFromSituationPlaylist('awayGoal');
+                    break;
+                case 'penalty':
+                    showPenaltyForm(clockTimeStr);
+                    break;
+                case 'offside':
+                    playFromSituationPlaylist('offside');
+                    addLogEntry('Offside');
+                    closeSituationModal();
+                    break;
+                case 'icing':
+                    playFromSituationPlaylist('icing');
+                    addLogEntry('Icing');
+                    closeSituationModal();
+                    break;
+                case 'endZone':
+                    playFromSituationPlaylist('endZone');
+                    addLogEntry('End zone play');
+                    closeSituationModal();
+                    break;
+                case 'comeback':
+                    playFromSituationPlaylist('comeback');
+                    addLogEntry('Comeback moment');
+                    closeSituationModal();
+                    break;
+                case 'hope':
+                    playFromSituationPlaylist('hope');
+                    addLogEntry('Hope moment');
+                    closeSituationModal();
+                    break;
+                default:
+                    closeSituationModal();
+            }
+        }
+
+        function showGoalForm(team, time) {
+            const roster = team === 'home' ? homeTeamRoster : awayTeamRoster;
+            const teamName = team === 'home' ? homeTeamName : awayTeamName;
+
+            let playerOptions = '<option value="">Select Player</option>';
+            Object.keys(roster).sort((a, b) => parseInt(a) - parseInt(b)).forEach(num => {
+                playerOptions += '<option value="' + num + '">#' + num + ' - ' + roster[num] + '</option>';
+            });
+
+            document.getElementById('modalTitle').textContent = teamName + ' Goal';
+            document.getElementById('modalContent').innerHTML = 
+                '<div class="form-group"><label>Scoring Player:</label><select id="goalScorer">' + playerOptions + '</select></div>' +
+                '<div class="form-group"><label>First Assist (Optional):</label><select id="goalAssist1"><option value="">None</option>' + playerOptions.replace('Select Player', 'None') + '</select></div>' +
+                '<div class="form-group"><label>Second Assist (Optional):</label><select id="goalAssist2"><option value="">None</option>' + playerOptions.replace('Select Player', 'None') + '</select></div>' +
+                '<div class="form-group"><label>Goal Type:</label><select id="goalType"><option value="even">Even Strength</option><option value="pp">Power Play</option><option value="sh">Short Handed</option><option value="en">Empty Net</option><option value="ps">Penalty Shot</option></select></div>' +
+                '<button class="submit-btn" onclick="recordGoal(\'' + team + '\', \'' + time + '\')">Record Goal</button>';
+
+            if (team === 'home') {
+                // Play goal horn immediately for home goals
+                triggerGoalHorn();
+            }
+        }
+
+        async function recordGoal(team, time) {
+            const scorer = document.getElementById('goalScorer').value;
+            const assist1 = document.getElementById('goalAssist1').value;
+            const assist2 = document.getElementById('goalAssist2').value;
+            const goalType = document.getElementById('goalType').value;
+
+            if (!scorer) {
+                showError('Please select a scoring player');
+                return;
+            }
+
+            const roster = team === 'home' ? homeTeamRoster : awayTeamRoster;
+
+            // Update score
+            if (team === 'home') {
+                homeScore++;
+                document.getElementById('homeScoreDisplay').textContent = homeScore;
+            } else {
+                awayScore++;
+                document.getElementById('awayScoreDisplay').textContent = awayScore;
+            }
+
+            // Record goal data
+            const goal = {
+                period: currentPeriod,
+                time: time,
+                team: team,
+                scorer: '#' + scorer + ' ' + roster[scorer],
+                assist1: assist1 ? '#' + assist1 + ' ' + roster[assist1] : '',
+                assist2: assist2 ? '#' + assist2 + ' ' + roster[assist2] : '',
+                goalType: goalType
+            };
+            gameData.goals.push(goal);
+            gameData.gameInfo.homeScore = homeScore;
+            gameData.gameInfo.awayScore = awayScore;
+
+            addLogEntry('GOAL: ' + roster[scorer] + ' (' + (team === 'home' ? homeTeamName : awayTeamName) + ')');
+            closeSituationModal();
+            await saveGameData();
+        }
+
+        function showPenaltyForm(time) {
+            let homeOptions = '<option value="">Select Player</option>';
+            let awayOptions = '<option value="">Select Player</option>';
+
+            Object.keys(homeTeamRoster).sort((a, b) => parseInt(a) - parseInt(b)).forEach(num => {
+                homeOptions += '<option value="home-' + num + '">#' + num + ' - ' + homeTeamRoster[num] + '</option>';
+            });
+            Object.keys(awayTeamRoster).sort((a, b) => parseInt(a) - parseInt(b)).forEach(num => {
+                awayOptions += '<option value="away-' + num + '">#' + num + ' - ' + awayTeamRoster[num] + '</option>';
+            });
+
+            document.getElementById('modalTitle').textContent = 'Record Penalty';
+            document.getElementById('modalContent').innerHTML = 
+                '<div class="form-group"><label>Player:</label><select id="penaltyPlayer"><optgroup label="' + homeTeamName + '">' + homeOptions + '</optgroup><optgroup label="' + awayTeamName + '">' + awayOptions + '</optgroup></select></div>' +
+                '<div class="form-group"><label>Penalty Type:</label><select id="penaltyType"><option value="Minor">Minor (2 min)</option><option value="Major">Major (5 min)</option><option value="Misconduct">Misconduct (10 min)</option></select></div>' +
+                '<div class="form-group"><label>Penalty:</label><select id="penaltyName"><option value="Tripping">Tripping</option><option value="Hooking">Hooking</option><option value="Holding">Holding</option><option value="Interference">Interference</option><option value="Slashing">Slashing</option><option value="Cross-checking">Cross-checking</option><option value="Roughing">Roughing</option><option value="High-sticking">High-sticking</option><option value="Boarding">Boarding</option><option value="Delay of Game">Delay of Game</option></select></div>' +
+                '<button class="submit-btn" onclick="recordPenalty(\'' + time + '\')">Record Penalty</button>';
+
+            playFromSituationPlaylist('penalty');
+        }
+
+        async function recordPenalty(time) {
+            const playerValue = document.getElementById('penaltyPlayer').value;
+            const penaltyType = document.getElementById('penaltyType').value;
+            const penaltyName = document.getElementById('penaltyName').value;
+
+            if (!playerValue) {
+                showError('Please select a player');
+                return;
+            }
+
+            const parts = playerValue.split('-');
+            const team = parts[0];
+            const number = parts[1];
+            const roster = team === 'home' ? homeTeamRoster : awayTeamRoster;
+
+            // Determine penalty duration
+            const durations = { 'Minor': 120, 'Major': 300, 'Misconduct': 600 };
+            const duration = durations[penaltyType] || 120;
+
+            // Add to active penalties
+            const penalty = {
+                player: '#' + number + ' ' + roster[number],
+                type: penaltyType,
+                name: penaltyName,
+                timeRemaining: duration,
+                team: team
+            };
+
+            activePenalties[team].push(penalty);
+            updatePenaltyDisplay();
+
+            // Record penalty data
+            gameData.penalties.push({
+                period: currentPeriod,
+                time: time,
+                team: team,
+                player: '#' + number + ' ' + roster[number],
+                penaltyType: penaltyType,
+                penaltyName: penaltyName,
+                duration: penaltyType
+            });
+
+            addLogEntry('PENALTY: ' + roster[number] + ' - ' + penaltyName);
+            closeSituationModal();
+            await saveGameData();
+        }
+
+        function updatePenaltyTimers() {
+            ['home', 'away'].forEach(team => {
+                activePenalties[team] = activePenalties[team].filter(p => {
+                    p.timeRemaining--;
+                    if (p.timeRemaining <= 0) {
+                        // Play mushroom sound when penalty expires
+                        playMushroomSound();
+                        addLogEntry('Penalty expired: ' + p.player);
+                        return false;
+                    }
+                    return true;
+                });
+            });
+            updatePenaltyDisplay();
+        }
+
+        function updatePenaltyDisplay() {
+            ['home', 'away'].forEach(team => {
+                const container = document.getElementById(team + 'Penalties');
+                if (activePenalties[team].length === 0) {
+                    container.innerHTML = '<div style="color: rgba(255,255,255,0.5); font-size: 12px;">No active penalties</div>';
+                } else {
+                    container.innerHTML = activePenalties[team].map(p => {
+                        const mins = Math.floor(p.timeRemaining / 60);
+                        const secs = p.timeRemaining % 60;
+                        return '<div class="penalty-timer-item"><span>' + p.player + '</span><span class="penalty-time">' + mins + ':' + secs.toString().padStart(2, '0') + '</span></div>';
+                    }).join('');
+                }
+            });
+        }
+
+        // Goal Horn
+        async function triggerGoalHorn() {
+            const btn = document.getElementById('goalHornBtn');
+            btn.disabled = true;
+
+            try {
+                if (goalHornAudio) {
+                    goalHornAudio.currentTime = 0;
+                    await goalHornAudio.play();
+
+                    // Wait for horn then play song
+                    setTimeout(async () => {
+                        if (goalHornPlaylistId && playlistTracks[goalHornPlaylistId]) {
+                            const tracks = playlistTracks[goalHornPlaylistId];
+                            if (tracks.length > 0) {
+                                const track = tracks[Math.floor(Math.random() * tracks.length)];
+                                await playTrack(track.uri);
+                            }
+                        }
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Error playing goal horn:', error);
+            } finally {
+                setTimeout(() => { btn.disabled = false; }, 5000);
+            }
+        }
+
+        // Play from situation playlist
+        async function playFromSituationPlaylist(situation) {
+            const playlistId = statsPlaylistIds[situation];
+            if (!playlistId || !playlistTracks[playlistId]) return;
+
+            const tracks = playlistTracks[playlistId];
+            if (tracks && tracks.length > 0) {
+                const track = tracks[Math.floor(Math.random() * tracks.length)];
+                await playTrack(track.uri);
+            }
+        }
+
+        async function playTrack(uri) {
+            if (!deviceId) return;
+
+            try {
+                await fetch('https://api.spotify.com/v1/me/player', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ device_ids: [deviceId], play: false })
+                });
+
+                await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + deviceId, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ uris: [uri], position_ms: 0 })
+                });
+            } catch (error) {
+                console.error('Error playing track:', error);
+            }
+        }
+
+        async function pausePlayback() {
+            if (!deviceId) return;
+            try {
+                await fetch('https://api.spotify.com/v1/me/player/pause?device_id=' + deviceId, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + accessToken }
+                });
+            } catch (error) {
+                console.error('Error pausing:', error);
+            }
+        }
+
+        // Sound effects
+        async function playMushroomSound() {
+            if (mushroomAudio) {
+                mushroomAudio.currentTime = 0;
+                await mushroomAudio.play();
+            }
+        }
+
+        async function playClockSound() {
+            if (clockAudio) {
+                clockAudio.currentTime = 0;
+                await clockAudio.play();
+            }
+        }
+
+        async function playTromboneSound() {
+            if (tromboneAudio) {
+                tromboneAudio.currentTime = 0;
+                await tromboneAudio.play();
+            }
+        }
+
+        // UI helpers
+        function updateCurrentTrack(track) {
+            document.getElementById('currentTrackDisplay').innerHTML = 
+                '<strong>🎵 Now Playing</strong><br><span>' + track.name + '</span><br><span style="opacity: 0.7;">by ' + track.artists.map(a => a.name).join(', ') + '</span>';
+        }
+
+        function addLogEntry(text) {
+            const list = document.getElementById('gameLogList');
+            const time = document.getElementById('gameClock').textContent;
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = '<span>' + text + '</span><span class="log-time">' + time + '</span>';
+            list.insertBefore(entry, list.firstChild);
+        }
+
+        function closeSituationModal() {
+            document.getElementById('situationModal').style.display = 'none';
+        }
+
+        function closeFaceoffModal() {
+            document.getElementById('faceoffModal').style.display = 'none';
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 3000);
+        }
+
+        // Save game data
+        async function saveGameData() {
+            try {
+                await fetch('/Home/SaveGameData', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gameData: JSON.stringify(gameData) })
+                });
+            } catch (error) {
+                console.error('Error saving game data:', error);
+            }
+        }
+
+        // Export game data
+        function exportGameData(format) {
+            window.location.href = '/Home/ExportGameData?format=' + format;
+        }
+
+        // Priority Queue
+        async function searchSpotify() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            try {
+                const response = await fetch('/Home/SearchSpotify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'query=' + encodeURIComponent(query)
+                });
+                const data = await response.json();
+
+                if (data.success && data.tracks) {
+                    const results = document.getElementById('searchResults');
+                    results.innerHTML = data.tracks.map((t, i) => 
+                        '<div class="queue-item"><span>' + t.name + ' - ' + t.artist + '</span><button onclick="addToQueue(\'' + t.id + '\', \'' + escapeHtml(t.name) + '\', \'' + escapeHtml(t.artist) + '\', \'' + t.uri + '\')" style="padding: 5px 10px; border: none; background: #4CAF50; color: white; border-radius: 5px; cursor: pointer;">+</button></div>'
+                    ).join('');
+                    results.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+
+        async function addToQueue(id, name, artist, uri) {
+            try {
+                await fetch('/Home/AddToPriorityQueue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'trackId=' + id + '&trackName=' + encodeURIComponent(name) + '&trackArtist=' + encodeURIComponent(artist) + '&trackUri=' + uri
+                });
+                priorityQueue.push({ id: id, name: name, artist: artist, uri: uri });
+                updatePriorityQueueDisplay();
+                showSuccess('Added to queue!');
+            } catch (error) {
+                console.error('Error adding to queue:', error);
+            }
+        }
+
+        function updatePriorityQueueDisplay() {
+            const list = document.getElementById('queueList');
+            if (priorityQueue.length === 0) {
+                list.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 10px;">Queue is empty</div>';
+            } else {
+                list.innerHTML = priorityQueue.map((t, i) => 
+                    '<div class="queue-item"><span>' + (i + 1) + '. ' + t.name + '</span><span style="opacity: 0.7;">' + t.artist + '</span></div>'
+                ).join('');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/'/g, "\\'");
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
