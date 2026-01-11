@@ -596,14 +596,14 @@ ViewData["Title"] = "HockeyDJ - Stats Mode";
                 <button class="clock-btn clock-stop" id="stopClockBtn" onclick="stopClock()" disabled>⏹ STOP</button>
             </div>
             <div class="period-selector">
-                <button class="period-btn" onclick="setPeriod('warmup')">Warm-Up</button>
-                <button class="period-btn active" onclick="setPeriod('1')">1st</button>
-                <button class="period-btn" onclick="setPeriod('int1')">Int 1</button>
-                <button class="period-btn" onclick="setPeriod('2')">2nd</button>
-                <button class="period-btn" onclick="setPeriod('int2')">Int 2</button>
-                <button class="period-btn" onclick="setPeriod('3')">3rd</button>
-                <button class="period-btn" onclick="setPeriod('ot')">OT</button>
-                <button class="period-btn" onclick="setPeriod('postgame')">Post</button>
+                <button class="period-btn" onclick="setPeriod('warmup', this)">Warm-Up</button>
+                <button class="period-btn active" onclick="setPeriod('1', this)">1st</button>
+                <button class="period-btn" onclick="setPeriod('int1', this)">Int 1</button>
+                <button class="period-btn" onclick="setPeriod('2', this)">2nd</button>
+                <button class="period-btn" onclick="setPeriod('int2', this)">Int 2</button>
+                <button class="period-btn" onclick="setPeriod('3', this)">3rd</button>
+                <button class="period-btn" onclick="setPeriod('ot', this)">OT</button>
+                <button class="period-btn" onclick="setPeriod('postgame', this)">Post</button>
             </div>
         </div>
     </div>
@@ -917,13 +917,13 @@ ViewData["Title"] = "HockeyDJ - Stats Mode";
                 minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
         }
 
-        function setPeriod(period) {
+        function setPeriod(period, clickedBtn) {
             currentPeriod = period;
             oneMinuteWarningPlayed = false;
 
             // Update period buttons
             document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(".period-btn.active")?.classList.remove("active"); event?.target?.classList.add('active');
+            if (clickedBtn) clickedBtn.classList.add('active');
 
             // Set clock time based on period
             const periodTimes = {
@@ -1400,7 +1400,7 @@ ViewData["Title"] = "HockeyDJ - Stats Mode";
 
         // Close modals on outside click
         window.onclick = function(event) {
-            if (document.querySelector(".period-btn.active")?.classList.remove("active"); event?.target?.classList.contains('modal')) {
+            if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';
             }
         }
