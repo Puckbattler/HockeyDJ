@@ -923,7 +923,7 @@ ViewData["Title"] = "HockeyDJ - Stats Mode";
 
             // Update period buttons
             document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelector(".period-btn.active")?.classList.remove("active"); event?.target?.classList.add('active');
 
             // Set clock time based on period
             const periodTimes = {
@@ -1400,7 +1400,7 @@ ViewData["Title"] = "HockeyDJ - Stats Mode";
 
         // Close modals on outside click
         window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
+            if (document.querySelector(".period-btn.active")?.classList.remove("active"); event?.target?.classList.contains('modal')) {
                 event.target.style.display = 'none';
             }
         }
