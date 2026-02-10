@@ -1199,13 +1199,17 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let letsGoOrganAudio = null;
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
-        let playedSongs = new Set(); // Track played songs to avoid repeats
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
         let activePlaylistId = null; // Track the currently active playlist for continuous playback
         let activePlayerIndex = null; // Track the player index for the active playlist
         let lastTrackUri = null; // Track the last playing track to detect changes
         let wasPlaying = false; // Track if we were playing to detect when playback stops
         let manualPause = false; // Flag to prevent auto-play when user manually pauses
+        
+        // Shuffle mode state
+        let playlistShuffleModes = @Html.Raw(ViewBag.PlaylistShuffleModes ?? "{}");
+        let playlistPlayIndexes = @Html.Raw(ViewBag.PlaylistPlayIndexes ?? "{}");
+        let smartShuffleHistory = @Html.Raw(ViewBag.SmartShuffleHistory ?? "{}");
 
         // Announcement variables
         let homeTeamName = @Html.Raw(Json.Serialize(ViewBag.HomeTeamName ?? ""));;
@@ -1522,6 +1526,14 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 playerDiv.className = 'player';
                 playerDiv.innerHTML = `
                     <h3 id="playlistTitle${index}">🎵 ${playlist.Name}</h3>
+                    <div style="margin-bottom: 10px;">
+                        <label for="shuffleMode${index}" style="font-size: 0.9em; margin-right: 5px;">Mode:</label>
+                        <select id="shuffleMode${index}" class="shuffle-mode-select" data-playlist-id="${playlist.Id}" onchange="handleShuffleModeChange('${playlist.Id}', this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                            <option value="random">🎲 Random</option>
+                            <option value="smart">🧠 Smart Shuffle</option>
+                            <option value="sequential">📋 Sequential</option>
+                        </select>
+                    </div>
                     <div class="player-controls">
                         <button class="btn btn-play" onclick="playRandomFromPlaylist('${playlist.Id}', ${index})">
                             ▶️ Play Random
@@ -1538,6 +1550,13 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
 
                 // Pre-load playlist tracks and update the title
                 loadPlaylistTracks(playlist.Id, index);
+                
+                // Set the saved shuffle mode if available
+                const savedMode = playlistShuffleModes[playlist.Id] || 'random';
+                const selectElement = document.getElementById(`shuffleMode${index}`);
+                if (selectElement) {
+                    selectElement.value = savedMode;
+                }
             });
         }
 
@@ -1584,6 +1603,88 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             }
         }
 
+        async function handleShuffleModeChange(playlistId, mode) {
+            try {
+                const response = await fetch('/Home/SetShuffleMode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `playlistId=${playlistId}&mode=${mode}`
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    playlistShuffleModes[playlistId] = mode;
+                    console.log(`Shuffle mode for playlist ${playlistId} set to: ${mode}`);
+                    
+                    // Initialize play index if switching to sequential
+                    if (mode === 'sequential') {
+                        playlistPlayIndexes[playlistId] = 0;
+                    }
+                } else {
+                    console.error('Error setting shuffle mode:', data.error);
+                    showError('Failed to set shuffle mode');
+                }
+            } catch (error) {
+                console.error('Error setting shuffle mode:', error);
+                showError('Failed to set shuffle mode');
+            }
+        }
+
+        function getRandomTrack(playlistId) {
+            const tracks = playlistTracks[playlistId];
+            if (!tracks || tracks.length === 0) return null;
+            return tracks[Math.floor(Math.random() * tracks.length)];
+        }
+
+        function getSmartShuffleTrack(playlistId) {
+            const tracks = playlistTracks[playlistId];
+            if (!tracks || tracks.length === 0) return null;
+
+            const history = smartShuffleHistory[playlistId] || [];
+            let availableTracks = tracks.filter(t => !history.includes(t.id));
+
+            // If all tracks have been played, keep last 20% as exclusion and reset
+            if (availableTracks.length === 0) {
+                const keepCount = Math.floor(tracks.length * 0.2);
+                smartShuffleHistory[playlistId] = history.slice(-keepCount);
+                availableTracks = tracks.filter(t => !smartShuffleHistory[playlistId].includes(t.id));
+                console.log('Smart shuffle: Reset history, keeping last 20% excluded');
+            }
+
+            // Pick random from available
+            const track = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+            
+            // Add to history
+            if (!smartShuffleHistory[playlistId]) {
+                smartShuffleHistory[playlistId] = [];
+            }
+            smartShuffleHistory[playlistId].push(track.id);
+
+            // Keep sliding window (max 80% of playlist size)
+            const maxHistorySize = Math.floor(tracks.length * 0.8);
+            if (smartShuffleHistory[playlistId].length > maxHistorySize) {
+                smartShuffleHistory[playlistId].shift();
+            }
+
+            return track;
+        }
+
+        function getNextSequentialTrack(playlistId) {
+            const tracks = playlistTracks[playlistId];
+            if (!tracks || tracks.length === 0) return null;
+
+            let currentIndex = playlistPlayIndexes[playlistId] || 0;
+            const track = tracks[currentIndex];
+
+            // Move to next track, wrap around if at end
+            currentIndex = (currentIndex + 1) % tracks.length;
+            playlistPlayIndexes[playlistId] = currentIndex;
+
+            return track;
+        }
+
         async function playRandomFromPlaylist(playlistId, playerIndex) {
             try {
                 // Check if there are songs in the priority queue (excluding goal horn triggers)
@@ -1598,21 +1699,25 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     return;
                 }
 
-                // Filter out already played tracks
-                let availableTracks = tracks.filter(track => !playedSongs.has(track.id));
+                // Select track based on shuffle mode
+                const mode = playlistShuffleModes[playlistId] || 'random';
+                let selectedTrack;
                 
-                // If all tracks have been played, reset the played list and use all tracks
-                if (availableTracks.length === 0) {
-                    console.log('All tracks in this playlist have been played. Resetting played list.');
-                    playedSongs.clear();
-                    availableTracks = tracks;
+                switch(mode) {
+                    case 'sequential':
+                        selectedTrack = getNextSequentialTrack(playlistId);
+                        break;
+                    case 'smart':
+                        selectedTrack = getSmartShuffleTrack(playlistId);
+                        break;
+                    default:
+                        selectedTrack = getRandomTrack(playlistId);
                 }
 
-                // Select random track from available tracks
-                const randomTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
-                
-                // Mark this track as played
-                playedSongs.add(randomTrack.id);
+                if (!selectedTrack) {
+                    showError('Failed to select a track');
+                    return;
+                }
 
                 // Set the active playlist for continuous playback
                 activePlaylistId = playlistId;
@@ -1621,8 +1726,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 // Update track info immediately
                 const trackInfoElement = document.getElementById(`trackInfo${playerIndex}`);
                 trackInfoElement.innerHTML = `
-                    <div class="track-name">🎵 ${randomTrack.name}</div>
-                    <div>🎤 ${randomTrack.artist}</div>
+                    <div class="track-name">🎵 ${selectedTrack.name}</div>
+                    <div>🎤 ${selectedTrack.artist}</div>
                 `;
 
                 // Transfer playback to our device first
@@ -1699,18 +1804,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         let startPositionMs = 0; // Default to start from beginning
 
                         if (selectedValue === 'random') {
-                            // Filter out already played tracks
-                            let availableTracks = tracks.filter(track => !playedSongs.has(track.id));
-                            
-                            // If all tracks have been played, reset the played list
-                            if (availableTracks.length === 0) {
-                                console.log('All goal horn tracks have been played. Resetting played list.');
-                                playedSongs.clear();
-                                availableTracks = tracks;
-                            }
-                            
-                            // Play random track from available tracks
-                            selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+                            // Use smart shuffle for goal horn random selection
+                            selectedTrack = getSmartShuffleTrack(goalHornPlaylistId);
                             // Random songs ignore custom timestamps since they don't correspond to specific player numbers
                         } else {
                             // Play specific track by number (1-based index)
@@ -1726,20 +1821,12 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                                 // If the selected number is out of range, fall back to random
                                 console.warn(`Song ${selectedValue} not available in playlist (only ${tracks.length} songs). Playing random song instead.`);
                                 
-                                // Filter out already played tracks for fallback
-                                let availableTracks = tracks.filter(track => !playedSongs.has(track.id));
-                                if (availableTracks.length === 0) {
-                                    playedSongs.clear();
-                                    availableTracks = tracks;
-                                }
-                                selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+                                // Use smart shuffle for fallback
+                                selectedTrack = getSmartShuffleTrack(goalHornPlaylistId);
                                 showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
                                 // Fallback to random selection ignores custom timestamps
                             }
                         }
-                        
-                        // Mark this track as played
-                        playedSongs.add(selectedTrack.id);
 
                         // Update current track display
                         updateCurrentTrack({
@@ -2130,9 +2217,6 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             try {
                 // Get the first song from the queue
                 const nextTrack = priorityQueue[0];
-                
-                // Mark this track as played
-                playedSongs.add(nextTrack.id);
 
                 // Update current track display
                 updateCurrentTrack({

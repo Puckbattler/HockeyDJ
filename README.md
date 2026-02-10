@@ -13,7 +13,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Random Track Playback**: Play random songs from any playlist with one click
 - **Real-time Track Display**: See what's currently playing with artist and song information
 - **Spotify Web Playback SDK Integration**: Full playback control through your browser
-- **Played-Song Deduplication**: Prevents immediate repeats; when all tracks have played, the list resets automatically
+- **Configurable Shuffle Modes**: Choose Random, Smart Shuffle (avoids recent plays), or Sequential playback per playlist
 
 ### 🚨 Goal Celebrations
 - **Goal Horn Button**: Trigger epic goal celebrations with sound effects
