@@ -33,6 +33,9 @@ namespace HockeyDJ.Controllers
             var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
             var songStartTimestampsJson = HttpContext.Session.GetString("SongStartTimestampsJson");
+            var playlistShuffleModes = HttpContext.Session.GetString("PlaylistShuffleModes");
+            var playlistPlayIndexes = HttpContext.Session.GetString("PlaylistPlayIndexes");
+            var smartShuffleHistory = HttpContext.Session.GetString("SmartShuffleHistory");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
@@ -44,6 +47,9 @@ namespace HockeyDJ.Controllers
             ViewBag.AwayTeamName = awayTeamName ?? "";
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
             ViewBag.SongStartTimestampsJson = string.IsNullOrEmpty(songStartTimestampsJson) ? "{}" : songStartTimestampsJson;
+            ViewBag.PlaylistShuffleModes = string.IsNullOrEmpty(playlistShuffleModes) ? "{}" : playlistShuffleModes;
+            ViewBag.PlaylistPlayIndexes = string.IsNullOrEmpty(playlistPlayIndexes) ? "{}" : playlistPlayIndexes;
+            ViewBag.SmartShuffleHistory = string.IsNullOrEmpty(smartShuffleHistory) ? "{}" : smartShuffleHistory;
 
             return View();
         }
@@ -437,6 +443,51 @@ namespace HockeyDJ.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult SetShuffleMode(string playlistId, string mode)
+        {
+            try
+            {
+                // Validate mode
+                var validModes = new[] { "random", "smart", "sequential" };
+                if (!validModes.Contains(mode))
+                {
+                    return Json(new { success = false, error = $"Invalid shuffle mode: {mode}" });
+                }
+
+                // Get or create shuffle modes dictionary
+                var shuffleModesJson = HttpContext.Session.GetString("PlaylistShuffleModes");
+                var shuffleModes = string.IsNullOrEmpty(shuffleModesJson) 
+                    ? new Dictionary<string, string>() 
+                    : JsonSerializer.Deserialize<Dictionary<string, string>>(shuffleModesJson) ?? new Dictionary<string, string>();
+
+                // Update the mode for this playlist
+                shuffleModes[playlistId] = mode;
+
+                // Save back to session
+                HttpContext.Session.SetString("PlaylistShuffleModes", JsonSerializer.Serialize(shuffleModes));
+
+                // If switching to sequential mode, initialize the play index to 0
+                if (mode == "sequential")
+                {
+                    var playIndexesJson = HttpContext.Session.GetString("PlaylistPlayIndexes");
+                    var playIndexes = string.IsNullOrEmpty(playIndexesJson) 
+                        ? new Dictionary<string, int>() 
+                        : JsonSerializer.Deserialize<Dictionary<string, int>>(playIndexesJson) ?? new Dictionary<string, int>();
+                    
+                    playIndexes[playlistId] = 0;
+                    HttpContext.Session.SetString("PlaylistPlayIndexes", JsonSerializer.Serialize(playIndexes));
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting shuffle mode");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
         // NEW EXPORT/IMPORT FUNCTIONALITY - START
         
         [HttpGet]
@@ -498,6 +549,8 @@ namespace HockeyDJ.Controllers
                 }
 
                 // Create export object (excluding sensitive data like client secret)
+                var playlistShuffleModes = HttpContext.Session.GetString("PlaylistShuffleModes");
+                
                 var exportConfig = new
                 {
                     clientId = clientId,
@@ -506,8 +559,9 @@ namespace HockeyDJ.Controllers
                     goalHornPlaylist = goalHornPlaylistUrl,
                     playlistUrls = string.Join("\n", playlistUrls),
                     customSongNames = customSongNames ?? "",
+                    playlistShuffleModes = playlistShuffleModes ?? "{}",
                     exportDate = DateTime.UtcNow.ToString("O"),
-                    version = "1.1.1"
+                    version = "1.2.0"
                 };
 
                 var json = JsonSerializer.Serialize(exportConfig, new JsonSerializerOptions 
@@ -558,7 +612,8 @@ namespace HockeyDJ.Controllers
                     homeTeamRoster = importedConfig.TryGetProperty("homeTeamRoster", out var homeTeamRoster) ? homeTeamRoster.GetString() : "",
                     awayTeamName = importedConfig.TryGetProperty("awayTeamName", out var awayTeamName) ? awayTeamName.GetString() : "",
                     awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : "",
-                    songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : ""
+                    songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : "",
+                    playlistShuffleModes = importedConfig.TryGetProperty("playlistShuffleModes", out var playlistShuffleModes) ? playlistShuffleModes.GetString() : "{}"
                 };
 
                 // Validate URLs
