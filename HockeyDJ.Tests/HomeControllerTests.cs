@@ -737,6 +737,177 @@ public class HomeControllerTests
 
     #endregion
 
+    #region Shuffle Mode Tests
+
+    [Fact]
+    public void SetShuffleMode_ValidRandomMode_ReturnsSuccess()
+    {
+        // Arrange
+        string playlistId = "playlist123";
+        string mode = "random";
+
+        // Act
+        var result = _controller.SetShuffleMode(playlistId, mode);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var resultValue = jsonResult.Value as dynamic;
+        Assert.NotNull(resultValue);
+        
+        // Verify the mode was saved in session
+        var modesJson = Encoding.UTF8.GetString(_sessionStorage["PlaylistShuffleModes"]);
+        var modes = JsonSerializer.Deserialize<Dictionary<string, string>>(modesJson);
+        Assert.NotNull(modes);
+        Assert.Equal(mode, modes[playlistId]);
+    }
+
+    [Fact]
+    public void SetShuffleMode_ValidSmartMode_ReturnsSuccess()
+    {
+        // Arrange
+        string playlistId = "playlist456";
+        string mode = "smart";
+
+        // Act
+        var result = _controller.SetShuffleMode(playlistId, mode);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var resultValue = jsonResult.Value as dynamic;
+        Assert.NotNull(resultValue);
+        
+        // Verify the mode was saved in session
+        var modesJson = Encoding.UTF8.GetString(_sessionStorage["PlaylistShuffleModes"]);
+        var modes = JsonSerializer.Deserialize<Dictionary<string, string>>(modesJson);
+        Assert.NotNull(modes);
+        Assert.Equal(mode, modes[playlistId]);
+    }
+
+    [Fact]
+    public void SetShuffleMode_ValidSequentialMode_InitializesPlayIndex()
+    {
+        // Arrange
+        string playlistId = "playlist789";
+        string mode = "sequential";
+
+        // Act
+        var result = _controller.SetShuffleMode(playlistId, mode);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var resultValue = jsonResult.Value as dynamic;
+        Assert.NotNull(resultValue);
+        
+        // Verify the mode was saved in session
+        var modesJson = Encoding.UTF8.GetString(_sessionStorage["PlaylistShuffleModes"]);
+        var modes = JsonSerializer.Deserialize<Dictionary<string, string>>(modesJson);
+        Assert.NotNull(modes);
+        Assert.Equal(mode, modes[playlistId]);
+
+        // Verify play index was initialized to 0
+        var indexesJson = Encoding.UTF8.GetString(_sessionStorage["PlaylistPlayIndexes"]);
+        var indexes = JsonSerializer.Deserialize<Dictionary<string, int>>(indexesJson);
+        Assert.NotNull(indexes);
+        Assert.Equal(0, indexes[playlistId]);
+    }
+
+    [Fact]
+    public void SetShuffleMode_InvalidMode_ReturnsError()
+    {
+        // Arrange
+        string playlistId = "playlist123";
+        string mode = "invalid_mode";
+
+        // Act
+        var result = _controller.SetShuffleMode(playlistId, mode);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        Assert.NotNull(jsonResult.Value);
+    }
+
+    [Fact]
+    public void SetShuffleMode_MultiplePlaylistsDifferentModes_MaintainsSeparateSettings()
+    {
+        // Arrange
+        string playlist1 = "playlist_a";
+        string playlist2 = "playlist_b";
+
+        // Act
+        _controller.SetShuffleMode(playlist1, "random");
+        _controller.SetShuffleMode(playlist2, "sequential");
+
+        // Assert
+        var modesJson = Encoding.UTF8.GetString(_sessionStorage["PlaylistShuffleModes"]);
+        var modes = JsonSerializer.Deserialize<Dictionary<string, string>>(modesJson);
+        Assert.NotNull(modes);
+        Assert.Equal("random", modes[playlist1]);
+        Assert.Equal("sequential", modes[playlist2]);
+    }
+
+    [Fact]
+    public void Index_WithShuffleModesInSession_PassesToView()
+    {
+        // Arrange
+        SetSessionString("SpotifyAccessToken", "test_token");
+        var testModes = new Dictionary<string, string> { { "playlist1", "smart" } };
+        SetSessionString("PlaylistShuffleModes", JsonSerializer.Serialize(testModes));
+
+        // Act
+        var result = _controller.Index();
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.NotNull(_controller.ViewBag.PlaylistShuffleModes);
+    }
+
+    [Fact]
+    public void ExportConfiguration_IncludesShuffleModes()
+    {
+        // Arrange
+        SetSessionString("SpotifyClientId", "test_client");
+        SetSessionString("SpotifyClientSecret", "test_secret");
+        SetSessionString("SpotifyRedirectUri", "http://localhost/callback");
+        var testModes = new Dictionary<string, string> { { "playlist1", "smart" }, { "playlist2", "sequential" } };
+        SetSessionString("PlaylistShuffleModes", JsonSerializer.Serialize(testModes));
+        SetSessionString("UserPlaylists", "[]");
+
+        // Act
+        var result = _controller.ExportConfiguration();
+
+        // Assert
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        var content = Encoding.UTF8.GetString(fileResult.FileContents);
+        Assert.Contains("playlistShuffleModes", content);
+    }
+
+    [Fact]
+    public void ImportConfiguration_WithShuffleModes_ReturnsInConfig()
+    {
+        // Arrange
+        var config = new
+        {
+            clientId = "test_client",
+            clientSecret = "test_secret",
+            redirectUri = "http://localhost/callback",
+            playlistUrls = "https://open.spotify.com/playlist/abc123",
+            playlistShuffleModes = "{\"playlist1\":\"smart\"}"
+        };
+        var request = new ImportConfigurationRequest
+        {
+            ConfigData = JsonSerializer.Serialize(config)
+        };
+
+        // Act
+        var result = _controller.ImportConfiguration(request);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        Assert.NotNull(jsonResult.Value);
+    }
+
+    #endregion
+
     #region Privacy Tests
 
     [Fact]
