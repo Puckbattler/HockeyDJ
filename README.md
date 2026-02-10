@@ -220,7 +220,7 @@ If an audio file is missing, the application will either skip that clip with a c
 - **Responsive Design**: Mobile-friendly interface
 
 ### Reliability Features
-- **Played-song Deduplication**: Avoids repeats until the playlist cycles
+- **Configurable Shuffle Modes**: Random, Smart Shuffle (avoids recent plays), or Sequential playback per playlist
 - **Priority Queue**: Ensures requested songs are honored regardless of which playlist triggers playback
 - **Announcement Audio Sequencing**: Robust fallback to speech synthesis when audio files are missing
 - **Graceful Error Handling**: Missing audio files fall back to TTS or skip with a console warning
