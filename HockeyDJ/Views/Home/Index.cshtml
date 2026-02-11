@@ -1895,6 +1895,11 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let isGoalHornPlaying = false;
         let lastSelectedPlayerNumber = ''; // Store the last selected player number for announcements
 
+        // Hat trick celebration timing constants (in milliseconds)
+        const HAT_TRICK_BANNER_DURATION_MS = 10000;  // How long to show the hat trick banner
+        const CONFETTI_DURATION_MS = 5000;           // How long to display confetti
+        const HORN_DURATION_MS = 3000;               // Duration for each horn blast
+
         async function showHatTrickBanner(playerNumber) {
             const banner = document.getElementById('hat-trick-banner');
             const playerName = getPlayerName(playerNumber);
@@ -1903,7 +1908,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             
             setTimeout(() => {
                 banner.classList.remove('show');
-            }, 10000);
+            }, HAT_TRICK_BANNER_DURATION_MS);
         }
 
         function getPlayerName(playerNumber) {
@@ -1936,7 +1941,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             
             setTimeout(() => {
                 container.innerHTML = '';
-            }, 5000);
+            }, CONFETTI_DURATION_MS);
         }
 
         function updateGoalCountDisplay(playerNumber, count) {
@@ -2004,7 +2009,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 goalHornAudio.currentTime = 0;
                 await goalHornAudio.play();
                 await new Promise(resolve => {
-                    const timeout = setTimeout(() => resolve(), 3000);
+                    const timeout = setTimeout(() => resolve(), HORN_DURATION_MS);
                     goalHornAudio.onended = () => {
                         clearTimeout(timeout);
                         resolve();
@@ -2018,7 +2023,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                     hatTrickAudio.currentTime = 0;
                     await hatTrickAudio.play();
                     await new Promise(resolve => {
-                        const timeout = setTimeout(() => resolve(), 3000);
+                        const timeout = setTimeout(() => resolve(), HORN_DURATION_MS);
                         hatTrickAudio.onended = () => {
                             clearTimeout(timeout);
                             resolve();
@@ -2034,7 +2039,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 goalHornAudio.currentTime = 0;
                 await goalHornAudio.play();
                 await new Promise(resolve => {
-                    const timeout = setTimeout(() => resolve(), 3000);
+                    const timeout = setTimeout(() => resolve(), HORN_DURATION_MS);
                     goalHornAudio.onended = () => {
                         clearTimeout(timeout);
                         resolve();
@@ -2152,7 +2157,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                         await new Promise(resolve => {
                             const timeout = setTimeout(() => {
                                 resolve();
-                            }, 3000);
+                            }, HORN_DURATION_MS);
 
                             goalHornAudio.onended = () => {
                                 clearTimeout(timeout);
