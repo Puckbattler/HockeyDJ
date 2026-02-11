@@ -51,10 +51,11 @@
 ## 🛠️ Quick Start
 1. Download and extract the release
 2. Run the executable
-3. Navigate to Settings and configure your Spotify app
-4. Add your playlists
-5. Select shuffle mode for each playlist
-6. Start celebrating! 🎊
+3. Navigate to https://127.0.0.1:7001 in your browser
+4. Navigate to Settings and configure your Spotify app
+5. Add your playlists
+6. Select shuffle mode for each playlist
+7. Start celebrating! 🎊
 
 ## 📖 Documentation
 - [Full Setup Guide](README.md)
