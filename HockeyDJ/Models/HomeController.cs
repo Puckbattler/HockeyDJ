@@ -36,6 +36,8 @@ namespace HockeyDJ.Controllers
             var playlistShuffleModes = HttpContext.Session.GetString("PlaylistShuffleModes");
             var playlistPlayIndexes = HttpContext.Session.GetString("PlaylistPlayIndexes");
             var smartShuffleHistory = HttpContext.Session.GetString("SmartShuffleHistory");
+            var hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
+            var playerGoalCounts = HttpContext.Session.GetString("PlayerGoalCounts");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
@@ -50,6 +52,8 @@ namespace HockeyDJ.Controllers
             ViewBag.PlaylistShuffleModes = string.IsNullOrEmpty(playlistShuffleModes) ? "{}" : playlistShuffleModes;
             ViewBag.PlaylistPlayIndexes = string.IsNullOrEmpty(playlistPlayIndexes) ? "{}" : playlistPlayIndexes;
             ViewBag.SmartShuffleHistory = string.IsNullOrEmpty(smartShuffleHistory) ? "{}" : smartShuffleHistory;
+            ViewBag.HatTrickSongUri = hatTrickSongUri ?? "";
+            ViewBag.PlayerGoalCounts = string.IsNullOrEmpty(playerGoalCounts) ? "{}" : playerGoalCounts;
 
             return View();
         }
@@ -65,6 +69,7 @@ namespace HockeyDJ.Controllers
             var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
             var songStartTimestamps = HttpContext.Session.GetString("SongStartTimestamps");
+            var hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
             
             ViewBag.ExistingPlaylists = string.IsNullOrEmpty(existingPlaylists) ? "[]" : existingPlaylists;
             ViewBag.ExistingCustomNames = string.IsNullOrEmpty(existingCustomNames) ? "[]" : existingCustomNames;
@@ -74,6 +79,7 @@ namespace HockeyDJ.Controllers
             ViewBag.AwayTeamName = awayTeamName ?? "";
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
             ViewBag.SongStartTimestamps = songStartTimestamps ?? "";
+            ViewBag.HatTrickSongUri = hatTrickSongUri ?? "";
             
             return View();
         }
@@ -550,6 +556,7 @@ namespace HockeyDJ.Controllers
 
                 // Create export object (excluding sensitive data like client secret)
                 var playlistShuffleModes = HttpContext.Session.GetString("PlaylistShuffleModes");
+                var hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
                 
                 var exportConfig = new
                 {
@@ -560,6 +567,7 @@ namespace HockeyDJ.Controllers
                     playlistUrls = string.Join("\n", playlistUrls),
                     customSongNames = customSongNames ?? "",
                     playlistShuffleModes = playlistShuffleModes ?? "{}",
+                    hatTrickSongUri = hatTrickSongUri ?? "",
                     exportDate = DateTime.UtcNow.ToString("O"),
                     version = "1.2.0"
                 };
@@ -613,7 +621,8 @@ namespace HockeyDJ.Controllers
                     awayTeamName = importedConfig.TryGetProperty("awayTeamName", out var awayTeamName) ? awayTeamName.GetString() : "",
                     awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : "",
                     songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : "",
-                    playlistShuffleModes = importedConfig.TryGetProperty("playlistShuffleModes", out var playlistShuffleModes) ? playlistShuffleModes.GetString() : "{}"
+                    playlistShuffleModes = importedConfig.TryGetProperty("playlistShuffleModes", out var playlistShuffleModes) ? playlistShuffleModes.GetString() : "{}",
+                    hatTrickSongUri = importedConfig.TryGetProperty("hatTrickSongUri", out var hatTrickSongUri) ? hatTrickSongUri.GetString() : ""
                 };
 
                 // Validate URLs
@@ -677,6 +686,144 @@ namespace HockeyDJ.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Could not extract playlist ID from URL: {Url}", spotifyUrl);
+            }
+            return string.Empty;
+        }
+
+        [HttpPost]
+        public IActionResult RecordGoal(int playerNumber)
+        {
+            try
+            {
+                // Get current goal counts
+                var countsJson = HttpContext.Session.GetString("PlayerGoalCounts") ?? "{}";
+                var counts = JsonSerializer.Deserialize<Dictionary<int, int>>(countsJson) ?? new Dictionary<int, int>();
+                
+                // Increment goal count for player
+                counts[playerNumber] = counts.GetValueOrDefault(playerNumber, 0) + 1;
+                
+                // Save updated counts
+                HttpContext.Session.SetString("PlayerGoalCounts", JsonSerializer.Serialize(counts));
+                
+                // Check if this is a hat trick (3rd goal)
+                bool isHatTrick = counts[playerNumber] == 3;
+                
+                // Get hat trick song URI if configured
+                string? hatTrickSongUri = null;
+                if (isHatTrick)
+                {
+                    hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
+                }
+                
+                return Json(new
+                {
+                    success = true,
+                    goalCount = counts[playerNumber],
+                    isHatTrick = isHatTrick,
+                    hatTrickSongUri = hatTrickSongUri
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error recording goal for player {PlayerNumber}", playerNumber);
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SaveHatTrickSong(string songUrl)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(songUrl))
+                {
+                    return Json(new { success = false, error = "Song URL is required" });
+                }
+
+                var trackUri = ExtractTrackUri(songUrl.Trim());
+                if (string.IsNullOrEmpty(trackUri))
+                {
+                    return Json(new { success = false, error = "Invalid Spotify track URL" });
+                }
+
+                HttpContext.Session.SetString("HatTrickSongUri", trackUri);
+                return Json(new { success = true, uri = trackUri });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving hat trick song: {Url}", songUrl);
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ClearHatTrickSong()
+        {
+            try
+            {
+                HttpContext.Session.Remove("HatTrickSongUri");
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clearing hat trick song");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        public IActionResult GetHatTrickSong()
+        {
+            try
+            {
+                var hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
+                return Json(new { success = true, uri = hatTrickSongUri });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting hat trick song");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ResetGoalCounts()
+        {
+            try
+            {
+                HttpContext.Session.Remove("PlayerGoalCounts");
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resetting goal counts");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        private string ExtractTrackUri(string spotifyUrl)
+        {
+            try
+            {
+                // Handle different Spotify URL formats
+                if (spotifyUrl.Contains("open.spotify.com/track/"))
+                {
+                    var uri = new Uri(spotifyUrl);
+                    var segments = uri.AbsolutePath.Split('/');
+                    var trackIndex = Array.IndexOf(segments, "track");
+                    if (trackIndex >= 0 && trackIndex < segments.Length - 1)
+                    {
+                        var trackId = segments[trackIndex + 1].Split('?')[0];
+                        return $"spotify:track:{trackId}";
+                    }
+                }
+                else if (spotifyUrl.StartsWith("spotify:track:"))
+                {
+                    return spotifyUrl;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not extract track URI from URL: {Url}", spotifyUrl);
             }
             return string.Empty;
         }

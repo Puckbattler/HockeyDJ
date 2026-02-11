@@ -36,6 +36,9 @@ public class HomeControllerTests
                 return result;
             });
 
+        _sessionMock.Setup(s => s.Remove(It.IsAny<string>()))
+            .Callback<string>(key => _sessionStorage.Remove(key));
+
         var httpContextMock = new Mock<HttpContext>();
         httpContextMock.Setup(c => c.Session).Returns(_sessionMock.Object);
 
@@ -918,6 +921,289 @@ public class HomeControllerTests
 
         // Assert
         Assert.IsType<ViewResult>(result);
+    }
+
+    #endregion
+
+    #region Hat Trick Tests
+
+    [Fact]
+    public void RecordGoal_FirstGoal_ReturnsCorrectCount()
+    {
+        // Act
+        var result = _controller.RecordGoal(7);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal(1, data["goalCount"].GetInt32());
+        Assert.False(data["isHatTrick"].GetBoolean());
+    }
+
+    [Fact]
+    public void RecordGoal_SecondGoal_ReturnsCorrectCount()
+    {
+        // Arrange - record first goal
+        _controller.RecordGoal(7);
+
+        // Act - record second goal
+        var result = _controller.RecordGoal(7);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal(2, data["goalCount"].GetInt32());
+        Assert.False(data["isHatTrick"].GetBoolean());
+    }
+
+    [Fact]
+    public void RecordGoal_ThirdGoal_DetectsHatTrick()
+    {
+        // Arrange - record first two goals
+        _controller.RecordGoal(7);
+        _controller.RecordGoal(7);
+
+        // Act - record third goal
+        var result = _controller.RecordGoal(7);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal(3, data["goalCount"].GetInt32());
+        Assert.True(data["isHatTrick"].GetBoolean());
+    }
+
+    [Fact]
+    public void RecordGoal_ThirdGoalWithConfiguredSong_ReturnsHatTrickSongUri()
+    {
+        // Arrange
+        SetSessionString("HatTrickSongUri", "spotify:track:test123");
+        _controller.RecordGoal(7);
+        _controller.RecordGoal(7);
+
+        // Act
+        var result = _controller.RecordGoal(7);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["isHatTrick"].GetBoolean());
+        Assert.Equal("spotify:track:test123", data["hatTrickSongUri"].GetString());
+    }
+
+    [Fact]
+    public void RecordGoal_MultiplePlayersTrackedSeparately()
+    {
+        // Arrange & Act
+        _controller.RecordGoal(7);
+        _controller.RecordGoal(4);
+        _controller.RecordGoal(7);
+
+        // Assert - Player 7 has 2 goals
+        var result7 = _controller.RecordGoal(7);
+        var jsonResult7 = Assert.IsType<JsonResult>(result7);
+        var value7 = jsonResult7.Value as dynamic;
+        var json7 = JsonSerializer.Serialize(value7);
+        var data7 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json7);
+        Assert.Equal(3, data7["goalCount"].GetInt32());
+        Assert.True(data7["isHatTrick"].GetBoolean());
+
+        // Assert - Player 4 has 1 goal
+        var result4 = _controller.RecordGoal(4);
+        var jsonResult4 = Assert.IsType<JsonResult>(result4);
+        var value4 = jsonResult4.Value as dynamic;
+        var json4 = JsonSerializer.Serialize(value4);
+        var data4 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json4);
+        Assert.Equal(2, data4["goalCount"].GetInt32());
+        Assert.False(data4["isHatTrick"].GetBoolean());
+    }
+
+    [Fact]
+    public void SaveHatTrickSong_ValidSpotifyUrl_SavesTrackUri()
+    {
+        // Act
+        var result = _controller.SaveHatTrickSong("https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh");
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal("spotify:track:4iV5W9uYEdYUVa79Axb7Rh", data["uri"].GetString());
+    }
+
+    [Fact]
+    public void SaveHatTrickSong_ValidSpotifyUri_SavesTrackUri()
+    {
+        // Act
+        var result = _controller.SaveHatTrickSong("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal("spotify:track:4iV5W9uYEdYUVa79Axb7Rh", data["uri"].GetString());
+    }
+
+    [Fact]
+    public void SaveHatTrickSong_InvalidUrl_ReturnsError()
+    {
+        // Act
+        var result = _controller.SaveHatTrickSong("https://invalid-url.com");
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.False(data["success"].GetBoolean());
+        Assert.Contains("Invalid", data["error"].GetString());
+    }
+
+    [Fact]
+    public void SaveHatTrickSong_EmptyString_ReturnsError()
+    {
+        // Act
+        var result = _controller.SaveHatTrickSong("");
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.False(data["success"].GetBoolean());
+    }
+
+    [Fact]
+    public void ClearHatTrickSong_RemovesSongFromSession()
+    {
+        // Arrange
+        SetSessionString("HatTrickSongUri", "spotify:track:test123");
+
+        // Act
+        var result = _controller.ClearHatTrickSong();
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        
+        // Verify it's removed from session
+        Assert.False(_sessionStorage.ContainsKey("HatTrickSongUri"));
+    }
+
+    [Fact]
+    public void GetHatTrickSong_WhenConfigured_ReturnsUri()
+    {
+        // Arrange
+        SetSessionString("HatTrickSongUri", "spotify:track:test123");
+
+        // Act
+        var result = _controller.GetHatTrickSong();
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal("spotify:track:test123", data["uri"].GetString());
+    }
+
+    [Fact]
+    public void GetHatTrickSong_WhenNotConfigured_ReturnsNull()
+    {
+        // Act
+        var result = _controller.GetHatTrickSong();
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+    }
+
+    [Fact]
+    public void ResetGoalCounts_ClearsAllPlayerGoals()
+    {
+        // Arrange - record some goals
+        _controller.RecordGoal(7);
+        _controller.RecordGoal(7);
+        _controller.RecordGoal(4);
+
+        // Act
+        var result = _controller.ResetGoalCounts();
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var value = jsonResult.Value as dynamic;
+        Assert.NotNull(value);
+        
+        var json = JsonSerializer.Serialize(value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        
+        Assert.True(data["success"].GetBoolean());
+        
+        // Verify counts are reset
+        Assert.False(_sessionStorage.ContainsKey("PlayerGoalCounts"));
+        
+        // Verify new goal starts at 1
+        var newGoalResult = _controller.RecordGoal(7);
+        var newJsonResult = Assert.IsType<JsonResult>(newGoalResult);
+        var newValue = newJsonResult.Value as dynamic;
+        var newJson = JsonSerializer.Serialize(newValue);
+        var newData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(newJson);
+        Assert.Equal(1, newData["goalCount"].GetInt32());
     }
 
     #endregion
