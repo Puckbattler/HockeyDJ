@@ -24,6 +24,13 @@ namespace HockeyDJ.Controllers
                 return RedirectToAction("Setup");
             }
 
+            // Check if stats mode is enabled - if so, redirect to StatsPlayer
+            var statsMode = HttpContext.Session.GetString("StatsMode");
+            if (statsMode == "true")
+            {
+                return RedirectToAction("StatsPlayer");
+            }
+
             var playlists = HttpContext.Session.GetString("UserPlaylists");
             var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
             var customSongNames = HttpContext.Session.GetString("CustomSongNames");
@@ -53,6 +60,73 @@ namespace HockeyDJ.Controllers
 
             return View();
         }
+        
+        public IActionResult StatsPlayer()
+        {
+            var accessToken = HttpContext.Session.GetString("SpotifyAccessToken");
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return RedirectToAction("Setup");
+            }
+
+            // Load all necessary data for stats player
+            var playlists = HttpContext.Session.GetString("UserPlaylists");
+            var goalHornPlaylistId = HttpContext.Session.GetString("GoalHornPlaylistId");
+            var customSongNames = HttpContext.Session.GetString("CustomSongNames");
+            var priorityQueue = HttpContext.Session.GetString("PriorityQueue");
+            var homeTeamName = HttpContext.Session.GetString("HomeTeamName");
+            var homeTeamRoster = HttpContext.Session.GetString("HomeTeamRoster");
+            var awayTeamName = HttpContext.Session.GetString("AwayTeamName");
+            var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
+            var songStartTimestampsJson = HttpContext.Session.GetString("SongStartTimestampsJson");
+            
+            // Stats mode specific settings
+            var periodLength = HttpContext.Session.GetString("PeriodLength") ?? "15";
+            var warmupLength = HttpContext.Session.GetString("WarmupLength") ?? "10";
+            var intermissionLength = HttpContext.Session.GetString("IntermissionLength") ?? "15";
+            
+            // Situation playlists
+            var awayGoalPlaylist = HttpContext.Session.GetString("AwayGoalPlaylist");
+            var offsidePlaylist = HttpContext.Session.GetString("OffsidePlaylist");
+            var icingPlaylist = HttpContext.Session.GetString("IcingPlaylist");
+            var comebackPlaylist = HttpContext.Session.GetString("ComebackPlaylist");
+            var hopePlaylist = HttpContext.Session.GetString("HopePlaylist");
+            var endZonePlaylist = HttpContext.Session.GetString("EndZonePlaylist");
+            var penaltyPlaylist = HttpContext.Session.GetString("PenaltyPlaylist");
+            var warmupPlaylist = HttpContext.Session.GetString("WarmupPlaylist");
+            var intermissionPlaylist = HttpContext.Session.GetString("IntermissionPlaylist");
+            var postGamePlaylist = HttpContext.Session.GetString("PostGamePlaylist");
+
+            ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
+            ViewBag.AccessToken = accessToken;
+            ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
+            ViewBag.CustomSongNames = string.IsNullOrEmpty(customSongNames) ? "[]" : customSongNames;
+            ViewBag.PriorityQueue = string.IsNullOrEmpty(priorityQueue) ? "[]" : priorityQueue;
+            ViewBag.HomeTeamName = homeTeamName ?? "";
+            ViewBag.HomeTeamRoster = homeTeamRoster ?? "";
+            ViewBag.AwayTeamName = awayTeamName ?? "";
+            ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
+            ViewBag.SongStartTimestampsJson = string.IsNullOrEmpty(songStartTimestampsJson) ? "{}" : songStartTimestampsJson;
+            
+            // Stats mode ViewBag
+            ViewBag.PeriodLength = int.Parse(periodLength);
+            ViewBag.WarmupLength = int.Parse(warmupLength);
+            ViewBag.IntermissionLength = int.Parse(intermissionLength);
+            
+            // Situation playlist IDs
+            ViewBag.AwayGoalPlaylistId = !string.IsNullOrEmpty(awayGoalPlaylist) ? ExtractPlaylistId(awayGoalPlaylist) : "";
+            ViewBag.OffsidePlaylistId = !string.IsNullOrEmpty(offsidePlaylist) ? ExtractPlaylistId(offsidePlaylist) : "";
+            ViewBag.IcingPlaylistId = !string.IsNullOrEmpty(icingPlaylist) ? ExtractPlaylistId(icingPlaylist) : "";
+            ViewBag.ComebackPlaylistId = !string.IsNullOrEmpty(comebackPlaylist) ? ExtractPlaylistId(comebackPlaylist) : "";
+            ViewBag.HopePlaylistId = !string.IsNullOrEmpty(hopePlaylist) ? ExtractPlaylistId(hopePlaylist) : "";
+            ViewBag.EndZonePlaylistId = !string.IsNullOrEmpty(endZonePlaylist) ? ExtractPlaylistId(endZonePlaylist) : "";
+            ViewBag.PenaltyPlaylistId = !string.IsNullOrEmpty(penaltyPlaylist) ? ExtractPlaylistId(penaltyPlaylist) : "";
+            ViewBag.WarmupPlaylistId = !string.IsNullOrEmpty(warmupPlaylist) ? ExtractPlaylistId(warmupPlaylist) : "";
+            ViewBag.IntermissionPlaylistId = !string.IsNullOrEmpty(intermissionPlaylist) ? ExtractPlaylistId(intermissionPlaylist) : "";
+            ViewBag.PostGamePlaylistId = !string.IsNullOrEmpty(postGamePlaylist) ? ExtractPlaylistId(postGamePlaylist) : "";
+
+            return View();
+        }
 
         public IActionResult Setup()
         {
@@ -66,6 +140,24 @@ namespace HockeyDJ.Controllers
             var awayTeamRoster = HttpContext.Session.GetString("AwayTeamRoster");
             var songStartTimestamps = HttpContext.Session.GetString("SongStartTimestamps");
             
+            // Load stats mode settings
+            var statsMode = HttpContext.Session.GetString("StatsMode");
+            var periodLength = HttpContext.Session.GetString("PeriodLength");
+            var warmupLength = HttpContext.Session.GetString("WarmupLength");
+            var intermissionLength = HttpContext.Session.GetString("IntermissionLength");
+            
+            // Load situation playlists
+            var awayGoalPlaylist = HttpContext.Session.GetString("AwayGoalPlaylist");
+            var offsidePlaylist = HttpContext.Session.GetString("OffsidePlaylist");
+            var icingPlaylist = HttpContext.Session.GetString("IcingPlaylist");
+            var comebackPlaylist = HttpContext.Session.GetString("ComebackPlaylist");
+            var hopePlaylist = HttpContext.Session.GetString("HopePlaylist");
+            var endZonePlaylist = HttpContext.Session.GetString("EndZonePlaylist");
+            var penaltyPlaylist = HttpContext.Session.GetString("PenaltyPlaylist");
+            var warmupPlaylist = HttpContext.Session.GetString("WarmupPlaylist");
+            var intermissionPlaylist = HttpContext.Session.GetString("IntermissionPlaylist");
+            var postGamePlaylist = HttpContext.Session.GetString("PostGamePlaylist");
+            
             ViewBag.ExistingPlaylists = string.IsNullOrEmpty(existingPlaylists) ? "[]" : existingPlaylists;
             ViewBag.ExistingCustomNames = string.IsNullOrEmpty(existingCustomNames) ? "[]" : existingCustomNames;
             ViewBag.GoalHornPlaylistId = goalHornPlaylistId ?? "";
@@ -75,11 +167,55 @@ namespace HockeyDJ.Controllers
             ViewBag.AwayTeamRoster = awayTeamRoster ?? "";
             ViewBag.SongStartTimestamps = songStartTimestamps ?? "";
             
+            // Stats mode ViewBag
+            ViewBag.StatsMode = statsMode == "true";
+            ViewBag.PeriodLength = periodLength ?? "15";
+            ViewBag.WarmupLength = warmupLength ?? "10";
+            ViewBag.IntermissionLength = intermissionLength ?? "15";
+            
+            // Situation playlists ViewBag
+            ViewBag.AwayGoalPlaylist = awayGoalPlaylist ?? "";
+            ViewBag.OffsidePlaylist = offsidePlaylist ?? "";
+            ViewBag.IcingPlaylist = icingPlaylist ?? "";
+            ViewBag.ComebackPlaylist = comebackPlaylist ?? "";
+            ViewBag.HopePlaylist = hopePlaylist ?? "";
+            ViewBag.EndZonePlaylist = endZonePlaylist ?? "";
+            ViewBag.PenaltyPlaylist = penaltyPlaylist ?? "";
+            ViewBag.WarmupPlaylist = warmupPlaylist ?? "";
+            ViewBag.IntermissionPlaylist = intermissionPlaylist ?? "";
+            ViewBag.PostGamePlaylist = postGamePlaylist ?? "";
+            
             return View();
         }
 
         [HttpPost]
-        public IActionResult SaveSpotifyConfig(string clientId, string clientSecret, string redirectUri, string playlistUrls, string goalHornPlaylist = "", string customSongNames = "", string homeTeamName = "", string homeTeamRoster = "", string awayTeamName = "", string awayTeamRoster = "", string songStartTimestamps = "")
+        public IActionResult SaveSpotifyConfig(
+            string clientId, 
+            string clientSecret, 
+            string redirectUri, 
+            string playlistUrls, 
+            string goalHornPlaylist = "", 
+            string customSongNames = "", 
+            string homeTeamName = "", 
+            string homeTeamRoster = "", 
+            string awayTeamName = "", 
+            string awayTeamRoster = "", 
+            string songStartTimestamps = "",
+            // Stats mode parameters
+            string statsMode = "",
+            string periodLength = "15",
+            string warmupLength = "10",
+            string intermissionLength = "15",
+            string awayGoalPlaylist = "",
+            string offsidePlaylist = "",
+            string icingPlaylist = "",
+            string comebackPlaylist = "",
+            string hopePlaylist = "",
+            string endZonePlaylist = "",
+            string penaltyPlaylist = "",
+            string warmupPlaylist = "",
+            string intermissionPlaylist = "",
+            string postGamePlaylist = "")
         {
             try
             {
@@ -93,6 +229,28 @@ namespace HockeyDJ.Controllers
                 HttpContext.Session.SetString("HomeTeamRoster", homeTeamRoster ?? "");
                 HttpContext.Session.SetString("AwayTeamName", awayTeamName ?? "");
                 HttpContext.Session.SetString("AwayTeamRoster", awayTeamRoster ?? "");
+
+                // Store song start timestamps (raw string, will be parsed as JSON for the view)
+                HttpContext.Session.SetString("SongStartTimestamps", songStartTimestamps ?? "");
+                
+                // Store stats mode settings
+                var isStatsMode = statsMode == "on" || statsMode == "true";
+                HttpContext.Session.SetString("StatsMode", isStatsMode.ToString().ToLower());
+                HttpContext.Session.SetString("PeriodLength", periodLength ?? "15");
+                HttpContext.Session.SetString("WarmupLength", warmupLength ?? "10");
+                HttpContext.Session.SetString("IntermissionLength", intermissionLength ?? "15");
+                
+                // Store situation playlists
+                HttpContext.Session.SetString("AwayGoalPlaylist", awayGoalPlaylist ?? "");
+                HttpContext.Session.SetString("OffsidePlaylist", offsidePlaylist ?? "");
+                HttpContext.Session.SetString("IcingPlaylist", icingPlaylist ?? "");
+                HttpContext.Session.SetString("ComebackPlaylist", comebackPlaylist ?? "");
+                HttpContext.Session.SetString("HopePlaylist", hopePlaylist ?? "");
+                HttpContext.Session.SetString("EndZonePlaylist", endZonePlaylist ?? "");
+                HttpContext.Session.SetString("PenaltyPlaylist", penaltyPlaylist ?? "");
+                HttpContext.Session.SetString("WarmupPlaylist", warmupPlaylist ?? "");
+                HttpContext.Session.SetString("IntermissionPlaylist", intermissionPlaylist ?? "");
+                HttpContext.Session.SetString("PostGamePlaylist", postGamePlaylist ?? "");
 
                 // Store song start timestamps (raw string, will be parsed as JSON for the view)
                 HttpContext.Session.SetString("SongStartTimestamps", songStartTimestamps ?? "");
