@@ -38,6 +38,8 @@ namespace HockeyDJ.Controllers
             var smartShuffleHistory = HttpContext.Session.GetString("SmartShuffleHistory");
             var hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
             var playerGoalCounts = HttpContext.Session.GetString("PlayerGoalCounts");
+            var hornConfiguration = HttpContext.Session.GetString("HornConfiguration");
+            var gameMode = HttpContext.Session.GetString("GameMode");
 
             ViewBag.Playlists = string.IsNullOrEmpty(playlists) ? "[]" : playlists;
             ViewBag.AccessToken = accessToken;
@@ -54,6 +56,8 @@ namespace HockeyDJ.Controllers
             ViewBag.SmartShuffleHistory = string.IsNullOrEmpty(smartShuffleHistory) ? "{}" : smartShuffleHistory;
             ViewBag.HatTrickSongUri = hatTrickSongUri ?? "";
             ViewBag.PlayerGoalCounts = string.IsNullOrEmpty(playerGoalCounts) ? "{}" : playerGoalCounts;
+            ViewBag.HornConfiguration = string.IsNullOrEmpty(hornConfiguration) ? "{}" : hornConfiguration;
+            ViewBag.GameMode = gameMode ?? "normal";
 
             return View();
         }
@@ -557,6 +561,7 @@ namespace HockeyDJ.Controllers
                 // Create export object (excluding sensitive data like client secret)
                 var playlistShuffleModes = HttpContext.Session.GetString("PlaylistShuffleModes");
                 var hatTrickSongUri = HttpContext.Session.GetString("HatTrickSongUri");
+                var hornConfiguration = HttpContext.Session.GetString("HornConfiguration");
                 
                 var exportConfig = new
                 {
@@ -568,6 +573,7 @@ namespace HockeyDJ.Controllers
                     customSongNames = customSongNames ?? "",
                     playlistShuffleModes = playlistShuffleModes ?? "{}",
                     hatTrickSongUri = hatTrickSongUri ?? "",
+                    hornConfiguration = hornConfiguration ?? "{}",
                     exportDate = DateTime.UtcNow.ToString("O"),
                     version = "1.2.0"
                 };
@@ -622,7 +628,8 @@ namespace HockeyDJ.Controllers
                     awayTeamRoster = importedConfig.TryGetProperty("awayTeamRoster", out var awayTeamRoster) ? awayTeamRoster.GetString() : "",
                     songStartTimestamps = importedConfig.TryGetProperty("songStartTimestamps", out var songStartTimestamps) ? songStartTimestamps.GetString() : "",
                     playlistShuffleModes = importedConfig.TryGetProperty("playlistShuffleModes", out var playlistShuffleModes) ? playlistShuffleModes.GetString() : "{}",
-                    hatTrickSongUri = importedConfig.TryGetProperty("hatTrickSongUri", out var hatTrickSongUri) ? hatTrickSongUri.GetString() : ""
+                    hatTrickSongUri = importedConfig.TryGetProperty("hatTrickSongUri", out var hatTrickSongUri) ? hatTrickSongUri.GetString() : "",
+                    hornConfiguration = importedConfig.TryGetProperty("hornConfiguration", out var hornConfiguration) ? hornConfiguration.GetString() : "{}"
                 };
 
                 // Validate URLs
@@ -829,6 +836,101 @@ namespace HockeyDJ.Controllers
                 _logger.LogWarning(ex, "Could not extract track URI from URL: {Url}", spotifyUrl);
             }
             return string.Empty;
+        }
+
+        [HttpPost]
+        public IActionResult SaveHornConfig([FromBody] JsonElement config)
+        {
+            try
+            {
+                HttpContext.Session.SetString("HornConfiguration", config.GetRawText());
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving horn configuration");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetHornConfig()
+        {
+            var config = HttpContext.Session.GetString("HornConfiguration");
+            if (string.IsNullOrEmpty(config))
+            {
+                return Json(new
+                {
+                    @default = "/audio/goal-horn.mp3",
+                    overtime = "/audio/goal-horn.mp3",
+                    playoffs = "/audio/goal-horn.mp3",
+                    awayTeam = "/audio/Sad Trombone.mp3",
+                    players = new Dictionary<string, string>()
+                });
+            }
+            return Content(config, "application/json");
+        }
+
+        [HttpPost]
+        public IActionResult SetPlayerHorn([FromBody] JsonElement body)
+        {
+            try
+            {
+                var playerNumber = body.GetProperty("playerNumber").GetInt32().ToString();
+                var hornPath = body.GetProperty("hornPath").GetString() ?? "";
+
+                var configJson = HttpContext.Session.GetString("HornConfiguration") ?? "{}";
+                var config = JsonSerializer.Deserialize<Dictionary<string, object>>(configJson) ?? new Dictionary<string, object>();
+
+                // Get or create the players dictionary
+                Dictionary<string, string> players;
+                if (config.ContainsKey("players") && config["players"] is JsonElement playersElement)
+                {
+                    players = JsonSerializer.Deserialize<Dictionary<string, string>>(playersElement.GetRawText()) ?? new Dictionary<string, string>();
+                }
+                else
+                {
+                    players = new Dictionary<string, string>();
+                }
+
+                if (string.IsNullOrEmpty(hornPath))
+                {
+                    players.Remove(playerNumber);
+                }
+                else
+                {
+                    players[playerNumber] = hornPath;
+                }
+
+                config["players"] = JsonSerializer.SerializeToElement(players);
+                HttpContext.Session.SetString("HornConfiguration", JsonSerializer.Serialize(config));
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting player horn");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SetGameMode([FromBody] JsonElement body)
+        {
+            try
+            {
+                var mode = body.GetProperty("mode").GetString() ?? "normal";
+                if (mode != "normal" && mode != "overtime" && mode != "playoffs")
+                {
+                    return Json(new { success = false, error = "Invalid game mode. Must be 'normal', 'overtime', or 'playoffs'." });
+                }
+                HttpContext.Session.SetString("GameMode", mode);
+                return Json(new { success = true, mode });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting game mode");
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
         public IActionResult Privacy()

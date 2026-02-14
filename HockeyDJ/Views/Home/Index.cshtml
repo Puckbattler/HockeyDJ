@@ -86,6 +86,48 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             animation: none;
         }
 
+        .game-mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .game-mode-toggle label {
+            font-weight: bold;
+            color: #ff6b35;
+            font-size: 14px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mode-btn {
+            padding: 6px 14px;
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 107, 53, 0.6);
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 107, 53, 0.3);
+            border-color: #ff6b35;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.4);
+        }
+
         .song-selector {
             margin: 20px 0;
             display: flex;
@@ -1106,6 +1148,15 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             </div>
         </div>
 
+        <div class="game-mode-toggle">
+            <label>Game Mode:</label>
+            <div class="mode-buttons">
+                <button class="mode-btn active" onclick="setGameMode('normal', this)">🏒 Regular</button>
+                <button class="mode-btn" onclick="setGameMode('overtime', this)">⚡ Overtime</button>
+                <button class="mode-btn" onclick="setGameMode('playoffs', this)">🏆 Playoffs</button>
+            </div>
+        </div>
+
         <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
             <button class="goal-horn-btn" id="goalHornBtn" onclick="playGoalHorn()">
                 📯 GOAL HORN 📯
@@ -1322,6 +1373,10 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let lastTrackUri = null; // Track the last playing track to detect changes
         let wasPlaying = false; // Track if we were playing to detect when playback stops
         let manualPause = false; // Flag to prevent auto-play when user manually pauses
+        
+        // Horn configuration state
+        let hornConfig = @Html.Raw(ViewBag.HornConfiguration ?? "{}");
+        let gameMode = '@ViewBag.GameMode'; // normal, overtime, playoffs
         
         // Shuffle mode state
         let playlistShuffleModes = @Html.Raw(ViewBag.PlaylistShuffleModes ?? "{}");
@@ -1560,11 +1615,12 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         }
 
         function initializeAudio() {
-            // Goal horn audio
+            // Goal horn audio - use horn config if available
+            const defaultHornPath = (hornConfig && hornConfig.default) ? hornConfig.default : '/audio/goal-horn.mp3';
             goalHornAudio = new Audio();
             goalHornAudio.preload = 'auto';
             goalHornAudio.volume = 0.8;
-            goalHornAudio.src = '/audio/goal-horn.mp3';
+            goalHornAudio.src = defaultHornPath;
             goalHornAudio.onerror = () => {
                 console.warn('Goal horn audio file not found.');
             };
@@ -1644,6 +1700,73 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             // Use the goal horn playlist ID from server, or fall back to first playlist
             if (!goalHornPlaylistId && currentPlaylists.length > 0) {
                 goalHornPlaylistId = currentPlaylists[0].Id;
+            }
+
+            // Set initial game mode button state
+            if (gameMode && gameMode !== 'normal') {
+                document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes(gameMode === 'overtime' ? 'overtime' : 'playoffs')) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+        }
+
+        function getHornForPlayer(playerNumber, team) {
+            if (team === 'away') {
+                return (hornConfig && hornConfig.awayTeam) ? hornConfig.awayTeam : '/audio/Sad Trombone.mp3';
+            }
+
+            // Check for player-specific horn
+            if (hornConfig && hornConfig.players && hornConfig.players[playerNumber]) {
+                return hornConfig.players[playerNumber];
+            }
+
+            // Check for game mode horn
+            switch (gameMode) {
+                case 'overtime':
+                    return (hornConfig && hornConfig.overtime) ? hornConfig.overtime : ((hornConfig && hornConfig.default) || '/audio/goal-horn.mp3');
+                case 'playoffs':
+                    return (hornConfig && hornConfig.playoffs) ? hornConfig.playoffs : ((hornConfig && hornConfig.default) || '/audio/goal-horn.mp3');
+                default:
+                    return (hornConfig && hornConfig.default) ? hornConfig.default : '/audio/goal-horn.mp3';
+            }
+        }
+
+        async function setGameMode(mode, btnElement) {
+            gameMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            // Update the goal horn audio source for the new mode
+            const hornPath = getHornForPlayer('', 'home');
+            if (goalHornAudio) {
+                goalHornAudio.src = hornPath;
+            }
+
+            try {
+                await fetch('/Home/SetGameMode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode })
+                });
+            } catch (error) {
+                console.error('Error setting game mode:', error);
+            }
+
+            showError(`✓ Game mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
+            setTimeout(() => {
+                document.getElementById('errorDisplay').style.display = 'none';
+            }, 2000);
+        }
+
+        async function loadHornConfig() {
+            try {
+                const response = await fetch('/Home/GetHornConfig');
+                hornConfig = await response.json();
+            } catch (error) {
+                console.error('Error loading horn config:', error);
             }
         }
 
@@ -2121,6 +2244,13 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             isGoalHornPlaying = true;
 
             try {
+                // Swap goal horn source based on player and game mode
+                const hornPath = getHornForPlayer(playerNumber, 'home');
+                if (goalHornAudio && goalHornAudio.src !== window.location.origin + hornPath) {
+                    goalHornAudio.src = hornPath;
+                    goalHornAudio.load();
+                }
+
                 // Check if a player number is selected (not random)
                 let isHatTrick = false;
                 let hatTrickSongUriToPlay = null;
