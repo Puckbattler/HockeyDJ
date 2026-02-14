@@ -159,6 +159,10 @@ foreach ($platform in $platforms) {
         exit 1
     }
     
+    # Remove audio files from publish output (users supply their own)
+    Write-Host "   Removing audio files from package..." -ForegroundColor Gray
+    Remove-Item -Path "./publish/$rid/wwwroot/audio/*" -Recurse -Force -ErrorAction SilentlyContinue
+    
     # Copy additional files
     Write-Host "   Adding additional files..." -ForegroundColor Gray
     Copy-Item -Path "README.md" -Destination "./publish/$rid/" -Force -ErrorAction SilentlyContinue
