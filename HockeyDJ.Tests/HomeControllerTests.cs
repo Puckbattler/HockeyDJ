@@ -1212,4 +1212,158 @@ public class HomeControllerTests
     }
 
     #endregion
+
+    #region Multi-Horn Configuration Tests
+
+    [Fact]
+    public void GetHornConfig_NoConfigStored_ReturnsDefaults()
+    {
+        // Act
+        var result = _controller.GetHornConfig();
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+
+        Assert.Equal("/audio/goal-horn.mp3", data["default"].GetString());
+        Assert.Equal("/audio/Sad Trombone.mp3", data["awayTeam"].GetString());
+    }
+
+    [Fact]
+    public void GetHornConfig_WithStoredConfig_ReturnsStoredConfig()
+    {
+        // Arrange
+        var config = new { @default = "/audio/custom-horn.mp3", overtime = "/audio/ot-horn.mp3", playoffs = "", awayTeam = "/audio/Sad Trombone.mp3", players = new Dictionary<string, string>() };
+        SetSessionString("HornConfiguration", JsonSerializer.Serialize(config));
+
+        // Act
+        var result = _controller.GetHornConfig();
+
+        // Assert
+        var contentResult = Assert.IsType<ContentResult>(result);
+        Assert.Equal("application/json", contentResult.ContentType);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(contentResult.Content);
+        Assert.Equal("/audio/custom-horn.mp3", data["default"].GetString());
+    }
+
+    [Fact]
+    public void SaveHornConfig_ValidConfig_SavesAndReturnsSuccess()
+    {
+        // Arrange
+        var config = JsonSerializer.Deserialize<JsonElement>(
+            "{\"default\":\"/audio/goal-horn.mp3\",\"overtime\":\"/audio/ot.mp3\",\"players\":{\"7\":\"/audio/custom.mp3\"}}");
+
+        // Act
+        var result = _controller.SaveHornConfig(config);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        Assert.True(data["success"].GetBoolean());
+
+        // Verify stored in session
+        Assert.True(_sessionStorage.ContainsKey("HornConfiguration"));
+    }
+
+    [Fact]
+    public void SetGameMode_ValidMode_SavesAndReturnsSuccess()
+    {
+        // Arrange
+        var body = JsonSerializer.Deserialize<JsonElement>("{\"mode\":\"overtime\"}");
+
+        // Act
+        var result = _controller.SetGameMode(body);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal("overtime", data["mode"].GetString());
+
+        // Verify stored in session
+        var storedMode = Encoding.UTF8.GetString(_sessionStorage["GameMode"]);
+        Assert.Equal("overtime", storedMode);
+    }
+
+    [Fact]
+    public void SetGameMode_InvalidMode_ReturnsError()
+    {
+        // Arrange
+        var body = JsonSerializer.Deserialize<JsonElement>("{\"mode\":\"invalid\"}");
+
+        // Act
+        var result = _controller.SetGameMode(body);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        Assert.False(data["success"].GetBoolean());
+    }
+
+    [Fact]
+    public void SetPlayerHorn_AddsPlayerHorn_SavesInConfig()
+    {
+        // Arrange
+        SetSessionString("HornConfiguration", "{\"default\":\"/audio/goal-horn.mp3\",\"players\":{}}");
+        var body = JsonSerializer.Deserialize<JsonElement>("{\"playerNumber\":7,\"hornPath\":\"/audio/custom.mp3\"}");
+
+        // Act
+        var result = _controller.SetPlayerHorn(body);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        Assert.True(data["success"].GetBoolean());
+
+        // Verify player horn is in stored config
+        var storedConfig = Encoding.UTF8.GetString(_sessionStorage["HornConfiguration"]);
+        Assert.Contains("\"7\"", storedConfig);
+        Assert.Contains("/audio/custom.mp3", storedConfig);
+    }
+
+    [Fact]
+    public void SetPlayerHorn_EmptyPath_RemovesPlayerHorn()
+    {
+        // Arrange
+        SetSessionString("HornConfiguration", "{\"default\":\"/audio/goal-horn.mp3\",\"players\":{\"7\":\"/audio/custom.mp3\"}}");
+        var body = JsonSerializer.Deserialize<JsonElement>("{\"playerNumber\":7,\"hornPath\":\"\"}");
+
+        // Act
+        var result = _controller.SetPlayerHorn(body);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        Assert.True(data["success"].GetBoolean());
+
+        // Verify player horn is removed from stored config
+        var storedConfig = Encoding.UTF8.GetString(_sessionStorage["HornConfiguration"]);
+        Assert.DoesNotContain("/audio/custom.mp3", storedConfig);
+    }
+
+    [Fact]
+    public void Index_WithHornConfiguration_PassesHornConfigToViewBag()
+    {
+        // Arrange
+        SetSessionString("SpotifyAccessToken", "test_token");
+        var hornConfig = "{\"default\":\"/audio/goal-horn.mp3\",\"overtime\":\"/audio/ot.mp3\"}";
+        SetSessionString("HornConfiguration", hornConfig);
+        SetSessionString("GameMode", "playoffs");
+
+        // Act
+        var result = _controller.Index();
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Equal(hornConfig, _controller.ViewBag.HornConfiguration);
+        Assert.Equal("playoffs", _controller.ViewBag.GameMode);
+    }
+
+    #endregion
 }

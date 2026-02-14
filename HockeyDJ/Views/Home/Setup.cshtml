@@ -399,6 +399,84 @@ ViewData["Title"] = "HockeyDJ Setup";
             </div>
 
             <div class="goal-horn-section">
+                <h4>🚨 Goal Horn Configuration 🚨</h4>
+                <div class="form-group">
+                    <label>Default Horn</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="default-horn" class="form-control" style="flex: 1;">
+                            <option value="/audio/goal-horn.mp3">Standard Horn</option>
+                        </select>
+                        <button type="button" onclick="previewHorn('default')" class="btn-secondary"
+                            style="background: linear-gradient(135deg, #2196F3, #1976D2); white-space: nowrap;">
+                            ▶️ Preview
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Overtime Horn</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="overtime-horn" class="form-control" style="flex: 1;">
+                            <option value="">Same as Default</option>
+                            <option value="/audio/goal-horn.mp3">Standard Horn</option>
+                        </select>
+                        <button type="button" onclick="previewHorn('overtime')" class="btn-secondary"
+                            style="background: linear-gradient(135deg, #2196F3, #1976D2); white-space: nowrap;">
+                            ▶️ Preview
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Playoffs Horn</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="playoffs-horn" class="form-control" style="flex: 1;">
+                            <option value="">Same as Default</option>
+                            <option value="/audio/goal-horn.mp3">Standard Horn</option>
+                        </select>
+                        <button type="button" onclick="previewHorn('playoffs')" class="btn-secondary"
+                            style="background: linear-gradient(135deg, #2196F3, #1976D2); white-space: nowrap;">
+                            ▶️ Preview
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Away Team Goal Sound</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="away-horn" class="form-control" style="flex: 1;">
+                            <option value="/audio/Sad Trombone.mp3">Sad Trombone</option>
+                            <option value="/audio/goal-horn.mp3">Standard Horn</option>
+                            <option value="">Silent</option>
+                        </select>
+                        <button type="button" onclick="previewHorn('away')" class="btn-secondary"
+                            style="background: linear-gradient(135deg, #2196F3, #1976D2); white-space: nowrap;">
+                            ▶️ Preview
+                        </button>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 20px;">🏒 Player-Specific Horns</h4>
+                <small style="color: rgba(255,255,255,0.7); font-size: 14px; display: block; margin-bottom: 10px;">
+                    Assign custom horns to specific players. Players are loaded from your home team roster below.
+                </small>
+                <div id="player-horn-list"></div>
+                <button type="button" onclick="addPlayerHornRow()" class="btn-secondary"
+                    style="background: linear-gradient(135deg, #4CAF50, #45a049); margin-top: 10px;">
+                    ➕ Add Player Horn
+                </button>
+
+                <div class="button-group" style="margin-top: 15px;">
+                    <button type="button" onclick="saveHornConfig()" class="btn-secondary"
+                        style="background: linear-gradient(135deg, #4CAF50, #45a049); margin-right: 10px;">
+                        💾 Save Horn Config
+                    </button>
+                    <button type="button" onclick="clearHornConfig()" class="btn-danger"
+                        style="background: linear-gradient(135deg, #f44336, #d32f2f);">
+                        🗑️ Reset to Defaults
+                    </button>
+                </div>
+                <span id="hornConfigStatus" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+            </div>
+
+            <div class="goal-horn-section">
                 <h4>🏒 Team Roster Configuration 🏒</h4>
                 <div class="form-group">
                     <label for="homeTeamName">Home Team Name</label>
@@ -458,6 +536,7 @@ ViewData["Title"] = "HockeyDJ Setup";
                 awayTeamName: document.getElementById('awayTeamName').value,
                 awayTeamRoster: document.getElementById('awayTeamRoster').value,
                 songStartTimestamps: document.getElementById('songStartTimestamps').value,
+                hornConfiguration: JSON.stringify(getHornConfigFromUI()),
                 exportDate: new Date().toISOString(),
                 version: "1.3.0"
             };
@@ -536,6 +615,25 @@ ViewData["Title"] = "HockeyDJ Setup";
                                 }
                                 if (config.hatTrickSongUri) {
                                     document.getElementById('hatTrickSongUrl').value = config.hatTrickSongUri;
+                                }
+                                if (config.hornConfiguration) {
+                                    try {
+                                        const hornConfig = typeof config.hornConfiguration === 'string' 
+                                            ? JSON.parse(config.hornConfiguration) 
+                                            : config.hornConfiguration;
+                                        if (hornConfig.default) document.getElementById('default-horn').value = hornConfig.default;
+                                        if (hornConfig.overtime) document.getElementById('overtime-horn').value = hornConfig.overtime;
+                                        if (hornConfig.playoffs) document.getElementById('playoffs-horn').value = hornConfig.playoffs;
+                                        if (hornConfig.awayTeam) document.getElementById('away-horn').value = hornConfig.awayTeam;
+                                        if (hornConfig.players) {
+                                            document.getElementById('player-horn-list').innerHTML = '';
+                                            for (const [num, path] of Object.entries(hornConfig.players)) {
+                                                addPlayerHornRow(num, path);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.warn('Could not parse horn configuration from import:', e);
+                                    }
                                 }
 
                                 // Show success message
@@ -618,6 +716,217 @@ ViewData["Title"] = "HockeyDJ Setup";
             }
             // Open the Spotify URL in a new tab for preview
             window.open(songUrl, '_blank');
+        }
+
+        // Horn configuration functions
+        let hornPreviewAudio = null;
+        let availableHornFiles = [
+            { value: '/audio/goal-horn.mp3', label: 'Standard Horn' }
+        ];
+
+        function populateHornSelects() {
+            const selects = ['default-horn', 'overtime-horn', 'playoffs-horn', 'away-horn'];
+            // Scan for available audio files by trying known files
+            const defaultFiles = [
+                { value: '/audio/goal-horn.mp3', label: 'Standard Horn' },
+                { value: '/audio/Sad Trombone.mp3', label: 'Sad Trombone' },
+                { value: '/audio/ChargeOrgan.wav', label: 'Charge Organ' }
+            ];
+            availableHornFiles = defaultFiles;
+        }
+
+        function previewHorn(type) {
+            let hornPath = '';
+            switch (type) {
+                case 'default':
+                    hornPath = document.getElementById('default-horn').value;
+                    break;
+                case 'overtime':
+                    hornPath = document.getElementById('overtime-horn').value || document.getElementById('default-horn').value;
+                    break;
+                case 'playoffs':
+                    hornPath = document.getElementById('playoffs-horn').value || document.getElementById('default-horn').value;
+                    break;
+                case 'away':
+                    hornPath = document.getElementById('away-horn').value;
+                    break;
+                default:
+                    hornPath = type; // Direct path for player-specific preview
+            }
+
+            if (!hornPath) {
+                alert('No horn selected to preview');
+                return;
+            }
+
+            if (hornPreviewAudio) {
+                hornPreviewAudio.pause();
+                hornPreviewAudio.currentTime = 0;
+            }
+            hornPreviewAudio = new Audio(hornPath);
+            hornPreviewAudio.volume = 0.8;
+            hornPreviewAudio.play().catch(err => {
+                console.warn('Could not play horn preview:', err);
+                alert('Could not play horn preview. File may not be available.');
+            });
+        }
+
+        function addPlayerHornRow(playerNum, hornPath) {
+            const list = document.getElementById('player-horn-list');
+            const row = document.createElement('div');
+            row.style.cssText = 'display: flex; gap: 10px; align-items: center; margin-bottom: 8px;';
+
+            const roster = document.getElementById('homeTeamRoster');
+            const rosterText = roster ? roster.value : '';
+            const players = rosterText.split('\n').filter(l => l.trim()).map(l => {
+                const parts = l.split(':');
+                return { number: parts[0]?.trim(), name: parts.slice(1).join(':')?.trim() };
+            });
+
+            let playerOptions = '<option value="">Select Player</option>';
+            players.forEach(p => {
+                const selected = (playerNum && p.number === playerNum) ? 'selected' : '';
+                playerOptions += `<option value="${p.number}" ${selected}>#${p.number} ${p.name || ''}</option>`;
+            });
+
+            const hornValue = hornPath || '/audio/goal-horn.mp3';
+
+            row.innerHTML = `
+                <select class="form-control player-horn-player" style="flex: 1;">${playerOptions}</select>
+                <select class="form-control player-horn-path" style="flex: 1;">
+                    <option value="/audio/goal-horn.mp3" ${hornValue === '/audio/goal-horn.mp3' ? 'selected' : ''}>Standard Horn</option>
+                    <option value="/audio/Sad Trombone.mp3" ${hornValue === '/audio/Sad Trombone.mp3' ? 'selected' : ''}>Sad Trombone</option>
+                    <option value="/audio/ChargeOrgan.wav" ${hornValue === '/audio/ChargeOrgan.wav' ? 'selected' : ''}>Charge Organ</option>
+                </select>
+                <button type="button" onclick="previewHorn(this.parentElement.querySelector('.player-horn-path').value)" class="btn-secondary"
+                    style="background: linear-gradient(135deg, #2196F3, #1976D2); white-space: nowrap; padding: 6px 10px;">
+                    ▶️
+                </button>
+                <button type="button" onclick="this.parentElement.remove()" class="btn-danger"
+                    style="background: linear-gradient(135deg, #f44336, #d32f2f); white-space: nowrap; padding: 6px 10px;">
+                    🗑️
+                </button>
+            `;
+            list.appendChild(row);
+        }
+
+        async function saveHornConfig() {
+            const statusEl = document.getElementById('hornConfigStatus');
+            try {
+                const config = {
+                    default: document.getElementById('default-horn').value,
+                    overtime: document.getElementById('overtime-horn').value || '',
+                    playoffs: document.getElementById('playoffs-horn').value || '',
+                    awayTeam: document.getElementById('away-horn').value,
+                    players: {}
+                };
+
+                // Collect player-specific horns
+                const rows = document.querySelectorAll('#player-horn-list > div');
+                rows.forEach(row => {
+                    const playerSelect = row.querySelector('.player-horn-player');
+                    const hornSelect = row.querySelector('.player-horn-path');
+                    if (playerSelect && hornSelect && playerSelect.value) {
+                        config.players[playerSelect.value] = hornSelect.value;
+                    }
+                });
+
+                const response = await fetch('/Home/SaveHornConfig', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.textContent = '✓ Horn configuration saved!';
+                    statusEl.style.color = '#4CAF50';
+                } else {
+                    statusEl.textContent = '✗ ' + (result.error || 'Failed to save');
+                    statusEl.style.color = '#f44336';
+                }
+            } catch (error) {
+                statusEl.textContent = '✗ Failed to save: ' + error.message;
+                statusEl.style.color = '#f44336';
+            }
+        }
+
+        async function clearHornConfig() {
+            const statusEl = document.getElementById('hornConfigStatus');
+            try {
+                const defaultConfig = {
+                    default: '/audio/goal-horn.mp3',
+                    overtime: '',
+                    playoffs: '',
+                    awayTeam: '/audio/Sad Trombone.mp3',
+                    players: {}
+                };
+
+                await fetch('/Home/SaveHornConfig', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(defaultConfig)
+                });
+
+                // Reset UI
+                document.getElementById('default-horn').value = '/audio/goal-horn.mp3';
+                document.getElementById('overtime-horn').value = '';
+                document.getElementById('playoffs-horn').value = '';
+                document.getElementById('away-horn').value = '/audio/Sad Trombone.mp3';
+                document.getElementById('player-horn-list').innerHTML = '';
+
+                statusEl.textContent = '✓ Horn configuration reset to defaults';
+                statusEl.style.color = '#4CAF50';
+            } catch (error) {
+                statusEl.textContent = '✗ Failed to reset: ' + error.message;
+                statusEl.style.color = '#f44336';
+            }
+        }
+
+        async function loadExistingHornConfig() {
+            try {
+                const response = await fetch('/Home/GetHornConfig');
+                const config = await response.json();
+
+                if (config.default) {
+                    document.getElementById('default-horn').value = config.default;
+                }
+                if (config.overtime) {
+                    document.getElementById('overtime-horn').value = config.overtime;
+                }
+                if (config.playoffs) {
+                    document.getElementById('playoffs-horn').value = config.playoffs;
+                }
+                if (config.awayTeam) {
+                    document.getElementById('away-horn').value = config.awayTeam;
+                }
+                if (config.players) {
+                    for (const [playerNum, hornPath] of Object.entries(config.players)) {
+                        addPlayerHornRow(playerNum, hornPath);
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not load horn configuration:', error);
+            }
+        }
+
+        function getHornConfigFromUI() {
+            const config = {
+                default: document.getElementById('default-horn').value,
+                overtime: document.getElementById('overtime-horn').value || '',
+                playoffs: document.getElementById('playoffs-horn').value || '',
+                awayTeam: document.getElementById('away-horn').value,
+                players: {}
+            };
+            const rows = document.querySelectorAll('#player-horn-list > div');
+            rows.forEach(row => {
+                const playerSelect = row.querySelector('.player-horn-player');
+                const hornSelect = row.querySelector('.player-horn-path');
+                if (playerSelect && hornSelect && playerSelect.value) {
+                    config.players[playerSelect.value] = hornSelect.value;
+                }
+            });
+            return config;
         }
 
         function showTemporaryMessage(message, type) {
@@ -709,6 +1018,9 @@ ViewData["Title"] = "HockeyDJ Setup";
             if (songStartTimestamps) {
                 document.getElementById('songStartTimestamps').value = songStartTimestamps;
             }
+
+            // Load existing horn configuration
+            loadExistingHornConfig();
         });
     </script>
 </body>
