@@ -1041,11 +1041,16 @@ public class HomeControllerTests
         Assert.False(data4["isHatTrick"].GetBoolean());
     }
 
+    private static JsonElement CreateSongBody(string songUrl)
+    {
+        return JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(new { songUrl }));
+    }
+
     [Fact]
     public void SaveHatTrickSong_ValidSpotifyUrl_SavesTrackUri()
     {
         // Act
-        var result = _controller.SaveHatTrickSong("https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh");
+        var result = _controller.SaveHatTrickSong(CreateSongBody("https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh"));
 
         // Assert
         var jsonResult = Assert.IsType<JsonResult>(result);
@@ -1063,7 +1068,7 @@ public class HomeControllerTests
     public void SaveHatTrickSong_ValidSpotifyUri_SavesTrackUri()
     {
         // Act
-        var result = _controller.SaveHatTrickSong("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+        var result = _controller.SaveHatTrickSong(CreateSongBody("spotify:track:4iV5W9uYEdYUVa79Axb7Rh"));
 
         // Assert
         var jsonResult = Assert.IsType<JsonResult>(result);
@@ -1078,10 +1083,10 @@ public class HomeControllerTests
     }
 
     [Fact]
-    public void SaveHatTrickSong_InvalidUrl_ReturnsError()
+    public void SaveHatTrickSong_UnrecognizedUrl_AcceptsAsIs()
     {
         // Act
-        var result = _controller.SaveHatTrickSong("https://invalid-url.com");
+        var result = _controller.SaveHatTrickSong(CreateSongBody("https://some-other-url.com/song"));
 
         // Assert
         var jsonResult = Assert.IsType<JsonResult>(result);
@@ -1091,15 +1096,15 @@ public class HomeControllerTests
         var json = JsonSerializer.Serialize(value);
         var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
         
-        Assert.False(data["success"].GetBoolean());
-        Assert.Contains("Invalid", data["error"].GetString());
+        Assert.True(data["success"].GetBoolean());
+        Assert.Equal("https://some-other-url.com/song", data["uri"].GetString());
     }
 
     [Fact]
     public void SaveHatTrickSong_EmptyString_ReturnsError()
     {
         // Act
-        var result = _controller.SaveHatTrickSong("");
+        var result = _controller.SaveHatTrickSong(CreateSongBody(""));
 
         // Assert
         var jsonResult = Assert.IsType<JsonResult>(result);

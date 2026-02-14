@@ -731,19 +731,22 @@ namespace HockeyDJ.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveHatTrickSong(string songUrl)
+        public IActionResult SaveHatTrickSong([FromBody] JsonElement body)
         {
             try
             {
+                var songUrl = body.TryGetProperty("songUrl", out var urlProp) ? urlProp.GetString()?.Trim() : null;
+
                 if (string.IsNullOrWhiteSpace(songUrl))
                 {
                     return Json(new { success = false, error = "Song URL is required" });
                 }
 
-                var trackUri = ExtractTrackUri(songUrl.Trim());
+                // Try to extract a Spotify track URI; fall back to the raw URL
+                var trackUri = ExtractTrackUri(songUrl);
                 if (string.IsNullOrEmpty(trackUri))
                 {
-                    return Json(new { success = false, error = "Invalid Spotify track URL" });
+                    trackUri = songUrl;
                 }
 
                 HttpContext.Session.SetString("HatTrickSongUri", trackUri);
@@ -751,7 +754,7 @@ namespace HockeyDJ.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving hat trick song: {Url}", songUrl);
+                _logger.LogError(ex, "Error saving hat trick song");
                 return Json(new { success = false, error = ex.Message });
             }
         }
