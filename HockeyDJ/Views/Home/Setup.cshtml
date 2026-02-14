@@ -371,6 +371,34 @@ ViewData["Title"] = "HockeyDJ Setup";
             </div>
 
             <div class="goal-horn-section">
+                <h4>🎩 Hat Trick Celebration 🎩</h4>
+                <div class="form-group">
+                    <label for="hatTrickSongUrl">Hat Trick Song (Spotify Track URL)</label>
+                    <input type="url" id="hatTrickSongUrl" name="hatTrickSongUrl" class="form-control"
+                        placeholder="https://open.spotify.com/track/... or spotify:track:..." 
+                        value="@ViewBag.HatTrickSongUri" />
+                    <small style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; display: block;">
+                        🎵 Special song to play when any player scores their 3rd goal. Leave blank for normal celebration.
+                    </small>
+                </div>
+                <div class="button-group" style="margin-top: 10px;">
+                    <button type="button" onclick="saveHatTrickSong()" class="btn-secondary" 
+                        style="background: linear-gradient(135deg, #4CAF50, #45a049); margin-right: 10px;">
+                        💾 Save Hat Trick Song
+                    </button>
+                    <button type="button" onclick="previewHatTrickSong()" class="btn-secondary"
+                        style="background: linear-gradient(135deg, #2196F3, #1976D2); margin-right: 10px;">
+                        ▶️ Preview
+                    </button>
+                    <button type="button" onclick="clearHatTrickSong()" class="btn-danger" 
+                        style="background: linear-gradient(135deg, #f44336, #d32f2f);">
+                        🗑️ Clear
+                    </button>
+                </div>
+                <span id="hatTrickSongStatus" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+            </div>
+
+            <div class="goal-horn-section">
                 <h4>🏒 Team Roster Configuration 🏒</h4>
                 <div class="form-group">
                     <label for="homeTeamName">Home Team Name</label>
@@ -506,6 +534,9 @@ ViewData["Title"] = "HockeyDJ Setup";
                                 if (config.songStartTimestamps) {
                                     document.getElementById('songStartTimestamps').value = config.songStartTimestamps;
                                 }
+                                if (config.hatTrickSongUri) {
+                                    document.getElementById('hatTrickSongUrl').value = config.hatTrickSongUri;
+                                }
 
                                 // Show success message
                                 showTemporaryMessage('✅ Configuration imported successfully! Please enter your Client Secret to complete the setup.', 'success');
@@ -532,6 +563,61 @@ ViewData["Title"] = "HockeyDJ Setup";
                 }
             };
             reader.readAsText(file);
+        }
+
+        async function saveHatTrickSong() {
+            const songUrl = document.getElementById('hatTrickSongUrl').value.trim();
+            const statusEl = document.getElementById('hatTrickSongStatus');
+
+            if (!songUrl) {
+                statusEl.textContent = '❌ Please enter a Spotify track URL';
+                statusEl.style.color = '#f44336';
+                return;
+            }
+
+            try {
+                const response = await fetch('/Home/SaveHatTrickSong', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ songUrl: songUrl })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.textContent = '✓ Hat trick song saved successfully!';
+                    statusEl.style.color = '#4CAF50';
+                } else {
+                    statusEl.textContent = '✗ ' + result.error;
+                    statusEl.style.color = '#f44336';
+                }
+            } catch (error) {
+                statusEl.textContent = '✗ Failed to save: ' + error.message;
+                statusEl.style.color = '#f44336';
+            }
+        }
+
+        async function clearHatTrickSong() {
+            const statusEl = document.getElementById('hatTrickSongStatus');
+
+            try {
+                await fetch('/Home/ClearHatTrickSong', { method: 'POST' });
+                document.getElementById('hatTrickSongUrl').value = '';
+                statusEl.textContent = '✓ Hat trick song cleared';
+                statusEl.style.color = '#4CAF50';
+            } catch (error) {
+                statusEl.textContent = '✗ Failed to clear: ' + error.message;
+                statusEl.style.color = '#f44336';
+            }
+        }
+
+        function previewHatTrickSong() {
+            const songUrl = document.getElementById('hatTrickSongUrl').value.trim();
+            if (!songUrl) {
+                alert('Please enter a Spotify track URL first');
+                return;
+            }
+            // Open the Spotify URL in a new tab for preview
+            window.open(songUrl, '_blank');
         }
 
         function showTemporaryMessage(message, type) {

@@ -18,7 +18,9 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 ### 🚨 Goal Celebrations
 - **Goal Horn Button**: Trigger epic goal celebrations with sound effects
 - **Victory Songs**: Automatically plays random celebration songs after goal horn, or select a specific indexed song (e.g., player #4's requested victory song)
-- **Custom Audio Support**: Add your own goal horn sound file
+- **Hat Trick Mode**: Special extended celebration when a player scores their third goal with custom song, banner animation, and confetti effects
+- **Goal Tracking**: Track goals per player during the session with visual count badges
+- **Custom Audio Support**: Add your own goal horn and hat trick sound files
 - **Song Selection Grid**: Radio-grid for selecting victory songs (random or numbered choices 1-30)
 
 ### 📣 Announcement System
@@ -81,6 +83,7 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 3. **Add sound files** (optional but recommended)
    Create the `wwwroot/audio/` directory and add these audio files:
    - `goal-horn.mp3` - Your favorite goal horn sound
+   - `hat-trick.mp3` - Special hat trick celebration sound
    - `mushroom.mp3` - Power-up sound effect
    - `clock.mp3` - Timeout/buzzer sound
    - `Sad Trombone.mp3` - Sad trombone sound
@@ -121,16 +124,21 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
    - Add a Spotify playlist URL for victory songs
    - This playlist will play random celebration songs after the goal horn, or you can select a specific indexed song
 
-4. **Configure Team Rosters** (optional):
+4. **Configure Hat Trick Celebration** (optional):
+   - Add a Spotify track URL for a special hat trick song
+   - This song plays when any player scores their 3rd goal
+   - Leave blank to play a random song from the goal horn playlist instead
+
+5. **Configure Team Rosters** (optional):
    - Enter Home Team Name and roster (format: `Number:Name`, one per line)
    - Enter Away Team Name and roster
-   - This enables the announcement feature with player selection
+   - This enables the announcement feature with player selection and goal tracking
 
-5. **Add Regular Playlists**:
+6. **Add Regular Playlists**:
    - Add up to 10 Spotify playlist URLs (one per line)
    - Right-click any Spotify playlist → "Share" → "Copy link"
 
-6. **Connect to Spotify**: Click "Connect to Spotify & Start HockeyDJ"
+7. **Connect to Spotify**: Click "Connect to Spotify & Start HockeyDJ"
 
 ### Configuration Backup
 
@@ -146,11 +154,18 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **Track Info**: See current track information in real-time
 
 ### Goal Celebrations
-1. **Select Song**: Use the song selection grid to choose a specific number (1-30) or leave on "🎲" for random
+1. **Select Song**: Use the song selection grid to choose a player number or leave on "🎲" for random
 2. **Score a Goal**: Click the big "📯 GOAL HORN 📯" button
 3. **Celebration Sequence**:
    - Goal horn sound plays first
    - Victory song starts playing from your goal playlist (selected index or random)
+   - Goal count badge appears on player button
+4. **Hat Trick Celebration** (when player scores 3rd goal):
+   - Extended celebration sequence: horn → hat-trick sound → horn again
+   - "🎩🎩🎩 HAT TRICK!" banner with player name
+   - Confetti animation
+   - Plays configured hat trick song or random victory song
+5. **Reset Goals**: Click "🔄 RESET GOALS" button to clear all goal counts for a new game
 
 ### Announcements
 1. Click the "📢 ANNOUNCEMENT 📢" button to open the announcement modal
@@ -183,6 +198,7 @@ Place custom audio files under `wwwroot/audio/`. Common files used by the applic
 
 **Goal Horn & Sound Effects:**
 - `goal-horn.mp3` - Goal horn celebration sound
+- `hat-trick.mp3` - Special hat trick celebration sound (plays during extended 3-goal celebration)
 - `mushroom.mp3` - Power-up sound effect
 - `clock.mp3` - Timeout buzzer sound
 - `Sad Trombone.mp3` - Sad trombone sound

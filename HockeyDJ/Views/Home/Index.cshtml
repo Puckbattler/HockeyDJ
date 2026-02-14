@@ -986,10 +986,100 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 margin-right: 0;
             }
         }
+
+        /* Hat Trick Banner */
+        .hat-trick-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            padding: 2rem 4rem;
+            border-radius: 20px;
+            z-index: 9999;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            transition: transform 0.5s ease;
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.6);
+        }
+
+        .hat-trick-banner.show {
+            transform: translate(-50%, -50%) scale(1);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+
+        /* Confetti Container */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @@keyframes confetti-fall {
+            to {
+                top: 100vh;
+                transform: rotate(720deg);
+            }
+        }
+
+        /* Goal count badges */
+        .goal-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b35;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .goal-badge.hat-trick {
+            background: #ffd700;
+            color: #000;
+        }
+
+        .radio-option {
+            position: relative;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Hat Trick Banner -->
+    <div id="hat-trick-banner" class="hat-trick-banner">
+        🎩🎩🎩 HAT TRICK! 🎩🎩🎩
+    </div>
+
+    <!-- Confetti Container -->
+    <div id="confetti-container" class="confetti-container"></div>
+
     <a href="@Url.Action("Setup")" class="setup-link">⚙️ Settings</a>
 
     <div class="header">
@@ -1022,6 +1112,9 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             </button>
             <button class="goal-horn-btn" id="announcementBtn" onclick="openAnnouncementModal()" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);">
                 📢 ANNOUNCEMENT 📢
+            </button>
+            <button class="goal-horn-btn" id="resetGoalsBtn" onclick="resetGoalCounts()" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
+                🔄 RESET GOALS 🔄
             </button>
         </div>
 
@@ -1211,6 +1304,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let playlistTracks = {};
         let playlistNames = {};
         let goalHornAudio = null;
+        let hatTrickAudio = null;
         let mushroomAudio = null;
         let clockAudio = null;
         let tromboneAudio = null;
@@ -1221,6 +1315,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let priorityQueue = @Html.Raw(ViewBag.PriorityQueue ?? "[]");
         let isSearching = false;
         let songStartTimestamps = @Html.Raw(ViewBag.SongStartTimestampsJson ?? "{}"); // Player number -> timestamp in ms
+        let playerGoalCounts = @Html.Raw(ViewBag.PlayerGoalCounts ?? "{}"); // Player number -> goal count
+        let hatTrickSongUri = '@ViewBag.HatTrickSongUri'; // Configured hat trick song URI
         let activePlaylistId = null; // Track the currently active playlist for continuous playback
         let activePlayerIndex = null; // Track the player index for the active playlist
         let lastTrackUri = null; // Track the last playing track to detect changes
@@ -1471,6 +1567,15 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             goalHornAudio.src = '/audio/goal-horn.mp3';
             goalHornAudio.onerror = () => {
                 console.warn('Goal horn audio file not found.');
+            };
+
+            // Hat trick audio
+            hatTrickAudio = new Audio();
+            hatTrickAudio.preload = 'auto';
+            hatTrickAudio.volume = 0.8;
+            hatTrickAudio.src = '/audio/hat-trick.mp3';
+            hatTrickAudio.onerror = () => {
+                console.warn('Hat trick audio file not found. Using goal horn for hat trick celebrations.');
             };
 
             // Mushroom audio
@@ -1790,100 +1895,341 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         let isGoalHornPlaying = false;
         let lastSelectedPlayerNumber = ''; // Store the last selected player number for announcements
 
+        // Hat trick celebration timing constants (in milliseconds)
+        const HAT_TRICK_BANNER_DURATION_MS = 10000;  // How long to show the hat trick banner
+        const CONFETTI_DURATION_MS = 5000;           // How long to display confetti
+        const HORN_DURATION_MS = 3000;               // Duration for each horn blast
+
+        async function showHatTrickBanner(playerNumber) {
+            const banner = document.getElementById('hat-trick-banner');
+            const playerName = getPlayerName(playerNumber);
+            banner.innerHTML = `🎩🎩🎩 HAT TRICK! ${playerName ? playerName : '#' + playerNumber} 🎩🎩🎩`;
+            banner.classList.add('show');
+            
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, HAT_TRICK_BANNER_DURATION_MS);
+        }
+
+        function getPlayerName(playerNumber) {
+            // Try to get player name from home team roster
+            const homeRoster = '@ViewBag.HomeTeamRoster';
+            if (homeRoster) {
+                const lines = homeRoster.split('\n');
+                for (const line of lines) {
+                    const parts = line.trim().split(':');
+                    if (parts.length === 2 && parts[0] === playerNumber.toString()) {
+                        return parts[1].trim();
+                    }
+                }
+            }
+            return '';
+        }
+
+        function launchConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#ff6b35', '#1e3c72', '#ffd700', '#4CAF50', '#2196F3'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                container.appendChild(confetti);
+            }
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, CONFETTI_DURATION_MS);
+        }
+
+        function updateGoalCountDisplay(playerNumber, count) {
+            // Update the goal count badge on the player button
+            const radio = document.querySelector(`input[value="${playerNumber}"]`);
+            if (radio) {
+                const label = radio.nextElementSibling;
+                const parent = label.parentElement;
+                
+                // Remove existing badge if any
+                const existingBadge = parent.querySelector('.goal-badge');
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+                
+                // Add new badge
+                if (count > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'goal-badge' + (count >= 3 ? ' hat-trick' : '');
+                    badge.textContent = count >= 3 ? '🎩' : count;
+                    parent.appendChild(badge);
+                }
+            }
+            
+            // Update local goal counts
+            playerGoalCounts[playerNumber] = count;
+        }
+
+        async function resetGoalCounts() {
+            if (!confirm('Are you sure you want to reset all goal counts? This will clear hat trick tracking for the current game.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/Home/ResetGoalCounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Clear local goal counts
+                    playerGoalCounts = {};
+                    
+                    // Remove all goal badges
+                    document.querySelectorAll('.goal-badge').forEach(badge => badge.remove());
+                    
+                    showError('✓ Goal counts reset successfully!');
+                    setTimeout(() => {
+                        document.getElementById('errorDisplay').style.display = 'none';
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Error resetting goal counts:', error);
+                showError('Error resetting goal counts: ' + error.message);
+            }
+        }
+
+        async function playHatTrickCelebration(playerNumber, hatTrickSongUri) {
+            // 1. Show HAT TRICK banner with animation
+            await showHatTrickBanner(playerNumber);
+            
+            // 2. Play extended horn sequence
+            if (goalHornAudio) {
+                goalHornAudio.currentTime = 0;
+                await goalHornAudio.play();
+                await new Promise(resolve => {
+                    const timeout = setTimeout(() => resolve(), HORN_DURATION_MS);
+                    goalHornAudio.onended = () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    };
+                });
+            }
+            
+            // Play hat trick special sound if available
+            if (hatTrickAudio && hatTrickAudio.src) {
+                try {
+                    hatTrickAudio.currentTime = 0;
+                    await hatTrickAudio.play();
+                    await new Promise(resolve => {
+                        const timeout = setTimeout(() => resolve(), HORN_DURATION_MS);
+                        hatTrickAudio.onended = () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        };
+                    });
+                } catch (error) {
+                    console.log('Hat trick sound not available, continuing with celebration');
+                }
+            }
+            
+            // Second horn blast
+            if (goalHornAudio) {
+                goalHornAudio.currentTime = 0;
+                await goalHornAudio.play();
+                await new Promise(resolve => {
+                    const timeout = setTimeout(() => resolve(), HORN_DURATION_MS);
+                    goalHornAudio.onended = () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    };
+                });
+            }
+            
+            // 3. Play hat trick song if configured, otherwise play normal victory song
+            if (hatTrickSongUri) {
+                // Play the configured hat trick song
+                await fetch(`https://api.spotify.com/v1/me/player`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        device_ids: [deviceId],
+                        play: false
+                    })
+                });
+
+                await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uris: [hatTrickSongUri]
+                    })
+                });
+            } else if (goalHornPlaylistId && playlistTracks[goalHornPlaylistId]) {
+                // Play a song from the goal horn playlist
+                const tracks = playlistTracks[goalHornPlaylistId];
+                if (tracks.length > 0) {
+                    const selectedTrack = getSmartShuffleTrack(goalHornPlaylistId);
+                    
+                    await fetch(`https://api.spotify.com/v1/me/player`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            device_ids: [deviceId],
+                            play: false
+                        })
+                    });
+
+                    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            uris: [selectedTrack.uri]
+                        })
+                    });
+                }
+            }
+            
+            // 4. Trigger confetti effect
+            launchConfetti();
+        }
+
         async function playGoalHorn() {
             const goalHornBtn = document.getElementById('goalHornBtn');
             const selectedRadio = document.querySelector('input[name="songSelection"]:checked');
             const selectedValue = selectedRadio ? selectedRadio.value : 'random';
+            const playerNumber = selectedRadio ? (selectedRadio.dataset.playerNumber || '') : '';
             
             // Store the player number from the selected radio button for use in announcements
-            lastSelectedPlayerNumber = selectedRadio ? (selectedRadio.dataset.playerNumber || '') : '';
+            lastSelectedPlayerNumber = playerNumber;
 
             goalHornBtn.disabled = true;
             goalHornBtn.textContent = '🎺 CELEBRATING... 🎺';
             isGoalHornPlaying = true;
 
             try {
-                // Play the goal horn sound first
-                if (goalHornAudio) {
-                    goalHornAudio.currentTime = 0;
-                    await goalHornAudio.play();
-
-                    // Wait for goal horn to finish or play for a few seconds
-                    await new Promise(resolve => {
-                        const timeout = setTimeout(() => {
-                            resolve();
-                        }, 3000);
-
-                        goalHornAudio.onended = () => {
-                            clearTimeout(timeout);
-                            resolve();
-                        };
+                // Check if a player number is selected (not random)
+                let isHatTrick = false;
+                let hatTrickSongUriToPlay = null;
+                
+                if (playerNumber && playerNumber !== '') {
+                    // Record the goal on the server
+                    const response = await fetch('/Home/RecordGoal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ playerNumber: parseInt(playerNumber) })
                     });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        isHatTrick = result.isHatTrick;
+                        hatTrickSongUriToPlay = result.hatTrickSongUri;
+                        
+                        // Update goal count display
+                        updateGoalCountDisplay(playerNumber, result.goalCount);
+                    }
                 }
+                
+                // If it's a hat trick, play special celebration
+                if (isHatTrick) {
+                    await playHatTrickCelebration(playerNumber, hatTrickSongUriToPlay);
+                } else {
+                    // Normal goal celebration
+                    // Play the goal horn sound first
+                    if (goalHornAudio) {
+                        goalHornAudio.currentTime = 0;
+                        await goalHornAudio.play();
 
-                // After goal horn, play selected song from goal horn playlist
-                if (goalHornPlaylistId && playlistTracks[goalHornPlaylistId]) {
-                    const tracks = playlistTracks[goalHornPlaylistId];
-                    if (tracks.length > 0) {
-                        let selectedTrack;
-                        let startPositionMs = 0; // Default to start from beginning
+                        // Wait for goal horn to finish or play for a few seconds
+                        await new Promise(resolve => {
+                            const timeout = setTimeout(() => {
+                                resolve();
+                            }, HORN_DURATION_MS);
 
-                        if (selectedValue === 'random') {
-                            // Use smart shuffle for goal horn random selection
-                            selectedTrack = getSmartShuffleTrack(goalHornPlaylistId);
-                            // Random songs ignore custom timestamps since they don't correspond to specific player numbers
-                        } else {
-                            // Play specific track by number (1-based index)
-                            const trackIndex = parseInt(selectedValue) - 1;
-                            if (trackIndex >= 0 && trackIndex < tracks.length) {
-                                selectedTrack = tracks[trackIndex];
-                                // Check if there's a custom start timestamp for this player number
-                                if (songStartTimestamps && songStartTimestamps[selectedValue]) {
-                                    startPositionMs = songStartTimestamps[selectedValue];
-                                    console.log(`Using custom start timestamp for player ${selectedValue}: ${startPositionMs}ms`);
-                                }
-                            } else {
-                                // If the selected number is out of range, fall back to random
-                                console.warn(`Song ${selectedValue} not available in playlist (only ${tracks.length} songs). Playing random song instead.`);
-                                
-                                // Use smart shuffle for fallback
+                            goalHornAudio.onended = () => {
+                                clearTimeout(timeout);
+                                resolve();
+                            };
+                        });
+                    }
+
+                    // After goal horn, play selected song from goal horn playlist
+                    if (goalHornPlaylistId && playlistTracks[goalHornPlaylistId]) {
+                        const tracks = playlistTracks[goalHornPlaylistId];
+                        if (tracks.length > 0) {
+                            let selectedTrack;
+                            let startPositionMs = 0; // Default to start from beginning
+
+                            if (selectedValue === 'random') {
+                                // Use smart shuffle for goal horn random selection
                                 selectedTrack = getSmartShuffleTrack(goalHornPlaylistId);
-                                showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
-                                // Fallback to random selection ignores custom timestamps
+                                // Random songs ignore custom timestamps since they don't correspond to specific player numbers
+                            } else {
+                                // Play specific track by number (1-based index)
+                                const trackIndex = parseInt(selectedValue) - 1;
+                                if (trackIndex >= 0 && trackIndex < tracks.length) {
+                                    selectedTrack = tracks[trackIndex];
+                                    // Check if there's a custom start timestamp for this player number
+                                    if (songStartTimestamps && songStartTimestamps[selectedValue]) {
+                                        startPositionMs = songStartTimestamps[selectedValue];
+                                        console.log(`Using custom start timestamp for player ${selectedValue}: ${startPositionMs}ms`);
+                                    }
+                                } else {
+                                    // If the selected number is out of range, fall back to random
+                                    console.warn(`Song ${selectedValue} not available in playlist (only ${tracks.length} songs). Playing random song instead.`);
+                                    
+                                    // Use smart shuffle for fallback
+                                    selectedTrack = getSmartShuffleTrack(goalHornPlaylistId);
+                                    showError(`Song ${selectedValue} not available in playlist. Playing random song instead.`);
+                                    // Fallback to random selection ignores custom timestamps
+                                }
                             }
+
+                            // Update current track display
+                            updateCurrentTrack({
+                                name: selectedTrack.name,
+                                artists: [{name: selectedTrack.artist}]
+                            });
+
+                            // Transfer playback to our device first
+                            await fetch(`https://api.spotify.com/v1/me/player`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${accessToken}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    device_ids: [deviceId],
+                                    play: false
+                                })
+                            });
+
+                            // Start playing the victory song at the specified position
+                            await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${accessToken}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    uris: [selectedTrack.uri],
+                                    position_ms: startPositionMs
+                                })
+                            });
                         }
-
-                        // Update current track display
-                        updateCurrentTrack({
-                            name: selectedTrack.name,
-                            artists: [{name: selectedTrack.artist}]
-                        });
-
-                        // Transfer playback to our device first
-                        await fetch(`https://api.spotify.com/v1/me/player`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${accessToken}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                device_ids: [deviceId],
-                                play: false
-                            })
-                        });
-
-                        // Start playing the victory song at the specified position
-                        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${accessToken}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                uris: [selectedTrack.uri],
-                                position_ms: startPositionMs
-                            })
-                        });
                     }
                 }
 
