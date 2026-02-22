@@ -1068,6 +1068,40 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         .radio-option {
             position: relative;
         }
+
+        /* Custom sound buttons */
+        .custom-sounds-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            justify-content: center;
+        }
+
+        .sound-btn-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .sound-btn-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 60px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-sound-red { background: radial-gradient(circle, #ff6b6b, #c0392b); }
+        .btn-sound-blue { background: radial-gradient(circle, #74b9ff, #0984e3); }
+        .btn-sound-gold { background: radial-gradient(circle, #ffeaa7, #fdcb6e); color: #2d3436; }
+        .btn-sound-green { background: radial-gradient(circle, #55efc4, #00b894); }
+        .btn-sound-purple { background: radial-gradient(circle, #a29bfe, #6c5ce7); }
     </style>
 </head>
 
@@ -1126,6 +1160,9 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             <button class="clock-btn sound-btn" id="goHawksCowbellBtn" onclick="playGoHawksGoCowbell()" aria-label="Go Hawks Cowbell" title="Go Hawks Go Cowbell">🛎️</button>
             <button class="clock-btn sound-btn" id="letsGoCowbellBtn" onclick="playLetsGoCowbell()" aria-label="Lets Go Cowbell" title="Let's Go Cowbell">🔔</button>
             <button class="mushroom-btn sound-btn" id="letsGoOrganBtn" onclick="playLetsGoOrgan()" aria-label="Lets Go Organ" title="Let's Go Organ">🎹</button>
+        </div>
+        <div id="custom-sounds-container" class="custom-sounds-container" style="display: none;">
+            <!-- Dynamically populated with custom sound buttons -->
         </div>
         <p style="margin-top: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
             Choose a song number or random, then click to celebrate with the goal horn + victory song!<br>
@@ -1559,12 +1596,21 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             }
         }
 
-        function initializeAudio() {
+        async function initializeAudio() {
+            // Fetch custom sound mappings
+            let customSounds = {};
+            try {
+                const response = await fetch('/Home/GetCustomSounds');
+                customSounds = await response.json();
+            } catch (err) {
+                console.warn('Could not load custom sounds:', err);
+            }
+
             // Goal horn audio
             goalHornAudio = new Audio();
             goalHornAudio.preload = 'auto';
             goalHornAudio.volume = 0.8;
-            goalHornAudio.src = '/audio/goal-horn.mp3';
+            goalHornAudio.src = customSounds.goalhorn || '/audio/goal-horn.mp3';
             goalHornAudio.onerror = () => {
                 console.warn('Goal horn audio file not found.');
             };
@@ -1573,7 +1619,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             hatTrickAudio = new Audio();
             hatTrickAudio.preload = 'auto';
             hatTrickAudio.volume = 0.8;
-            hatTrickAudio.src = '/audio/hat-trick.mp3';
+            hatTrickAudio.src = customSounds.hattrick || '/audio/hat-trick.mp3';
             hatTrickAudio.onerror = () => {
                 console.warn('Hat trick audio file not found. Using goal horn for hat trick celebrations.');
             };
@@ -1582,7 +1628,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             mushroomAudio = new Audio();
             mushroomAudio.preload = 'auto';
             mushroomAudio.volume = 0.8;
-            mushroomAudio.src = '/audio/mushroom.mp3';
+            mushroomAudio.src = customSounds.mushroom || '/audio/mushroom.mp3';
             mushroomAudio.onerror = () => {
                 console.warn('Mushroom audio file not found.');
             };
@@ -1591,7 +1637,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             clockAudio = new Audio();
             clockAudio.preload = 'auto';
             clockAudio.volume = 0.8;
-            clockAudio.src = '/audio/clock.mp3';
+            clockAudio.src = customSounds.clock || '/audio/clock.mp3';
             clockAudio.onerror = () => {
                 console.warn('Clock audio file not found.');
             };
@@ -1600,7 +1646,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             tromboneAudio = new Audio();
             tromboneAudio.preload = 'auto';
             tromboneAudio.volume = 0.8;
-            tromboneAudio.src = '/audio/Sad Trombone.mp3';
+            tromboneAudio.src = customSounds.trombone || '/audio/Sad Trombone.mp3';
             tromboneAudio.onerror = () => {
                 console.warn('Sad Trombone audio file not found.');
             };
@@ -1609,7 +1655,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             chargeOrganAudio = new Audio();
             chargeOrganAudio.preload = 'auto';
             chargeOrganAudio.volume = 0.8;
-            chargeOrganAudio.src = '/audio/ChargeOrgan.wav';
+            chargeOrganAudio.src = customSounds.charge || '/audio/ChargeOrgan.wav';
             chargeOrganAudio.onerror = () => {
                 console.warn('Charge Organ audio file not found.');
             };
@@ -1618,7 +1664,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             goHawksCowbellAudio = new Audio();
             goHawksCowbellAudio.preload = 'auto';
             goHawksCowbellAudio.volume = 0.8;
-            goHawksCowbellAudio.src = '/audio/GoHawksGoCowbell.wav';
+            goHawksCowbellAudio.src = customSounds.gohawks || '/audio/GoHawksGoCowbell.wav';
             goHawksCowbellAudio.onerror = () => {
                 console.warn('GoHawksGoCowbell audio file not found.');
             };
@@ -1627,7 +1673,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             letsGoCowbellAudio = new Audio();
             letsGoCowbellAudio.preload = 'auto';
             letsGoCowbellAudio.volume = 0.8;
-            letsGoCowbellAudio.src = '/audio/LetsGoCowbell.wav';
+            letsGoCowbellAudio.src = customSounds['letsgo-cowbell'] || '/audio/LetsGoCowbell.wav';
             letsGoCowbellAudio.onerror = () => {
                 console.warn('LetsGoCowbell audio file not found.');
             };
@@ -1636,7 +1682,7 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             letsGoOrganAudio = new Audio();
             letsGoOrganAudio.preload = 'auto';
             letsGoOrganAudio.volume = 0.8;
-            letsGoOrganAudio.src = '/audio/LetsGoOrgan.wav';
+            letsGoOrganAudio.src = customSounds['letsgo-organ'] || '/audio/LetsGoOrgan.wav';
             letsGoOrganAudio.onerror = () => {
                 console.warn('LetsGoOrgan audio file not found.');
             };
@@ -1645,6 +1691,9 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             if (!goalHornPlaylistId && currentPlaylists.length > 0) {
                 goalHornPlaylistId = currentPlaylists[0].Id;
             }
+
+            // Load custom sound buttons
+            await loadCustomSoundButtons();
         }
 
         function setupPlayers() {
@@ -3038,6 +3087,61 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             if (event.target === modal) {
                 closeAnnouncementModal();
             }
+        }
+
+        // ==================== Custom Sound Buttons ====================
+        let customSoundButtons = [];
+
+        async function loadCustomSoundButtons() {
+            try {
+                const response = await fetch('/Home/GetCustomSoundButtons');
+                customSoundButtons = await response.json();
+                renderCustomSoundButtons();
+            } catch (err) {
+                console.warn('Could not load custom sound buttons:', err);
+            }
+        }
+
+        function renderCustomSoundButtons() {
+            const container = document.getElementById('custom-sounds-container');
+            if (!container || customSoundButtons.length === 0) {
+                if (container) container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+            container.innerHTML = '';
+
+            customSoundButtons.forEach(button => {
+                const btn = document.createElement('button');
+                btn.className = `sound-btn ${button.colorClass}`;
+                btn.innerHTML = button.emoji;
+                btn.title = button.displayName;
+                btn.onclick = () => playCustomSound(button.path, btn);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'sound-btn-wrapper';
+                wrapper.appendChild(btn);
+
+                const label = document.createElement('span');
+                label.className = 'sound-btn-label';
+                label.textContent = button.displayName;
+                wrapper.appendChild(label);
+
+                container.appendChild(wrapper);
+            });
+        }
+
+        async function playCustomSound(path, buttonEl) {
+            buttonEl.disabled = true;
+            try {
+                const audio = new Audio(path);
+                audio.volume = 0.8;
+                await audio.play();
+            } catch (err) {
+                console.warn('Failed to play custom sound:', err);
+            }
+            setTimeout(() => buttonEl.disabled = false, 1000);
         }
     </script>
 </body>
