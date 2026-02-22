@@ -978,9 +978,29 @@ namespace HockeyDJ.Controllers
         private Dictionary<string, string> GetCustomSoundMappings()
         {
             var json = HttpContext.Session.GetString("CustomSoundMappings");
-            if (string.IsNullOrEmpty(json))
-                return new Dictionary<string, string>();
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(json))
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+
+            // Fall back to scanning the custom directory for known sound types
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            var mappings = new Dictionary<string, string>();
+            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+            if (Directory.Exists(customDir))
+            {
+                foreach (var soundType in validTypes)
+                {
+                    var match = Directory.GetFiles(customDir, $"{soundType}.*")
+                        .FirstOrDefault(f => new[] { ".mp3", ".wav", ".ogg" }.Contains(Path.GetExtension(f).ToLower()));
+                    if (match != null)
+                        mappings[soundType] = $"/audio/custom/{Path.GetFileName(match)}";
+                }
+            }
+
+            if (mappings.Count > 0)
+                SaveCustomSoundMappings(mappings);
+
+            return mappings;
         }
 
         private void SaveCustomSoundMappings(Dictionary<string, string> mappings)
@@ -991,9 +1011,42 @@ namespace HockeyDJ.Controllers
         private List<CustomSoundButton> GetCustomSoundsList()
         {
             var json = HttpContext.Session.GetString("CustomSoundButtons");
-            if (string.IsNullOrEmpty(json))
-                return new List<CustomSoundButton>();
-            return JsonSerializer.Deserialize<List<CustomSoundButton>>(json) ?? new List<CustomSoundButton>();
+            if (!string.IsNullOrEmpty(json))
+                return JsonSerializer.Deserialize<List<CustomSoundButton>>(json) ?? new List<CustomSoundButton>();
+
+            // Fall back to scanning the custom directory for non-default-type files
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            var sounds = new List<CustomSoundButton>();
+            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+            if (Directory.Exists(customDir))
+            {
+                var audioExtensions = new[] { ".mp3", ".wav", ".ogg" };
+                foreach (var file in Directory.GetFiles(customDir))
+                {
+                    var ext = Path.GetExtension(file).ToLower();
+                    if (!audioExtensions.Contains(ext)) continue;
+
+                    var nameWithoutExt = Path.GetFileNameWithoutExtension(file);
+                    if (validTypes.Contains(nameWithoutExt)) continue;
+
+                    var buttonInfo = ParseButtonInfoFromFileName(nameWithoutExt);
+                    sounds.Add(new CustomSoundButton
+                    {
+                        Id = Guid.NewGuid().ToString("N")[..8],
+                        FileName = Path.GetFileName(file),
+                        Path = $"/audio/custom/{Path.GetFileName(file)}",
+                        DisplayName = buttonInfo.DisplayName,
+                        Emoji = buttonInfo.Emoji,
+                        ColorClass = buttonInfo.ColorClass
+                    });
+                }
+            }
+
+            if (sounds.Count > 0)
+                SaveCustomSoundsList(sounds);
+
+            return sounds;
         }
 
         private void SaveCustomSoundsList(List<CustomSoundButton> sounds)
