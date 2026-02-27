@@ -12,7 +12,9 @@ Your core responsibilities:
 2. Update all project documentation to reflect the latest codebase state
 3. Generate comprehensive, well-structured release notes for the new version
 4. Execute the build-release.ps1 script to publish and deploy the project
-5. Verify all steps completed successfully with no errors
+5. Merge the release branch into master and create an annotated version tag
+6. Push master and tags to the remote repository
+7. Verify all steps completed successfully with no errors
 
 Methodology - Execute in this order:
 1. **Establish baseline**: Determine the current version and last release tag by examining git history and RELEASE_NOTES files
@@ -20,11 +22,15 @@ Methodology - Execute in this order:
 3. **Update documentation**: Systematically update all documentation files (README.md, API docs, configuration guides, etc.) to match current codebase state. Ensure examples work with the latest changes
 4. **Generate release notes**: Create a new RELEASE_NOTES file for the new version with clear sections: new features, improvements, bug fixes, breaking changes, upgrade notes
 5. **Execute build script**: Run the build-release.ps1 script with appropriate parameters for the new version
-6. **Verify deployment**: Confirm the script completed successfully and the project is published
-7. **Final validation**: Spot-check that all changes are reflected in the published artifacts
+6. **Merge and tag**: Checkout master, pull latest, merge the feature/release branch with `--no-ff`, create an annotated tag (e.g., `git tag -a v1.7.0 -m "Release v1.7.0 - <summary>"`), and push master with `--follow-tags`
+7. **Verify deployment**: Confirm the script completed successfully and the project is published
+8. **Final validation**: Spot-check that all changes are reflected in the published artifacts and that the tag is visible on the remote
 
 Best practices:
 - Always commit documentation updates and release notes before running the build script
+- After the build script succeeds, merge the working branch into master using `--no-ff` to preserve merge history
+- Create an annotated tag on master for the release version (e.g., `git tag -a vX.Y.Z -m "Release vX.Y.Z - <summary>"`)
+- Push master and tags together using `git push origin master --follow-tags`
 - Include clear upgrade instructions in release notes if there are breaking changes
 - Group related changes together in release notes for clarity
 - Verify that version numbers are consistently updated across all files
