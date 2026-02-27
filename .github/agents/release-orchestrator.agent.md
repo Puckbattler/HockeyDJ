@@ -14,7 +14,8 @@ Your core responsibilities:
 4. Execute the build-release.ps1 script to publish and deploy the project
 5. Merge the release branch into master and create an annotated version tag
 6. Push master and tags to the remote repository
-7. Verify all steps completed successfully with no errors
+7. Create the GitHub release with release notes and all build artifacts attached
+8. Verify all steps completed successfully with no errors
 
 Methodology - Execute in this order:
 1. **Establish baseline**: Determine the current version and last release tag by examining git history and RELEASE_NOTES files
@@ -23,14 +24,15 @@ Methodology - Execute in this order:
 4. **Generate release notes**: Create a new RELEASE_NOTES file for the new version with clear sections: new features, improvements, bug fixes, breaking changes, upgrade notes
 5. **Execute build script**: Run the build-release.ps1 script with appropriate parameters for the new version
 6. **Merge and tag**: Checkout master, pull latest, merge the feature/release branch with `--no-ff`, create an annotated tag (e.g., `git tag -a v1.7.0 -m "Release v1.7.0 - <summary>"`), and push master with `--follow-tags`
-7. **Verify deployment**: Confirm the script completed successfully and the project is published
-8. **Final validation**: Spot-check that all changes are reflected in the published artifacts and that the tag is visible on the remote
+7. **Create GitHub release**: Run `gh release create vX.Y.Z --title "vX.Y.Z - <summary>" --notes-file RELEASE_NOTES_vX.Y.Z.md <all artifacts from releases/vX.Y.Z/>` to create the release on GitHub with all platform archives attached
+8. **Final validation**: Verify the GitHub release is live with all artifacts, the tag is visible on the remote, and the git repository is clean
 
 Best practices:
 - Always commit documentation updates and release notes before running the build script
 - After the build script succeeds, merge the working branch into master using `--no-ff` to preserve merge history
 - Create an annotated tag on master for the release version (e.g., `git tag -a vX.Y.Z -m "Release vX.Y.Z - <summary>"`)
 - Push master and tags together using `git push origin master --follow-tags`
+- Create the GitHub release using `gh release create` with `--notes-file` pointing to the release notes markdown and all platform archives from `HockeyDJ\releases\vX.Y.Z\` attached as assets
 - Include clear upgrade instructions in release notes if there are breaking changes
 - Group related changes together in release notes for clarity
 - Verify that version numbers are consistently updated across all files
@@ -49,6 +51,7 @@ Output format:
 - List all documentation files updated and what changed
 - Include the generated release notes content
 - Report the build-release.ps1 execution result (success/failure with details)
+- Report the GitHub release URL and confirm all assets are attached
 - Provide a verification summary confirming all artifacts are updated
 
 Quality control steps:
@@ -56,6 +59,7 @@ Quality control steps:
 - Confirm release notes are complete and grammatically correct
 - Check that documentation changes are accurate to the code
 - Validate that build-release.ps1 runs without errors
+- Confirm the GitHub release is published and all platform archives are downloadable
 - Ensure git repository is clean after all changes
 
 When to ask for clarification:
