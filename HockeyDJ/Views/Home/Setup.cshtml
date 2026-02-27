@@ -263,6 +263,163 @@ ViewData["Title"] = "HockeyDJ Setup";
             color: rgba(255, 255, 255, 0.7);
             font-weight: bold;
         }
+
+        /* Sound Upload Styles */
+        .sound-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .sound-upload-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .sound-upload-card label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .upload-controls {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .upload-controls input[type="file"] {
+            font-size: 0.8em;
+            max-width: 140px;
+        }
+
+        .btn-preview, .btn-reset {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .btn-preview {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .upload-status {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.85em;
+        }
+
+        .upload-status.success { color: #2ecc71; }
+        .upload-status.error { color: #e74c3c; }
+        .upload-status.uploading { color: #f39c12; }
+
+        .custom-sound-upload {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .custom-sounds-list {
+            margin-top: 15px;
+        }
+
+        .custom-sound-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .custom-sound-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .custom-sound-preview .sound-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-sound-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .custom-sound-controls .emoji-input {
+            width: 45px;
+            text-align: center;
+            padding: 4px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+
+        .custom-sound-controls .name-input {
+            width: 120px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.85em;
+        }
+
+        .custom-sound-controls select {
+            padding: 4px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 0.85em;
+        }
+
+        .btn-delete {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 5px;
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-sound-red { background: radial-gradient(circle, #ff6b6b, #c0392b); }
+        .btn-sound-blue { background: radial-gradient(circle, #74b9ff, #0984e3); }
+        .btn-sound-gold { background: radial-gradient(circle, #ffeaa7, #fdcb6e); color: #2d3436; }
+        .btn-sound-green { background: radial-gradient(circle, #55efc4, #00b894); }
+        .btn-sound-purple { background: radial-gradient(circle, #a29bfe, #6c5ce7); }
     </style>
 </head>
 
@@ -442,6 +599,111 @@ ViewData["Title"] = "HockeyDJ Setup";
 
             <button type="submit" class="btn">Connect to Spotify & Start HockeyDJ</button>
         </form>
+
+        <!-- Sound Upload Section -->
+        <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid rgba(255,255,255,0.2);">
+            <h2 style="text-align: center;">🔊 Custom Sound Effects</h2>
+            <p style="text-align: center; color: rgba(255,255,255,0.7);">Upload custom audio files (MP3, WAV, OGG - max 10MB)</p>
+
+            <h3>Replace Default Sounds</h3>
+            <div class="sound-upload-grid">
+                <div class="sound-upload-card">
+                    <label>🚨 Goal Horn</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('goalhorn', this)">
+                        <button class="btn-preview" onclick="previewSound('goalhorn')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('goalhorn')">↩️</button>
+                    </div>
+                    <span id="status-goalhorn" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🍄 Mushroom</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('mushroom', this)">
+                        <button class="btn-preview" onclick="previewSound('mushroom')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('mushroom')">↩️</button>
+                    </div>
+                    <span id="status-mushroom" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🕐 Clock</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('clock', this)">
+                        <button class="btn-preview" onclick="previewSound('clock')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('clock')">↩️</button>
+                    </div>
+                    <span id="status-clock" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🎺 Sad Trombone</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('trombone', this)">
+                        <button class="btn-preview" onclick="previewSound('trombone')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('trombone')">↩️</button>
+                    </div>
+                    <span id="status-trombone" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🎹 Charge Organ</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('charge', this)">
+                        <button class="btn-preview" onclick="previewSound('charge')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('charge')">↩️</button>
+                    </div>
+                    <span id="status-charge" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🛎️ Go Hawks Cowbell</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('gohawks', this)">
+                        <button class="btn-preview" onclick="previewSound('gohawks')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('gohawks')">↩️</button>
+                    </div>
+                    <span id="status-gohawks" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🔔 Let's Go Cowbell</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('letsgo-cowbell', this)">
+                        <button class="btn-preview" onclick="previewSound('letsgo-cowbell')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('letsgo-cowbell')">↩️</button>
+                    </div>
+                    <span id="status-letsgo-cowbell" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🎹 Let's Go Organ</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('letsgo-organ', this)">
+                        <button class="btn-preview" onclick="previewSound('letsgo-organ')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('letsgo-organ')">↩️</button>
+                    </div>
+                    <span id="status-letsgo-organ" class="upload-status"></span>
+                </div>
+                <div class="sound-upload-card">
+                    <label>🎩 Hat Trick</label>
+                    <div class="upload-controls">
+                        <input type="file" accept=".mp3,.wav,.ogg" onchange="uploadSound('hattrick', this)">
+                        <button class="btn-preview" onclick="previewSound('hattrick')">▶️</button>
+                        <button class="btn-reset" onclick="resetSound('hattrick')">↩️</button>
+                    </div>
+                    <span id="status-hattrick" class="upload-status"></span>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px;">Add Custom Sound Buttons</h3>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9em;">
+                Upload any audio file to create a new button on the main page.
+                <strong>Tip:</strong> Start filename with an emoji for auto-styling (e.g., "🎸 Guitar Riff.mp3")
+            </p>
+
+            <div class="custom-sound-upload">
+                <input type="file" id="upload-custom-sound" accept=".mp3,.wav,.ogg" onchange="uploadCustomSound(this)">
+                <span id="custom-upload-status" class="upload-status"></span>
+            </div>
+
+            <div id="custom-sounds-list" class="custom-sounds-list">
+            </div>
+        </div>
     </div>
 
     <script>
@@ -710,6 +972,258 @@ ViewData["Title"] = "HockeyDJ Setup";
                 document.getElementById('songStartTimestamps').value = songStartTimestamps;
             }
         });
+
+        // ==================== Sound Upload Functions ====================
+
+        let customSoundPaths = {};
+        const defaultSoundPaths = {
+            'goalhorn': '/audio/goal-horn.mp3',
+            'mushroom': '/audio/mushroom.mp3',
+            'clock': '/audio/clock.mp3',
+            'trombone': '/audio/Sad Trombone.mp3',
+            'charge': '/audio/ChargeOrgan.wav',
+            'gohawks': '/audio/GoHawksGoCowbell.wav',
+            'letsgo-cowbell': '/audio/LetsGoCowbell.wav',
+            'letsgo-organ': '/audio/LetsGoOrgan.wav',
+            'hattrick': '/audio/hat-trick.mp3'
+        };
+
+        // Load existing custom sound mappings on page load
+        fetch('/Home/GetCustomSounds')
+            .then(r => r.json())
+            .then(mappings => {
+                customSoundPaths = mappings;
+                Object.keys(mappings).forEach(type => {
+                    const el = document.getElementById(`status-${type}`);
+                    if (el) {
+                        el.textContent = '✓ Custom sound loaded';
+                        el.className = 'upload-status success';
+                    }
+                });
+            })
+            .catch(() => {});
+
+        async function uploadSound(soundType, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById(`status-${soundType}`);
+            statusEl.textContent = 'Uploading...';
+            statusEl.className = 'upload-status uploading';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('soundType', soundType);
+
+            try {
+                const response = await fetch('/Home/UploadSound', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.textContent = '✓ Uploaded';
+                    statusEl.className = 'upload-status success';
+                    customSoundPaths[soundType] = result.path;
+                } else {
+                    statusEl.textContent = '✗ ' + result.error;
+                    statusEl.className = 'upload-status error';
+                }
+            } catch (err) {
+                statusEl.textContent = '✗ Upload failed';
+                statusEl.className = 'upload-status error';
+            }
+        }
+
+        function previewSound(soundType) {
+            const path = customSoundPaths[soundType] || defaultSoundPaths[soundType];
+            if (path) {
+                const audio = new Audio(path);
+                audio.play();
+            }
+        }
+
+        async function resetSound(soundType) {
+            if (!confirm('Reset to default sound?')) return;
+
+            await fetch('/Home/ResetSound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ soundType })
+            });
+
+            delete customSoundPaths[soundType];
+            const el = document.getElementById(`status-${soundType}`);
+            if (el) {
+                el.textContent = 'Using default';
+                el.className = 'upload-status';
+            }
+        }
+
+        async function uploadCustomSound(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('custom-upload-status');
+            statusEl.textContent = 'Uploading...';
+            statusEl.className = 'upload-status uploading';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/Home/UploadCustomSound', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.textContent = '✓ Button created!';
+                    statusEl.className = 'upload-status success';
+                    addCustomSoundToList(result.button);
+                    input.value = '';
+                } else {
+                    statusEl.textContent = '✗ ' + result.error;
+                    statusEl.className = 'upload-status error';
+                }
+            } catch (err) {
+                statusEl.textContent = '✗ Upload failed';
+                statusEl.className = 'upload-status error';
+            }
+        }
+
+        function addCustomSoundToList(button) {
+            const list = document.getElementById('custom-sounds-list');
+            const item = document.createElement('div');
+            item.className = 'custom-sound-item';
+            item.id = `custom-sound-${button.id}`;
+
+            // Preview section
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'custom-sound-preview';
+
+            const previewButton = document.createElement('button');
+            previewButton.classList.add('sound-btn');
+            if (button.colorClass) {
+                previewButton.classList.add(button.colorClass);
+            }
+            previewButton.textContent = button.emoji || '';
+            previewButton.addEventListener('click', function () {
+                previewCustomSound(button.path);
+            });
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'custom-sound-name';
+            nameSpan.textContent = button.displayName || '';
+
+            previewDiv.appendChild(previewButton);
+            previewDiv.appendChild(nameSpan);
+
+            // Controls section
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'custom-sound-controls';
+
+            const emojiInput = document.createElement('input');
+            emojiInput.type = 'text';
+            emojiInput.maxLength = 4;
+            emojiInput.className = 'emoji-input';
+            emojiInput.value = button.emoji || '';
+            emojiInput.addEventListener('change', function () {
+                updateCustomSound(button.id, emojiInput.value, null, null);
+            });
+
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'name-input';
+            nameInput.value = button.displayName || '';
+            nameInput.addEventListener('change', function () {
+                updateCustomSound(button.id, null, nameInput.value, null);
+            });
+
+            const select = document.createElement('select');
+            const colorOptions = [
+                { value: 'btn-sound-red', text: '🔴 Red' },
+                { value: 'btn-sound-blue', text: '🔵 Blue' },
+                { value: 'btn-sound-gold', text: '🟡 Gold' },
+                { value: 'btn-sound-green', text: '🟢 Green' },
+                { value: 'btn-sound-purple', text: '🟣 Purple' }
+            ];
+
+            colorOptions.forEach(function (opt) {
+                const optionEl = document.createElement('option');
+                optionEl.value = opt.value;
+                optionEl.textContent = opt.text;
+                if (button.colorClass === opt.value) {
+                    optionEl.selected = true;
+                }
+                select.appendChild(optionEl);
+            });
+
+            select.addEventListener('change', function () {
+                updateCustomSound(button.id, null, null, select.value);
+            });
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn-delete';
+            deleteButton.textContent = '🗑️';
+            deleteButton.addEventListener('click', function () {
+                deleteCustomSound(button.id);
+            });
+
+            controlsDiv.appendChild(emojiInput);
+            controlsDiv.appendChild(nameInput);
+            controlsDiv.appendChild(select);
+            controlsDiv.appendChild(deleteButton);
+
+            item.appendChild(previewDiv);
+            item.appendChild(controlsDiv);
+
+            list.appendChild(item);
+        }
+
+        function previewCustomSound(path) {
+            const audio = new Audio(path);
+            audio.play();
+        }
+
+        async function updateCustomSound(id, emoji, displayName, colorClass) {
+            await fetch('/Home/UpdateCustomSound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, emoji, displayName, colorClass })
+            });
+            loadCustomSoundsList();
+        }
+
+        async function deleteCustomSound(id) {
+            if (!confirm('Delete this sound button?')) return;
+
+            await fetch('/Home/DeleteCustomSound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+
+            const el = document.getElementById(`custom-sound-${id}`);
+            if (el) el.remove();
+        }
+
+        async function loadCustomSoundsList() {
+            try {
+                const response = await fetch('/Home/GetCustomSoundButtons');
+                const sounds = await response.json();
+
+                const list = document.getElementById('custom-sounds-list');
+                list.innerHTML = '';
+                sounds.forEach(button => addCustomSoundToList(button));
+            } catch (err) {
+                console.warn('Could not load custom sounds list:', err);
+            }
+        }
+
+        loadCustomSoundsList();
     </script>
 </body>
 

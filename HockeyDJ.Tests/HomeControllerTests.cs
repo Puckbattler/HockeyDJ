@@ -1,4 +1,5 @@
 using HockeyDJ.Controllers;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,7 @@ public class HomeControllerTests
 {
     private readonly Mock<ILogger<HomeController>> _loggerMock;
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IWebHostEnvironment> _envMock;
     private readonly HomeController _controller;
     private readonly Mock<ISession> _sessionMock;
     private readonly Dictionary<string, byte[]> _sessionStorage;
@@ -21,6 +23,8 @@ public class HomeControllerTests
     {
         _loggerMock = new Mock<ILogger<HomeController>>();
         _configurationMock = new Mock<IConfiguration>();
+        _envMock = new Mock<IWebHostEnvironment>();
+        _envMock.Setup(e => e.WebRootPath).Returns(Path.Combine(Path.GetTempPath(), "HockeyDJTests", "wwwroot"));
         _sessionStorage = new Dictionary<string, byte[]>();
         _sessionMock = new Mock<ISession>();
 
@@ -42,7 +46,7 @@ public class HomeControllerTests
         var httpContextMock = new Mock<HttpContext>();
         httpContextMock.Setup(c => c.Session).Returns(_sessionMock.Object);
 
-        _controller = new HomeController(_loggerMock.Object, _configurationMock.Object)
+        _controller = new HomeController(_loggerMock.Object, _configurationMock.Object, _envMock.Object)
         {
             ControllerContext = new ControllerContext
             {
