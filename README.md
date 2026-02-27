@@ -48,6 +48,14 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **🎹 Let's Go Organ Button**: Arena organ chant
 - **Cooldown Protection**: Each button has a short cooldown to prevent double-triggering
 
+### 🔊 Sound Upload & Customization
+- **Upload via UI**: Replace any built-in sound effect (goal horn, mushroom, clock, trombone, charge, cowbells, organ, hat trick) directly from the Settings page
+- **Custom Sound Buttons**: Upload additional sound files that appear as playable buttons on the main page
+- **Supported Formats**: MP3, WAV, and OGG audio files up to 10 MB
+- **Emoji & Color Customization**: Name files with a leading emoji (e.g., `🎺 Charge.mp3`) to auto-detect button emoji, or edit emoji/display name/color after upload
+- **Persistent Storage**: Custom sounds are saved to `wwwroot/audio/custom/` and automatically rediscovered across sessions
+- **Reset to Default**: Reset any replaced sound back to the original built-in file with one click
+
 ### 🔧 Configuration Management
 - **Export Configuration**: Save your settings to a JSON file for backup or sharing
 - **Import Configuration**: Restore settings from a previously exported file
@@ -192,6 +200,17 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
 - **🔔 Let's Go Cowbell**: Generic team chant cowbell
 - **🎹 Let's Go Organ**: Arena organ chant
 
+### Sound Upload & Customization (Settings Page)
+1. **Replace Built-in Sounds**: On the Settings page, use the Sound Upload section to replace any default sound effect
+   - Select the sound type (Goal Horn, Mushroom, Clock, etc.)
+   - Upload an MP3, WAV, or OGG file (up to 10 MB)
+   - Click "Reset" to revert to the original built-in sound
+2. **Add Custom Sound Buttons**: Upload additional sound files to create new playable buttons on the main page
+   - Uploaded files appear as new sound effect buttons alongside the built-in ones
+   - Customize the emoji, display name, and button color for each custom sound
+   - Tip: Name files with a leading emoji (e.g., `🎺 Charge.mp3`) to auto-detect the button emoji
+3. **Manage Custom Sounds**: Edit or delete custom sound buttons from the Settings page
+
 ## 📁 Audio File Expectations
 
 Place custom audio files under `wwwroot/audio/`. Common files used by the application include (exact filenames matter):
@@ -206,6 +225,13 @@ Place custom audio files under `wwwroot/audio/`. Common files used by the applic
 - `GoHawksGoCowbell.wav` - Team chant cowbell
 - `LetsGoCowbell.wav` - Generic chant cowbell
 - `LetsGoOrgan.wav` - Arena organ chant
+
+**Custom Sounds (uploaded via UI):**
+- `wwwroot/audio/custom/` - Directory where uploaded sounds are stored
+- Built-in sound replacements are saved as `<soundtype>.<ext>` (e.g., `goalhorn.mp3`)
+- Additional custom sound files keep their original names (sanitized for safety)
+- Supported formats: `.mp3`, `.wav`, `.ogg` (up to 10 MB each)
+- Custom sounds are automatically rediscovered on startup — no manual configuration needed
 
 **Home Team Announcement Audio:**
 - `LHA Goal.mp3` - Goal announcement intro
