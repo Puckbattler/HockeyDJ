@@ -844,26 +844,44 @@ namespace HockeyDJ.Controllers
             if (!validTypes.Contains(soundType))
                 return BadRequest(new { success = false, error = "Invalid sound type" });
 
+            if (file == null)
+            {
+                return BadRequest(new { success = false, error = "No file uploaded." });
+            }
+
+            if (file.Length <= 0)
+            {
+                return BadRequest(new { success = false, error = "Uploaded file is empty." });
+            }
+
             var ext = Path.GetExtension(file.FileName).ToLower();
             if (!new[] { ".mp3", ".wav", ".ogg" }.Contains(ext))
                 return BadRequest(new { success = false, error = "Invalid file type. Use MP3, WAV, or OGG." });
 
-            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
-            Directory.CreateDirectory(customDir);
-
-            var fileName = $"{soundType}{ext}";
-            var filePath = Path.Combine(customDir, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
+                var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+                Directory.CreateDirectory(customDir);
+
+                var fileName = $"{soundType}{ext}";
+                var filePath = Path.Combine(customDir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var customSounds = GetCustomSoundMappings();
+                customSounds[soundType] = $"/audio/custom/{fileName}";
+                SaveCustomSoundMappings(customSounds);
+
+                return Json(new { success = true, path = customSounds[soundType] });
             }
-
-            var customSounds = GetCustomSoundMappings();
-            customSounds[soundType] = $"/audio/custom/{fileName}";
-            SaveCustomSoundMappings(customSounds);
-
-            return Json(new { success = true, path = customSounds[soundType] });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading sound {SoundType}", soundType);
+                return StatusCode(500, new { success = false, error = "An error occurred while saving the uploaded sound." });
+            }
         }
 
         [HttpPost]
