@@ -3115,7 +3115,8 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
             customSoundButtons.forEach(button => {
                 const btn = document.createElement('button');
                 btn.className = `sound-btn ${button.colorClass}`;
-                btn.innerHTML = button.emoji;
+                btn.textContent = button.emoji;
+                btn.setAttribute('aria-label', button.displayName || 'Custom sound');
                 btn.title = button.displayName;
                 btn.onclick = () => playCustomSound(button.path, btn);
 
