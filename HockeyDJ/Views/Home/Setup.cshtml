@@ -1099,28 +1099,87 @@ ViewData["Title"] = "HockeyDJ Setup";
             const item = document.createElement('div');
             item.className = 'custom-sound-item';
             item.id = `custom-sound-${button.id}`;
-            item.innerHTML = `
-                <div class="custom-sound-preview">
-                    <button class="sound-btn ${button.colorClass}" onclick="previewCustomSound('${button.path}')">
-                        ${button.emoji}
-                    </button>
-                    <span class="custom-sound-name">${button.displayName}</span>
-                </div>
-                <div class="custom-sound-controls">
-                    <input type="text" value="${button.emoji}" maxlength="4" class="emoji-input"
-                           onchange="updateCustomSound('${button.id}', this.value, null, null)">
-                    <input type="text" value="${button.displayName}" class="name-input"
-                           onchange="updateCustomSound('${button.id}', null, this.value, null)">
-                    <select onchange="updateCustomSound('${button.id}', null, null, this.value)">
-                        <option value="btn-sound-red" ${button.colorClass === 'btn-sound-red' ? 'selected' : ''}>🔴 Red</option>
-                        <option value="btn-sound-blue" ${button.colorClass === 'btn-sound-blue' ? 'selected' : ''}>🔵 Blue</option>
-                        <option value="btn-sound-gold" ${button.colorClass === 'btn-sound-gold' ? 'selected' : ''}>🟡 Gold</option>
-                        <option value="btn-sound-green" ${button.colorClass === 'btn-sound-green' ? 'selected' : ''}>🟢 Green</option>
-                        <option value="btn-sound-purple" ${button.colorClass === 'btn-sound-purple' ? 'selected' : ''}>🟣 Purple</option>
-                    </select>
-                    <button onclick="deleteCustomSound('${button.id}')" class="btn-delete">🗑️</button>
-                </div>
-            `;
+
+            // Preview section
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'custom-sound-preview';
+
+            const previewButton = document.createElement('button');
+            previewButton.classList.add('sound-btn');
+            if (button.colorClass) {
+                previewButton.classList.add(button.colorClass);
+            }
+            previewButton.textContent = button.emoji || '';
+            previewButton.addEventListener('click', function () {
+                previewCustomSound(button.path);
+            });
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'custom-sound-name';
+            nameSpan.textContent = button.displayName || '';
+
+            previewDiv.appendChild(previewButton);
+            previewDiv.appendChild(nameSpan);
+
+            // Controls section
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'custom-sound-controls';
+
+            const emojiInput = document.createElement('input');
+            emojiInput.type = 'text';
+            emojiInput.maxLength = 4;
+            emojiInput.className = 'emoji-input';
+            emojiInput.value = button.emoji || '';
+            emojiInput.addEventListener('change', function () {
+                updateCustomSound(button.id, emojiInput.value, null, null);
+            });
+
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'name-input';
+            nameInput.value = button.displayName || '';
+            nameInput.addEventListener('change', function () {
+                updateCustomSound(button.id, null, nameInput.value, null);
+            });
+
+            const select = document.createElement('select');
+            const colorOptions = [
+                { value: 'btn-sound-red', text: '🔴 Red' },
+                { value: 'btn-sound-blue', text: '🔵 Blue' },
+                { value: 'btn-sound-gold', text: '🟡 Gold' },
+                { value: 'btn-sound-green', text: '🟢 Green' },
+                { value: 'btn-sound-purple', text: '🟣 Purple' }
+            ];
+
+            colorOptions.forEach(function (opt) {
+                const optionEl = document.createElement('option');
+                optionEl.value = opt.value;
+                optionEl.textContent = opt.text;
+                if (button.colorClass === opt.value) {
+                    optionEl.selected = true;
+                }
+                select.appendChild(optionEl);
+            });
+
+            select.addEventListener('change', function () {
+                updateCustomSound(button.id, null, null, select.value);
+            });
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn-delete';
+            deleteButton.textContent = '🗑️';
+            deleteButton.addEventListener('click', function () {
+                deleteCustomSound(button.id);
+            });
+
+            controlsDiv.appendChild(emojiInput);
+            controlsDiv.appendChild(nameInput);
+            controlsDiv.appendChild(select);
+            controlsDiv.appendChild(deleteButton);
+
+            item.appendChild(previewDiv);
+            item.appendChild(controlsDiv);
+
             list.appendChild(item);
         }
 

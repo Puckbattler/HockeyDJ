@@ -887,6 +887,11 @@ namespace HockeyDJ.Controllers
         [HttpPost]
         public IActionResult ResetSound([FromBody] ResetSoundRequest request)
         {
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            if (request == null || !validTypes.Contains(request.SoundType))
+                return BadRequest(new { success = false, error = "Invalid sound type" });
+
             var customSounds = GetCustomSoundMappings();
             customSounds.Remove(request.SoundType);
             SaveCustomSoundMappings(customSounds);
@@ -976,6 +981,11 @@ namespace HockeyDJ.Controllers
             return Json(new { success = true });
         }
 
+        private static readonly HashSet<string> AllowedColorClasses = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "btn-sound-red", "btn-sound-blue", "btn-sound-gold", "btn-sound-green", "btn-sound-purple"
+        };
+
         [HttpPost]
         public IActionResult UpdateCustomSound([FromBody] UpdateCustomSoundRequest request)
         {
@@ -983,9 +993,21 @@ namespace HockeyDJ.Controllers
             var sound = customSoundsList.FirstOrDefault(s => s.Id == request.Id);
             if (sound != null)
             {
-                if (request.Emoji != null) sound.Emoji = request.Emoji;
-                if (request.DisplayName != null) sound.DisplayName = request.DisplayName;
-                if (request.ColorClass != null) sound.ColorClass = request.ColorClass;
+                if (request.Emoji != null)
+                {
+                    // Limit emoji to 4 characters max
+                    sound.Emoji = request.Emoji.Length > 4 ? request.Emoji[..4] : request.Emoji;
+                }
+                if (request.DisplayName != null)
+                {
+                    // Limit display name length and trim
+                    var name = request.DisplayName.Trim();
+                    sound.DisplayName = name.Length > 100 ? name[..100] : name;
+                }
+                if (request.ColorClass != null && AllowedColorClasses.Contains(request.ColorClass))
+                {
+                    sound.ColorClass = request.ColorClass;
+                }
                 SaveCustomSoundsList(customSoundsList);
             }
             return Json(new { success = true });
@@ -1095,10 +1117,37 @@ namespace HockeyDJ.Controllers
             return (emoji, displayName, colorClass);
         }
 
+        private static readonly HashSet<string> WindowsReservedDeviceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+        };
+
         private string SanitizeFileName(string fileName)
         {
+            if (string.IsNullOrWhiteSpace(fileName))
+                fileName = "untitled";
+
             var invalid = Path.GetInvalidFileNameChars();
-            return new string(fileName.Where(c => !invalid.Contains(c)).ToArray());
+            var sanitized = new string(fileName.Where(c => !invalid.Contains(c)).ToArray());
+
+            if (string.IsNullOrWhiteSpace(sanitized))
+                sanitized = "untitled";
+
+            const int MaxFileNameLength = 255;
+            if (sanitized.Length > MaxFileNameLength)
+                sanitized = sanitized[..MaxFileNameLength];
+
+            var nameWithoutExtension = Path.GetFileNameWithoutExtension(sanitized);
+            var extension = Path.GetExtension(sanitized);
+
+            if (!string.IsNullOrEmpty(nameWithoutExtension) && WindowsReservedDeviceNames.Contains(nameWithoutExtension))
+            {
+                sanitized = "_" + nameWithoutExtension + extension;
+            }
+
+            return sanitized;
         }
 
         public IActionResult Privacy()
