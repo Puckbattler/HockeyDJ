@@ -14,3 +14,8 @@
 
 # Test results
 TestResults/
+
+# Node.js / Playwright (dev tooling only)
+node_modules/
+package.json
+package-lock.json
