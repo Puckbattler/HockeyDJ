@@ -950,11 +950,11 @@ ViewData["Title"] = "HockeyDJ Setup";
 
         // Populate existing roster data if available
         window.addEventListener('DOMContentLoaded', function() {
-            const homeTeamName = '@ViewBag.HomeTeamName';
-            const homeTeamRoster = '@Html.Raw(ViewBag.HomeTeamRoster ?? "")';
-            const awayTeamName = '@ViewBag.AwayTeamName';
-            const awayTeamRoster = '@Html.Raw(ViewBag.AwayTeamRoster ?? "")';
-            const songStartTimestamps = '@Html.Raw(ViewBag.SongStartTimestamps ?? "")';
+            const homeTeamName = @Json.Serialize(ViewBag.HomeTeamName ?? "");
+            const homeTeamRoster = @Json.Serialize(ViewBag.HomeTeamRoster ?? "");
+            const awayTeamName = @Json.Serialize(ViewBag.AwayTeamName ?? "");
+            const awayTeamRoster = @Json.Serialize(ViewBag.AwayTeamRoster ?? "");
+            const songStartTimestamps = @Json.Serialize(ViewBag.SongStartTimestamps ?? "");
 
             if (homeTeamName) {
                 document.getElementById('homeTeamName').value = homeTeamName;
