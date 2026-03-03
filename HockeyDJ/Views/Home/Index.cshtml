@@ -1144,6 +1144,88 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
         .btn-sound-gold { background: radial-gradient(circle, #ffeaa7, #fdcb6e); color: #2d3436; }
         .btn-sound-green { background: radial-gradient(circle, #55efc4, #00b894); }
         .btn-sound-purple { background: radial-gradient(circle, #a29bfe, #6c5ce7); }
+        /* Hotkey hints on buttons */
+        .sound-btn, .goal-horn-btn {
+            position: relative;
+        }
+        .hotkey-hint {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            pointer-events: none;
+        }
+
+        /* Hotkey help modal */
+        #hotkey-help-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 60, 114, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            z-index: 10000;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        #hotkey-help-modal.show {
+            display: block;
+        }
+        #hotkey-help-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+        #hotkey-help-overlay.show {
+            display: block;
+        }
+        .hotkey-list {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1rem;
+            align-items: center;
+        }
+        .hotkey-key {
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            text-align: center;
+            min-width: 30px;
+            display: inline-block;
+        }
+        .hotkey-help-title {
+            color: #ffeaa7;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .hotkey-help-close {
+            display: block;
+            margin: 1.5rem auto 0;
+            padding: 8px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .hotkey-help-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
     </style>
 </head>
 
@@ -1379,6 +1461,27 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 <button class="announce-btn" onclick="announceLineup()">📣 Announce Starting Lineup</button>
             </div>
         </div>
+    </div>
+
+    <!-- Hotkey Help Modal -->
+    <div id="hotkey-help-overlay" onclick="closeHotkeyHelp()"></div>
+    <div id="hotkey-help-modal">
+        <h2 class="hotkey-help-title">⌨️ Keyboard Shortcuts</h2>
+        <div class="hotkey-list">
+            <span class="hotkey-key">G</span><span>Goal Horn</span>
+            <span class="hotkey-key">M</span><span>Mushroom Sound</span>
+            <span class="hotkey-key">C</span><span>Clock Sound</span>
+            <span class="hotkey-key">T</span><span>Sad Trombone</span>
+            <span class="hotkey-key">O</span><span>Charge Organ</span>
+            <span class="hotkey-key">H</span><span>Go Hawks Cowbell</span>
+            <span class="hotkey-key">L</span><span>Let's Go Cowbell</span>
+            <span class="hotkey-key">P</span><span>Pause Playback</span>
+            <span class="hotkey-key">Space</span><span>Play Random from Active Playlist</span>
+            <span class="hotkey-key">1-0</span><span>Select Player 1-10</span>
+            <span class="hotkey-key">?</span><span>This Help</span>
+            <span class="hotkey-key">Esc</span><span>Close Modal</span>
+        </div>
+        <button class="hotkey-help-close" onclick="closeHotkeyHelp()">Close</button>
     </div>
 
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
@@ -3271,6 +3374,147 @@ ViewData["Title"] = "HockeyDJ - Hockey Music Controller";
                 console.warn('Failed to play custom sound:', err);
             }
             setTimeout(() => buttonEl.disabled = false, 1000);
+        }
+        // === Hotkey Support ===
+        const defaultHotkeys = {
+            'g': { action: 'goalhorn', description: 'Goal Horn' },
+            'm': { action: 'mushroom', description: 'Mushroom Sound' },
+            'c': { action: 'clock', description: 'Clock Sound' },
+            't': { action: 'trombone', description: 'Sad Trombone' },
+            'o': { action: 'organ', description: 'Charge Organ' },
+            'h': { action: 'gohawks', description: 'Go Hawks Cowbell' },
+            'l': { action: 'letsgo', description: "Let's Go Cowbell" },
+            'p': { action: 'pause', description: 'Pause Playback' },
+            ' ': { action: 'playrandom', description: 'Play Random' },
+            '1': { action: 'player1', description: 'Select Player 1' },
+            '2': { action: 'player2', description: 'Select Player 2' },
+            '3': { action: 'player3', description: 'Select Player 3' },
+            '4': { action: 'player4', description: 'Select Player 4' },
+            '5': { action: 'player5', description: 'Select Player 5' },
+            '6': { action: 'player6', description: 'Select Player 6' },
+            '7': { action: 'player7', description: 'Select Player 7' },
+            '8': { action: 'player8', description: 'Select Player 8' },
+            '9': { action: 'player9', description: 'Select Player 9' },
+            '0': { action: 'player10', description: 'Select Player 10' },
+            '?': { action: 'help', description: 'Show Hotkey Help' },
+            'Escape': { action: 'closemodal', description: 'Close Modal' }
+        };
+
+        let hotkeysEnabled = true;
+
+        document.addEventListener('keydown', handleHotkey);
+
+        // Disable hotkeys when focused on input fields
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('focus', () => hotkeysEnabled = false);
+            el.addEventListener('blur', () => hotkeysEnabled = true);
+        });
+
+        addHotkeyHints();
+
+        function handleHotkey(event) {
+            if (!hotkeysEnabled) return;
+            if (event.target.matches('input, textarea, select')) return;
+            if (event.ctrlKey || event.altKey || event.metaKey) return;
+
+            const key = event.key === ' ' ? ' ' : event.key.toLowerCase();
+            const hotkey = defaultHotkeys[key] || defaultHotkeys[event.key];
+
+            if (!hotkey) return;
+
+            event.preventDefault();
+            executeHotkeyAction(hotkey.action);
+        }
+
+        function executeHotkeyAction(action) {
+            switch (action) {
+                case 'goalhorn':
+                    playGoalHorn();
+                    break;
+                case 'mushroom':
+                    playMushroomSound();
+                    break;
+                case 'clock':
+                    playClockSound();
+                    break;
+                case 'trombone':
+                    playTromboneSound();
+                    break;
+                case 'organ':
+                    playChargeOrgan();
+                    break;
+                case 'gohawks':
+                    playGoHawksGoCowbell();
+                    break;
+                case 'letsgo':
+                    playLetsGoCowbell();
+                    break;
+                case 'pause':
+                    pausePlayback();
+                    break;
+                case 'playrandom':
+                    if (activePlaylistId) {
+                        playRandomFromPlaylist(activePlaylistId, activePlayerIndex);
+                    }
+                    break;
+                case 'player1': case 'player2': case 'player3': case 'player4':
+                case 'player5': case 'player6': case 'player7': case 'player8':
+                case 'player9': case 'player10':
+                    selectPlayerByHotkey(parseInt(action.replace('player', '')));
+                    break;
+                case 'help':
+                    showHotkeyHelp();
+                    break;
+                case 'closemodal':
+                    closeHotkeyHelp();
+                    closeAnnouncementModal();
+                    break;
+            }
+        }
+
+        function selectPlayerByHotkey(number) {
+            const playerNum = number === 10 ? 0 : number;
+            const radios = document.querySelectorAll('input[name="songSelection"]');
+            // Number keys 1-9 map to roster positions (index 1-9), 0 maps to position 10 (index 10)
+            const targetIndex = number === 10 ? 10 : number;
+            if (targetIndex < radios.length) {
+                radios[targetIndex].checked = true;
+                radios[targetIndex].dispatchEvent(new Event('change'));
+                updateRadioStyles();
+                lastSelectedPlayerNumber = radios[targetIndex].dataset.playerNumber || '';
+            }
+        }
+
+        function showHotkeyHelp() {
+            document.getElementById('hotkey-help-modal').classList.add('show');
+            document.getElementById('hotkey-help-overlay').classList.add('show');
+        }
+
+        function closeHotkeyHelp() {
+            document.getElementById('hotkey-help-modal').classList.remove('show');
+            document.getElementById('hotkey-help-overlay').classList.remove('show');
+        }
+
+        function addHotkeyHints() {
+            const hints = {
+                'goalHornBtn': 'G',
+                'mushroomBtn': 'M',
+                'clockBtn': 'C',
+                'tromboneBtn': 'T',
+                'chargeOrganBtn': 'O',
+                'goHawksCowbellBtn': 'H',
+                'letsGoCowbellBtn': 'L'
+            };
+
+            Object.entries(hints).forEach(([btnId, key]) => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    const hint = document.createElement('span');
+                    hint.className = 'hotkey-hint';
+                    hint.textContent = key;
+                    btn.appendChild(hint);
+                }
+            });
         }
     </script>
 </body>
