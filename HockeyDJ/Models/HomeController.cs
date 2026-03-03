@@ -933,6 +933,8 @@ namespace HockeyDJ.Controllers
                 _logger.LogError(ex, "Error setting game mode");
                 return Json(new { success = false, error = ex.Message });
             }
+        }
+
         // ==================== Sound Upload Endpoints ====================
 
         [HttpPost]
