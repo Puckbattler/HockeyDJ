@@ -1,4 +1,5 @@
 using HockeyDJ.Controllers;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,7 @@ public class HomeControllerTests
 {
     private readonly Mock<ILogger<HomeController>> _loggerMock;
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IWebHostEnvironment> _envMock;
     private readonly HomeController _controller;
     private readonly Mock<ISession> _sessionMock;
     private readonly Dictionary<string, byte[]> _sessionStorage;
@@ -21,6 +23,8 @@ public class HomeControllerTests
     {
         _loggerMock = new Mock<ILogger<HomeController>>();
         _configurationMock = new Mock<IConfiguration>();
+        _envMock = new Mock<IWebHostEnvironment>();
+        _envMock.Setup(e => e.WebRootPath).Returns(Path.Combine(Path.GetTempPath(), "HockeyDJTests", "wwwroot"));
         _sessionStorage = new Dictionary<string, byte[]>();
         _sessionMock = new Mock<ISession>();
 
@@ -42,7 +46,7 @@ public class HomeControllerTests
         var httpContextMock = new Mock<HttpContext>();
         httpContextMock.Setup(c => c.Session).Returns(_sessionMock.Object);
 
-        _controller = new HomeController(_loggerMock.Object, _configurationMock.Object)
+        _controller = new HomeController(_loggerMock.Object, _configurationMock.Object, _envMock.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -738,9 +742,59 @@ public class HomeControllerTests
         Assert.NotNull(jsonResult.Value);
     }
 
-    #endregion
+    [Fact]
+    public void ImportConfiguration_WithMultiLineRoster_ReturnsSuccess()
+    {
+        // Arrange - config with multi-line roster data (newlines in values)
+        var config = new
+        {
+            clientId = "test_client",
+            clientSecret = "test_secret",
+            redirectUri = "http://localhost/callback",
+            playlistUrls = "https://open.spotify.com/playlist/abc123",
+            homeTeamRoster = "1:Player One\n2:Player Two\n3:Player Three",
+            awayTeamRoster = "10:Away One\n11:Away Two",
+            songStartTimestamps = "1:0:30\n2:1:00\n3:0:45"
+        };
+        var request = new ImportConfigurationRequest
+        {
+            ConfigData = JsonSerializer.Serialize(config)
+        };
 
-    #region Shuffle Mode Tests
+        // Act
+        var result = _controller.ImportConfiguration(request);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        var json = JsonSerializer.Serialize(jsonResult.Value);
+        var doc = JsonSerializer.Deserialize<JsonElement>(json);
+        Assert.True(doc.GetProperty("success").GetBoolean());
+        Assert.Contains("Player One", doc.GetProperty("config").GetProperty("homeTeamRoster").GetString());
+        Assert.Contains("Away One", doc.GetProperty("config").GetProperty("awayTeamRoster").GetString());
+        Assert.Contains("1:0:30", doc.GetProperty("config").GetProperty("songStartTimestamps").GetString());
+    }
+
+    [Fact]
+    public void Setup_LoadsMultiLineRosterData()
+    {
+        // Arrange - simulate returning to Setup with multi-line session data
+        SetSessionString("HomeTeamRoster", "1:Player One\n2:Player Two\n3:Player Three");
+        SetSessionString("AwayTeamRoster", "10:Away One\n11:Away Two");
+        SetSessionString("SongStartTimestamps", "1:0:30\n2:1:00");
+        SetSessionString("HomeTeamName", "Lightning");
+        SetSessionString("AwayTeamName", "Bruins");
+
+        // Act
+        var result = _controller.Setup() as ViewResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("1:Player One\n2:Player Two\n3:Player Three", result.ViewData["HomeTeamRoster"]);
+        Assert.Equal("10:Away One\n11:Away Two", result.ViewData["AwayTeamRoster"]);
+        Assert.Equal("1:0:30\n2:1:00", result.ViewData["SongStartTimestamps"]);
+        Assert.Equal("Lightning", result.ViewData["HomeTeamName"]);
+        Assert.Equal("Bruins", result.ViewData["AwayTeamName"]);
+    }
 
     [Fact]
     public void SetShuffleMode_ValidRandomMode_ReturnsSuccess()

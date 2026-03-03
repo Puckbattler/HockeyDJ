@@ -9,11 +9,13 @@ namespace HockeyDJ.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             _logger = logger;
             _configuration = configuration;
+            _env = env;
         }
 
         public IActionResult Index()
@@ -931,6 +933,321 @@ namespace HockeyDJ.Controllers
                 _logger.LogError(ex, "Error setting game mode");
                 return Json(new { success = false, error = ex.Message });
             }
+        // ==================== Sound Upload Endpoints ====================
+
+        [HttpPost]
+        [RequestSizeLimit(10_000_000)] // 10MB limit
+        public async Task<IActionResult> UploadSound(IFormFile file, string soundType)
+        {
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            if (!validTypes.Contains(soundType))
+                return BadRequest(new { success = false, error = "Invalid sound type" });
+
+            if (file == null)
+            {
+                return BadRequest(new { success = false, error = "No file uploaded." });
+            }
+
+            if (file.Length <= 0)
+            {
+                return BadRequest(new { success = false, error = "Uploaded file is empty." });
+            }
+
+            var ext = Path.GetExtension(file.FileName).ToLower();
+            if (!new[] { ".mp3", ".wav", ".ogg" }.Contains(ext))
+                return BadRequest(new { success = false, error = "Invalid file type. Use MP3, WAV, or OGG." });
+
+            try
+            {
+                var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+                Directory.CreateDirectory(customDir);
+
+                var fileName = $"{soundType}{ext}";
+                var filePath = Path.Combine(customDir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var customSounds = GetCustomSoundMappings();
+                customSounds[soundType] = $"/audio/custom/{fileName}";
+                SaveCustomSoundMappings(customSounds);
+
+                return Json(new { success = true, path = customSounds[soundType] });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading sound {SoundType}", soundType);
+                return StatusCode(500, new { success = false, error = "An error occurred while saving the uploaded sound." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ResetSound([FromBody] ResetSoundRequest request)
+        {
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            if (request == null || !validTypes.Contains(request.SoundType))
+                return BadRequest(new { success = false, error = "Invalid sound type" });
+
+            var customSounds = GetCustomSoundMappings();
+            customSounds.Remove(request.SoundType);
+            SaveCustomSoundMappings(customSounds);
+
+            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+            if (Directory.Exists(customDir))
+            {
+                var files = Directory.GetFiles(customDir, $"{request.SoundType}.*");
+                foreach (var file in files) System.IO.File.Delete(file);
+            }
+
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
+        public IActionResult GetCustomSounds()
+        {
+            return Json(GetCustomSoundMappings());
+        }
+
+        [HttpPost]
+        [RequestSizeLimit(10_000_000)]
+        public async Task<IActionResult> UploadCustomSound(IFormFile file)
+        {
+            var ext = Path.GetExtension(file.FileName).ToLower();
+            if (!new[] { ".mp3", ".wav", ".ogg" }.Contains(ext))
+                return BadRequest(new { success = false, error = "Invalid file type. Use MP3, WAV, or OGG." });
+
+            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+            Directory.CreateDirectory(customDir);
+
+            var originalName = Path.GetFileNameWithoutExtension(file.FileName);
+            var sanitizedName = SanitizeFileName(originalName);
+            var fileName = $"{sanitizedName}{ext}";
+            var filePath = Path.Combine(customDir, fileName);
+
+            var counter = 1;
+            while (System.IO.File.Exists(filePath))
+            {
+                fileName = $"{sanitizedName}_{counter}{ext}";
+                filePath = Path.Combine(customDir, fileName);
+                counter++;
+            }
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var buttonInfo = ParseButtonInfoFromFileName(originalName);
+
+            var customSoundsList = GetCustomSoundsList();
+            customSoundsList.Add(new CustomSoundButton
+            {
+                Id = Guid.NewGuid().ToString("N")[..8],
+                FileName = fileName,
+                Path = $"/audio/custom/{fileName}",
+                DisplayName = buttonInfo.DisplayName,
+                Emoji = buttonInfo.Emoji,
+                ColorClass = buttonInfo.ColorClass
+            });
+            SaveCustomSoundsList(customSoundsList);
+
+            return Json(new { success = true, button = customSoundsList.Last() });
+        }
+
+        [HttpGet]
+        public IActionResult GetCustomSoundButtons()
+        {
+            return Json(GetCustomSoundsList());
+        }
+
+        [HttpPost]
+        public IActionResult DeleteCustomSound([FromBody] DeleteCustomSoundRequest request)
+        {
+            var customSoundsList = GetCustomSoundsList();
+            var sound = customSoundsList.FirstOrDefault(s => s.Id == request.Id);
+            if (sound != null)
+            {
+                var filePath = Path.Combine(_env.WebRootPath, sound.Path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+
+                customSoundsList.Remove(sound);
+                SaveCustomSoundsList(customSoundsList);
+            }
+            return Json(new { success = true });
+        }
+
+        private static readonly HashSet<string> AllowedColorClasses = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "btn-sound-red", "btn-sound-blue", "btn-sound-gold", "btn-sound-green", "btn-sound-purple"
+        };
+
+        [HttpPost]
+        public IActionResult UpdateCustomSound([FromBody] UpdateCustomSoundRequest request)
+        {
+            var customSoundsList = GetCustomSoundsList();
+            var sound = customSoundsList.FirstOrDefault(s => s.Id == request.Id);
+            if (sound != null)
+            {
+                if (request.Emoji != null)
+                {
+                    // Limit emoji to 4 characters max
+                    sound.Emoji = request.Emoji.Length > 4 ? request.Emoji[..4] : request.Emoji;
+                }
+                if (request.DisplayName != null)
+                {
+                    // Limit display name length and trim
+                    var name = request.DisplayName.Trim();
+                    sound.DisplayName = name.Length > 100 ? name[..100] : name;
+                }
+                if (request.ColorClass != null && AllowedColorClasses.Contains(request.ColorClass))
+                {
+                    sound.ColorClass = request.ColorClass;
+                }
+                SaveCustomSoundsList(customSoundsList);
+            }
+            return Json(new { success = true });
+        }
+
+        // ==================== Sound Upload Helpers ====================
+
+        private Dictionary<string, string> GetCustomSoundMappings()
+        {
+            var json = HttpContext.Session.GetString("CustomSoundMappings");
+            if (!string.IsNullOrEmpty(json))
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+
+            // Fall back to scanning the custom directory for known sound types
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            var mappings = new Dictionary<string, string>();
+            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+            if (Directory.Exists(customDir))
+            {
+                foreach (var soundType in validTypes)
+                {
+                    var match = Directory.GetFiles(customDir, $"{soundType}.*")
+                        .FirstOrDefault(f => new[] { ".mp3", ".wav", ".ogg" }.Contains(Path.GetExtension(f).ToLower()));
+                    if (match != null)
+                        mappings[soundType] = $"/audio/custom/{Path.GetFileName(match)}";
+                }
+            }
+
+            if (mappings.Count > 0)
+                SaveCustomSoundMappings(mappings);
+
+            return mappings;
+        }
+
+        private void SaveCustomSoundMappings(Dictionary<string, string> mappings)
+        {
+            HttpContext.Session.SetString("CustomSoundMappings", JsonSerializer.Serialize(mappings));
+        }
+
+        private List<CustomSoundButton> GetCustomSoundsList()
+        {
+            var json = HttpContext.Session.GetString("CustomSoundButtons");
+            if (!string.IsNullOrEmpty(json))
+                return JsonSerializer.Deserialize<List<CustomSoundButton>>(json) ?? new List<CustomSoundButton>();
+
+            // Fall back to scanning the custom directory for non-default-type files
+            var validTypes = new[] { "goalhorn", "mushroom", "clock", "trombone",
+                                     "charge", "gohawks", "letsgo-cowbell", "letsgo-organ", "hattrick" };
+            var sounds = new List<CustomSoundButton>();
+            var customDir = Path.Combine(_env.WebRootPath, "audio", "custom");
+            if (Directory.Exists(customDir))
+            {
+                var audioExtensions = new[] { ".mp3", ".wav", ".ogg" };
+                foreach (var file in Directory.GetFiles(customDir))
+                {
+                    var ext = Path.GetExtension(file).ToLower();
+                    if (!audioExtensions.Contains(ext)) continue;
+
+                    var nameWithoutExt = Path.GetFileNameWithoutExtension(file);
+                    if (validTypes.Contains(nameWithoutExt)) continue;
+
+                    var buttonInfo = ParseButtonInfoFromFileName(nameWithoutExt);
+                    sounds.Add(new CustomSoundButton
+                    {
+                        Id = Guid.NewGuid().ToString("N")[..8],
+                        FileName = Path.GetFileName(file),
+                        Path = $"/audio/custom/{Path.GetFileName(file)}",
+                        DisplayName = buttonInfo.DisplayName,
+                        Emoji = buttonInfo.Emoji,
+                        ColorClass = buttonInfo.ColorClass
+                    });
+                }
+            }
+
+            if (sounds.Count > 0)
+                SaveCustomSoundsList(sounds);
+
+            return sounds;
+        }
+
+        private void SaveCustomSoundsList(List<CustomSoundButton> sounds)
+        {
+            HttpContext.Session.SetString("CustomSoundButtons", JsonSerializer.Serialize(sounds));
+        }
+
+        private (string Emoji, string DisplayName, string ColorClass) ParseButtonInfoFromFileName(string fileName)
+        {
+            var emoji = "🔊";
+            var displayName = fileName;
+
+            if (fileName.Length > 0)
+            {
+                var firstCodePoint = char.ConvertToUtf32(fileName, 0);
+                if (firstCodePoint > 0x1F300)
+                {
+                    var emojiLength = char.IsSurrogatePair(fileName, 0) ? 2 : 1;
+                    emoji = fileName.Substring(0, emojiLength);
+                    displayName = fileName.Substring(emojiLength).Trim();
+                }
+            }
+
+            var colorClasses = new[] { "btn-sound-red", "btn-sound-blue", "btn-sound-gold",
+                                        "btn-sound-green", "btn-sound-purple" };
+            var colorClass = colorClasses[Math.Abs(displayName.GetHashCode()) % colorClasses.Length];
+
+            return (emoji, displayName, colorClass);
+        }
+
+        private static readonly HashSet<string> WindowsReservedDeviceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+        };
+
+        private string SanitizeFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                fileName = "untitled";
+
+            var invalid = Path.GetInvalidFileNameChars();
+            var sanitized = new string(fileName.Where(c => !invalid.Contains(c)).ToArray());
+
+            if (string.IsNullOrWhiteSpace(sanitized))
+                sanitized = "untitled";
+
+            const int MaxFileNameLength = 255;
+            if (sanitized.Length > MaxFileNameLength)
+                sanitized = sanitized[..MaxFileNameLength];
+
+            var nameWithoutExtension = Path.GetFileNameWithoutExtension(sanitized);
+            var extension = Path.GetExtension(sanitized);
+
+            if (!string.IsNullOrEmpty(nameWithoutExtension) && WindowsReservedDeviceNames.Contains(nameWithoutExtension))
+            {
+                sanitized = "_" + nameWithoutExtension + extension;
+            }
+
+            return sanitized;
         }
 
         public IActionResult Privacy()
@@ -943,5 +1260,33 @@ namespace HockeyDJ.Controllers
     public class ImportConfigurationRequest
     {
         public string ConfigData { get; set; } = string.Empty;
+    }
+
+    public class CustomSoundButton
+    {
+        public string Id { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Emoji { get; set; } = "🔊";
+        public string ColorClass { get; set; } = "btn-sound-blue";
+    }
+
+    public class ResetSoundRequest
+    {
+        public string SoundType { get; set; } = string.Empty;
+    }
+
+    public class DeleteCustomSoundRequest
+    {
+        public string Id { get; set; } = string.Empty;
+    }
+
+    public class UpdateCustomSoundRequest
+    {
+        public string Id { get; set; } = string.Empty;
+        public string? Emoji { get; set; }
+        public string? DisplayName { get; set; }
+        public string? ColorClass { get; set; }
     }
 }
