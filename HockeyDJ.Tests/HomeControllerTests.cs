@@ -909,6 +909,47 @@ public class HomeControllerTests
         Assert.NotNull(jsonResult.Value);
     }
 
+    [Fact]
+    public void ExportConfiguration_IncludesHatTrickSongUri()
+    {
+        // Arrange
+        SetSessionString("SpotifyClientId", "test_client");
+        SetSessionString("SpotifyClientSecret", "test_secret");
+        SetSessionString("SpotifyRedirectUri", "http://localhost/callback");
+        SetSessionString("HatTrickSongUri", "spotify:track:hattest123");
+        SetSessionString("UserPlaylists", "[]");
+
+        // Act
+        var result = _controller.ExportConfiguration();
+
+        // Assert
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        var content = Encoding.UTF8.GetString(fileResult.FileContents);
+        var config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(content);
+        Assert.Equal("spotify:track:hattest123", config["hatTrickSongUri"].GetString());
+    }
+
+    [Fact]
+    public void ExportConfiguration_IncludesHornConfiguration()
+    {
+        // Arrange
+        SetSessionString("SpotifyClientId", "test_client");
+        SetSessionString("SpotifyClientSecret", "test_secret");
+        SetSessionString("SpotifyRedirectUri", "http://localhost/callback");
+        var hornConfig = "{\"default\":\"/audio/goal-horn.mp3\",\"players\":{}}";
+        SetSessionString("HornConfiguration", hornConfig);
+        SetSessionString("UserPlaylists", "[]");
+
+        // Act
+        var result = _controller.ExportConfiguration();
+
+        // Assert
+        var fileResult = Assert.IsType<FileContentResult>(result);
+        var content = Encoding.UTF8.GetString(fileResult.FileContents);
+        var config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(content);
+        Assert.Equal(hornConfig, config["hornConfiguration"].GetString());
+    }
+
     #endregion
 
     #region Privacy Tests
