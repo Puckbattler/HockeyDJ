@@ -19,3 +19,6 @@ TestResults/
 node_modules/
 package.json
 package-lock.json
+
+# Copilot Skills
+.github/
