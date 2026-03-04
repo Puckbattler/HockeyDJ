@@ -211,6 +211,26 @@ HockeyDJ is an ASP.NET Core MVC web application that brings the excitement of ho
    - Tip: Name files with a leading emoji (e.g., `🎺 Charge.mp3`) to auto-detect the button emoji
 3. **Manage Custom Sounds**: Edit or delete custom sound buttons from the Settings page
 
+### ⌨️ Keyboard Shortcuts
+HockeyDJ supports keyboard hotkeys for quick access during live games. Press **?** at any time to open the in-app shortcut reference.
+
+| Key | Action |
+|-----|--------|
+| **G** | Goal Horn |
+| **M** | Mushroom Sound |
+| **C** | Clock Sound |
+| **T** | Sad Trombone |
+| **O** | Charge Organ |
+| **H** | Go Hawks Cowbell |
+| **L** | Let's Go Cowbell |
+| **P** | Pause Playback |
+| **Space** | Play Random from Active Playlist |
+| **1–0** | Select Player 1–10 |
+| **?** | Show Keyboard Shortcuts Help |
+| **Esc** | Close Modal |
+
+> Hotkeys are automatically disabled when typing in a text field.
+
 ## 📁 Audio File Expectations
 
 Place custom audio files under `wwwroot/audio/`. Common files used by the application include (exact filenames matter):
