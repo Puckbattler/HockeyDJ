@@ -24,7 +24,7 @@ When making changes to code, configuration, tests, or any non-documentation file
 ## When to Apply
 
 - **DO** apply this workflow for: features, bug fixes, refactors, test changes, configuration changes, build script changes, dependency updates, and any other code modifications.
-- **DO NOT** apply this workflow for: documentation-only changes (e.g. README updates, release notes, markdown files). Documentation changes can be committed directly to the current branch.
+- **DO NOT** apply this workflow for: documentation-only changes (e.g. README updates, release notes, markdown files) or if an appropriate branch is prexists. Documentation changes can be committed directly to the current branch.
 
 ## Guidelines
 
